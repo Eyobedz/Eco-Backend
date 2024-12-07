@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Display and Edit Users</title>
+    <style>
+        #data-container {
+            padding: 10px;
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: space-evenly;
+            gap: 15px;
+        }
+
+        .row {
+            position: relative;
+            padding-bottom: 40px; /* Make space for buttons */
+            height: 270px;
+            width: 150px;
+            border: 1px solid #000000;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+
+        .row img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .view-details-button {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            right: 10px;
+        }
+
+        #add-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div id="data-container">
+    <!-- Rows will be dynamically inserted here -->
+</div>
+
+<button id="add-button">Add Student</button>
+
+<div id="studentModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Student Details</h2>
+        <form id="student-form">
+            <input type="hidden" id="action" name="action" value="update">
+            <input type="text" id="name" name="name" placeholder="Name" readonly>
+            <input type="number" id="age" name="age" placeholder="Age">
+            <input type="file" id="image" name="image" accept="image/*">
+            <img id="current-image" src="" alt="Current Image" style="max-width: 100%; display: none;">
+            <button type="submit" id="update-button">Update</button>
+            <button type="button" id="delete-button">Delete</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function fetchAndUpdateData() {
+        fetch(`http://localhost:5000/api/get-data`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(data => {
+                const container = document.getElementById('data-container');
+                container.innerHTML = ''; // Clear existing content
+                data.forEach(row => {
+                    const rowDiv = document.createElement('div');
+                    
+                    rowDiv.className = 'row';  
+                    rowDiv.innerHTML = `
+                        ${row.image_url ? `<img src="http://localhost:5000${row.image_url}" alt="${row.name}">` : ''}
+                        <p style="color: blue">Name: ${row.name}</p>
+                        <p style="color: lime">Age: ${row.age}</p>
+                        <button class="view-details-button" data-name="${row.name}" data-age="${row.age}" data-image="${row.image_url || ''}">View Details</button>
+                    `;
+                    if (row.age < 18) {
+                        rowDiv.querySelector('p:nth-child(2)').style.color = 'red';
+                    }
+                    container.appendChild(rowDiv);  
+                });
+                addEventListeners();
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
+            });
+    }
+
+    function addEventListeners() {
+        document.querySelectorAll('.view-details-button').forEach(button => {
+            button.addEventListener('click', function() {
+                const name = this.getAttribute('data-name');
+                const age = this.getAttribute('data-age');
+                const image = this.getAttribute('data-image');
+                showStudentDetails(name, age, image);
+            });
+        });
+    }
+
+    function showStudentDetails(name, age, image) {
+        const modal = document.getElementById('studentModal');
+        const nameInput = document.getElementById('name');
+        const ageInput = document.getElementById('age');
+        const currentImage = document.getElementById('current-image');
+
+        nameInput.value = name;
+        ageInput.value = age;
+        
+        if (image) {
+            currentImage.src = `http://localhost:5000${image}`;
+            currentImage.style.display = 'block';
+        } else {
+            currentImage.style.display = 'none';
+        }
+
+        modal.style.display = 'block';
+    }
+
+    // Get the modal
+    var modal = document.getElementById('studentModal');
+
+    // Get the <span> element that closes the modal
+    var span = document.getElementsByClassName('close')[0];
+
+    // When the user clicks on <span> (x), close the modal
+    span.onclick = function() {
+        modal.style.display = 'none';
+    }
+
+    // When the user clicks anywhere outside of the modal, close it
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    document.getElementById('student-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        
+        fetch('http://localhost:5000/api/add-student', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Success:', data);
+            modal.style.display = 'none';
+            fetchAndUpdateData();
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
+    });
+
+    document.getElementById('delete-button').addEventListener('click', function() {
+        const name = document.getElementById('name').value;
+        if (confirm(`Are you sure you want to delete ${name}?`)) {
+            fetch('http://localhost:5000/api/delete-student', {
+                method: 'DELETE',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({name: name})
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+                modal.style.display = 'none';
+                fetchAndUpdateData();
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        }
+    });
+
+    document.getElementById('add-button').addEventListener('click', function() {
+        const modal = document.getElementById('studentModal');
+        const form = document.getElementById('student-form');
+        form.reset();
+        document.getElementById('action').value = 'add';
+        document.getElementById('name').readOnly = false;
+        document.getElementById('current-image').style.display = 'none';
+        modal.style.display = 'block';
+    });
+
+    // Initial fetch
+    fetchAndUpdateData();
+
+    // Set up polling every 5 seconds (5000 milliseconds)
+    setInterval(fetchAndUpdateData, 5000);
+</script>
+
+</body>
+</html>

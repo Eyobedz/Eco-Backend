@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student List</title>
+    <style>
+        .student-card {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px;
+            background-color: #f9f9f9;
+            transition: background-color 0.3s;
+        }
+        .student-card:hover {
+            background-color: #f1f1f1;
+        }
+    </style>
+    <script>
+        function updateStudents(students) {
+            const studentContainer = document.getElementById('studentContainer');
+            studentContainer.innerHTML = ''; // Clear existing divs
+
+            students.forEach(student => {
+                const studentCard = document.createElement('div');
+                studentCard.className = 'student-card';
+                studentCard.innerHTML = `<strong>Name:</strong> ${student[1]} <br>
+                                         <strong>Age:</strong> ${student[2]}`;
+                studentContainer.appendChild(studentCard);
+            });
+        }
+
+        // Connect to the SSE endpoint
+        const eventSource = new EventSource('/updates');
+        eventSource.onmessage = function(event) {
+            const students = JSON.parse(event.data);
+            updateStudents(students);
+        };
+    </script>
+</head>
+<body>
+    <h1>Student List</h1>
+    <div id="studentContainer">
+        <!-- Student divs will be dynamically added here -->
+    </div>
+</body>
+</html>

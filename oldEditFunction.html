@@ -1,0 +1,94 @@
+function editProduct(data){
+    const mainContent = document.getElementById('main-content');
+    const overlay = document.getElementById('editoverlay');
+    const detail = document.getElementById('detail');
+    const form = document.getElementById('edit-form');
+    const editform = document.getElementById('editform');
+    const editcloseBtn = document.getElementById('editcloseBtn');
+    const editModal = document.getElementById('editModal');
+    const editconfirmYes = document.getElementById('editconfirmYes');
+    const editconfirmNo = document.getElementById('editconfirmNo');
+    const detoverlay = document.getElementById('detoverlay');
+
+    detail.style.display = 'none';
+    detoverlay.style.display = 'none';
+    editform.style.display = 'block';
+    overlay.style.display = 'block';
+    mainContent.classList.add('blurred');
+
+    // Populate the form fields with previous data
+    document.getElementById('edit-product-name-input').value = data.productName;
+    document.getElementById('edit-quantity-input').value = data.quantity;
+    document.getElementById('edit-Unit').value = data.unit;
+    document.getElementById('edit-price-input').value = data.price;
+    document.getElementById('edit-expirationDate-input').value = data.expirationDate;
+    document.getElementById('edit-barcode').value = data.barcode;
+    document.getElementById('edit-id-input').value = data.productId; // Always set the ID
+
+    document.getElementById('edit-form').addEventListener('submit', async (e) => {
+        e.preventDefault(); // Prevent the default form submission
+        try {
+            const formData = new FormData(); // Create a FormData object from the form
+
+            // Check for empty fields and retain previous values
+            formData.append('id', data.productId); // Always include the product ID
+            formData.append('product_name', document.getElementById('edit-product-name-input').value ||data.productName);
+            formData.append('stock', document.getElementById('edit-quantity-input').value || data.quantity);
+            formData.append('unit', document.getElementById('edit-Unit').value || data.unit);
+            formData.append('price', document.getElementById('edit-price-input').value || data.price);
+            formData.append('exdate', document.getElementById('edit-expirationDate-input').value || data.expirationDate);
+            formData.append('barcode', document.getElementById('edit-barcode').value || data.barcode);
+
+            // Add the image file if provided
+            const imageFile = document.getElementById('edit-image-input').files[0];
+            if (imageFile) {
+                formData.append('image', imageFile);
+            }
+            
+
+            const response = await fetch('http://localhost:5000/api/update-product', {  // Updated URL
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const responseData = await response.json();
+            console.log('Success:', responseData);
+            form.reset(); // Clear the form after submission
+            // Optionally, close the edit form or refresh the product list
+            editform.style.display = 'none';
+            overlay.style.display = 'none';
+            mainContent.classList.remove('blurred');
+            // detail.style.display = 'block';
+            // detoverlay.style.display = 'block';
+            fetchAndUpdateData(); // Refresh the product list after updating
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    });
+
+    document.getElementById('editcloseBtn').addEventListener('click', function() {
+        editModal.style.display = 'flex';
+    });
+
+    overlay.addEventListener('click', function() {
+        editModal.style.display = 'flex';
+    });
+
+    editconfirmYes.addEventListener('click', function() {
+        editform.style.display = 'none';
+        editModal.style.display = 'none';
+        overlay.style.display = 'none';
+        detail.style.display = 'block';
+        detoverlay.style.display = 'block';
+        console.log('change has been discarded');
+    });
+
+    editconfirmNo.onclick = function() {
+        editModal.style.display = 'none';
+        console.log('changes are pending');
+    };
+}

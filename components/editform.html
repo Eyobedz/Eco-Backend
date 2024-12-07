@@ -1,0 +1,115 @@
+<div id="editform"  ">
+    <div><button id="editcloseBtn">X</button></div>
+    <h2 style="text-align: center;">Edit Product Details</h2>
+    <form id="edit-form" enctype="multipart/form-data">
+        <table>
+            <tr><td><Label for="edit-product-name-input">Product Name</Label><td>
+                <input type="text" name="productName" id="edit-product-name-input" placeholder="Product Name" ></td></td>
+
+            <tr><td><Label for="edit-quantity-input">Quantity</Label><td>
+                <input type="number" id="edit-quantity-input" placeholder="Quantity" ></td></tr>
+
+            <tr><td><Label for="edit-Unit">Measuring Unit</Label><td>
+                <input name="unit" list="unitList" id="edit-Unit" placeholder="Unit" >
+                    <datalist id="unitList">
+                        <option value="" disable selected hidden>Per Unit</option>
+                        <option value="pis">pis</option>
+                        <option value="Kg">Kg</option>
+                        <option value="Liter">Liter</option>
+                        <option value="100g">100g</option>
+                    </datalist>
+            </td></tr>
+            
+            <tr><td><Label for="edit-price-input">Price</Label><td>
+                <input type="number" id="edit-price-input" placeholder="Price">
+                <Label for="edit-priceper">/</Label>
+                    <select id="edit-priceper" placeholder="Price per" >
+                            <option value="" disable selected hidden>Per Unit</option>
+                            <option value="/pis">pis</option>
+                            <option value="/Kg">Kg</option>
+                            <option value="/Liter">Liter</option>
+                            <option value="/100g">100g</option>
+                    </select>
+            </td></tr>   
+                
+            <tr><td><Label for="edit-expirationDate-input">Expiration date</Label><td>
+                <input type="date" id="edit-expirationDate-input" placeholder="Expiration Date" ></td></tr>
+            <tr><td><Label for="edit-barcode">Barcode</Label><td>
+                <input type="number" id="edit-barcode" placeholder="Barcode"></td></tr>
+            <tr><td><Label for="edit-image-input">Image</Label><td>
+                <input type="file" id="edit-image-input" accept="image/*"></td></tr>
+        </table>
+        <div class="choice">
+            <button  type="submit"  id="Savebtn" title="Save changes">Save</button>
+        </div>
+    </form>
+
+    <!-- Modal for confirmation -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <p>Are you sure you want to discard changes to this product?</p>
+            <div class="modal-buttons">
+                <button id="editconfirmYes">Yes</button>
+                <button id="editconfirmNo">No</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // Example product data (replace this with actual data from your API)
+    const productData = {
+        productName: "Sample Product",
+        quantity: 10,
+        unit: "Kg",
+        price: 20.5,
+        expirationDate: "2023-12-31",
+        barcode: 123456789,
+        image: null // Handle image separately if needed
+    };
+
+    // Function to populate the form with existing product data
+    function populateEditForm(data) {
+        document.getElementById('edit-product-name-input').placeholder = data.productName;
+        document.getElementById('edit-quantity-input').placeholder = data.quantity;
+        document.getElementById('edit-Unit').placeholder = data.unit;
+        document.getElementById('edit-price-input').placeholder = data.price;
+        document.getElementById('edit-expirationDate-input').placeholder = data.expirationDate;
+        document.getElementById('edit-barcode').placeholder = data.barcode;
+    }
+
+    document.getElementById('edit-form').addEventListener('submit', function(event) {
+        event.preventDefault(); // Prevent the default form submission
+
+        const formData = new FormData(this); // Create a FormData object from the form
+
+        // Check for empty fields and retain previous values
+        formData.forEach((value, key) => {
+            if (!value) {
+                formData.set(key, productData[key]); // Set to previous value if empty
+            }
+        });
+
+        fetch('https://your-api-endpoint.com/edit-product', { // Replace with your API endpoint
+            method: 'POST',
+            body: formData,
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Product updated successfully!');
+                // Optionally, close the edit form or refresh the product list
+            } else {
+                alert('Error updating product: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while updating the product.');
+        });
+    });
+
+    // Call this function when the edit form is opened
+    populateEditForm(productData);
+</script>

@@ -1,0 +1,52 @@
+<div id="detail" style="display: none;">
+    <div >
+        <button id="closeBtn" title="close">X</button>
+    </div>
+    
+    <table id="info">
+        
+        <tr>
+            <td class="tbco0" rowspan="5"><img src="" alt="product image" id="detimg" ></td>
+            <td id="tbco1">Product Name:</td>
+            <td id="tbco2"><label id="pdName"></label></td>
+        </tr>
+
+        <tr>
+            <td id="tbco1">Stock:</td>
+            <td id="tbco2"><label id="pdstock">/</label><label id="pdunit"></label></td>
+        </tr>
+
+        <tr>
+            <td id="tbco1">Expiration date:</td>
+            <td id="tbco2"><label id="exDate">dd/mm/yy</label></td>
+        </tr>
+
+        <tr>
+            <td id="tbco1">barcode:</td>
+            <td id="tbco2"><label id="bcode">barcode</label></td>
+        </tr>
+
+        <tr>
+            <td id="tbco1">Price:</td>
+            <td id="tbco2"><label id="price">Price</label><label id="pdpriceper"></label></td>
+        </tr>
+
+        
+        
+    </table>
+    <div class="choice">
+        <button  id="editbtn" title="Edit this item" onclick="editinfo(this)">Edit</button>
+        <button  id="deletebtn" title="Delete this item">Delete</button>
+    </div>
+
+    <!-- Modal for confirmation -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <p>Are you sure you want to delete this product?</p>
+            <div class="modal-buttons">
+                <button id="confirmYes">Yes</button>
+                <button id="confirmNo">No</button>
+            </div>
+        </div>
+    </div>
+</div>

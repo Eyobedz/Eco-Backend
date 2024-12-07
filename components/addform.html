@@ -1,0 +1,178 @@
+<div id="addProduct">
+    <button id="addBtn" title="Add new product">+</button>
+</div>
+
+<div id="pdform" ">
+    <div><button id="closBtn">X</button></div>
+    <h2 style="text-align: center;">Add Product</h2>
+    <form id="product-form" method="post"  enctype="multipart/form-data"z>
+        <table>
+            <tr><td><Label for="product-name-input">Product Name</Label><td>
+                <input type="text" id="product-name-input" placeholder="Product Name" ></td></td>
+
+            <tr><td><Label for="quantity-input">Quantity</Label><td>
+                <input type="number" id="quantity-input" placeholder="Quantity" ></td></tr>
+
+            <tr><td><Label for="Unit">Measuring Unit</Label><td>
+                <input name="unit list" list="unitList" id="Unit" placeholder="Unit" >
+                    <datalist id="unitList">
+                        <option>pis</option>
+                        <option>Kg</option>
+                        <option>Liter</option>
+                        <option>/100g</option>
+                    </datalist>
+            </td></tr>
+
+
+            <tr><td><Label for="price-input">Price</Label><td>
+                <input type="number" id="price-input" placeholder="Price">
+                <Label for="priceper">/</Label>
+                    <select id="priceper" placeholder="Price per" >
+                            <option value="" disable selected hidden>Per Unit</option>
+                            <option value="/pis">pis</option>
+                            <option value="/Kg">Kg</option>
+                            <option value="/Liter">Liter</option>
+                            <option value="/100g">100g</option>
+                    </select>
+            </td></tr>   
+                
+            
+            
+            <tr><td><Label for="expirationDate-input">Expiration date</Label><td>
+                <input type="date" id="expirationDate-input" placeholder="Expiration Date" ></td></tr>
+            <tr><td><Label for="barcode">Barcode</Label><td>
+                <input type="number" id="barcode" placeholder="Barcode"></td></tr>
+            <tr><td><Label for="image-input">Image</Label><td>
+                <input type="file" id="image-input" accept="image/*"></td></tr>
+            <tr><td>
+                <td><button type="submit" id="submitBtn">Add Product</button></td></tr>
+        
+        </table>
+    </form>
+    <div id="message"></div>
+</div>
+
+<script>
+document.getElementById('product-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    // Validate required fields
+    const requiredFields = ['product-name-input', 'quantity-input', 'price-input'];
+    const missingFields = requiredFields.filter(field => !document.getElementById(field).value.trim());
+    
+    if (missingFields.length > 0) {
+        document.getElementById('message').textContent = 'Please fill in all required fields';
+        return;
+    }
+
+    // Disable submit button and show loading state
+    const submitBtn = document.getElementById('submitBtn');
+    const messageDiv = document.getElementById('message');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Adding...';
+    messageDiv.textContent = '';
+
+    try {
+        const formData = new FormData();
+        
+        // Safely get and validate form values
+        const productName = document.getElementById('product-name-input').value.trim();
+        const quantity = document.getElementById('quantity-input').value.trim();
+        const unit = document.getElementById('Unit').value.trim();
+        const price = document.getElementById('price-input').value.trim();
+        const pricePer = document.getElementById('priceper').value.trim();
+        const expirationDate = document.getElementById('expirationDate-input').value;
+        const barcode = document.getElementById('barcode').value.trim();
+
+        // Validate numeric fields
+        if (isNaN(quantity) || isNaN(price)) {
+            throw new Error('Quantity and price must be valid numbers');
+        }
+
+        // Add validated data to FormData
+        formData.append('product-name-input', productName);
+        formData.append('quantity-input', quantity);
+        formData.append('Unit', unit);
+        formData.append('price-input', price);
+        formData.append('priceper', pricePer);
+        formData.append('expirationDate-input', expirationDate);
+        formData.append('barcode', barcode);
+        
+        // Handle image upload
+        const imageInput = document.getElementById('image-input');
+        if (imageInput && imageInput.files.length > 0) {
+            const imageFile = imageInput.files[0];
+            // Validate file type and size
+            if (!imageFile.type.startsWith('image/')) {
+                throw new Error('Please upload a valid image file');
+            }
+            if (imageFile.size > 5000000) { // 5MB limit
+                throw new Error('Image file is too large (max 5MB)');
+            }
+            formData.append('image-input', imageFile);
+        }
+        
+        // Make the API request
+        const response = await fetch('http://localhost:5000/api/add-product', {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to add product');
+        }
+        
+        const data = await response.json();
+        
+        // Show success message
+        messageDiv.textContent = 'Product added successfully!';
+        messageDiv.style.color = 'green';
+        
+        // Reset form
+        document.getElementById('product-form').reset();
+        
+        // Close the form modal if it exists
+        const pdform = document.getElementById('pdform');
+        if (pdform) {
+            pdform.style.display = 'none';
+        }
+        
+        // Refresh the product list
+        if (typeof fetchAndUpdateData === 'function') {
+            await fetchAndUpdateData();
+        }
+        
+    } catch (error) {
+        console.error('Error:', error);
+        messageDiv.textContent = error.message || 'Error adding product. Please try again.';
+        messageDiv.style.color = 'red';
+    } finally {
+        // Reset button state
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Add Product';
+    }
+});
+
+// Add button handler
+document.getElementById('addBtn').addEventListener('click', () => {
+    const pdform = document.getElementById('pdform');
+    if (pdform) {
+        pdform.style.display = 'block';
+        // Reset form and message when opening
+        document.getElementById('product-form').reset();
+        document.getElementById('message').textContent = '';
+    }
+});
+
+// Close button handler
+document.getElementById('closBtn').addEventListener('click', () => {
+    const pdform = document.getElementById('pdform');
+    if (pdform) {
+        pdform.style.display = 'none';
+        // Reset form and message when closing
+        document.getElementById('product-form').reset();
+        document.getElementById('message').textContent = '';
+    }
+});
+</script>
