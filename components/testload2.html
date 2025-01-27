@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Load 2</title>
+    <style>
+        .center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.loading-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.spinner {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    transform-origin:center;
+    border-radius: 0%;
+    animation: spin  1s infinite;
+    background: transparent;
+}
+
+.dot{
+    height: 25px;
+    width: 25px;
+    border-radius: 50%;
+    background-color: black;
+}
+
+#dot1{
+    background-color: rgb(63, 230, 130);
+    position: absolute;
+    top: 0;
+    left: 0;
+   
+}
+
+#dot2{
+    position: absolute;
+    background-color: rgb(0,0, 255);
+    top: 0;
+    right: 0;
+}
+
+#dot3{
+    position: absolute;
+    background-color: rgb(0,0, 255);
+    bottom: 0;
+    left: 0;
+   
+}
+
+#dot4{
+    position: absolute;
+    background-color: rgb(0, 0, 255);
+    bottom: 0;
+    right: 0;
+   
+}
+
+@keyframes spin {
+    0%{transform: rotate(0deg);
+        padding: 0px;}
+        
+        50%{padding: 15px;
+        }
+    100% {transform: rotate(360deg);
+          padding: 0px;}
+        
+    
+}
+    </style>
+</head>
+<body>
+    <div id="loader" class="center" >
+        <div class="spinner">
+            <div class="dot" id="dot1"></div>
+            <div class="dot" id="dot2"></div>
+            <div class="dot" id="dot3"></div>
+            <div class="dot" id="dot4"></div>
+        </div>
+    </div>
+</body>
+</html>

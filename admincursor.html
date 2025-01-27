@@ -948,14 +948,15 @@ footer {
             <h2 style="text-align: center;">Edit Product Details</h2>
             <form id="edit-form" enctype="multipart/form-data">
                 <table>
+                    <input type="number" name="id" id="productID" hidden>
                     <tr><td><Label for="edit-product-name-input">Product Name</Label><td>
-                        <input type="text" name="productName" id="edit-product-name-input" placeholder="Product Name" ></td></td>
+                        <input type="text" name="product_name" id="edit-product-name-input" placeholder="Product Name" ></td></td>
         
                     <tr><td><Label for="edit-quantity-input">Quantity</Label><td>
-                        <input type="number" id="edit-quantity-input" placeholder="Quantity" ></td></tr>
+                        <input type="number" name='stock' id="edit-quantity-input" placeholder="Quantity" ></td></tr>
         
                     <tr><td><Label for="edit-Unit">Measuring Unit</Label><td>
-                        <input name="unit" list="unitList" id="edit-Unit" placeholder="Unit" >
+                        <input name="unit" name='unit' list="unitList" id="edit-Unit" placeholder="Unit" >
                             <datalist id="unitList">
                                 <option value="" disable selected hidden>Per Unit</option>
                                 <option value="Pis">Pis</option>
@@ -966,9 +967,9 @@ footer {
                     </td></tr>
                     
                     <tr><td><Label for="edit-price-input">Price</Label><td>
-                        <input type="number" id="edit-price-input" placeholder="Price">
+                        <input type="number" name="price" id="edit-price-input" placeholder="Price">
                         <Label for="edit-priceper">/</Label>
-                            <select id="edit-priceper" placeholder="Price per" >
+                            <select name="per" id="edit-priceper" placeholder="Price per" >
                                     <option id="edit-per" value="" disable selected hidden>Per Unit</option>
                                     <option value="/ Pis">Pis</option>
                                     <option value="/ Kg">Kg</option>
@@ -978,11 +979,11 @@ footer {
                     </td></tr>   
                         
                     <tr><td><Label for="edit-expirationDate-input">Expiration date</Label><td>
-                        <input type="date" id="edit-expirationDate-input" placeholder="Expiration Date" ></td></tr>
+                        <input type="date" name="exdate" id="edit-expirationDate-input" placeholder="Expiration Date" ></td></tr>
                     <tr><td><Label for="edit-barcode">Barcode</Label><td>
-                        <input type="number" id="edit-barcode" placeholder="Barcode"></td></tr>
+                        <input type="number" name="barcode" id="edit-barcode" placeholder="Barcode"></td></tr>
                     <tr><td><Label for="edit-image-input">Image</Label><td>
-                        <input type="file" id="edit-image-input" accept="image/*"></td></tr>
+                        <input type="file" name="image" id="edit-image-input" accept="image/*"></td></tr>
                 </table>
                 <div class="choice">
                     <button  type="submit"  id="Savebtn" title="Save changes">Save</button>
@@ -1182,6 +1183,7 @@ function viewDetails(button) {
     })
 
     const productData = {
+        productid: `${product.getAttribute('data-id')}`,
         productName: `${product.querySelector('h2').textContent}`,
         quantity: `${product.getAttribute('data-stock')}`,
         unit: `${product.getAttribute('data-unit')}`,
@@ -1196,8 +1198,7 @@ function viewDetails(button) {
     document.getElementById('editbtn').onclick = function() {
         editProduct(productData);
     }
-    
-    console.log(productData)
+    console.table(productData)
     deleteProduct(product);
     
   
@@ -1278,7 +1279,7 @@ function editProduct(data){
     const editconfirmYes = document.getElementById('editconfirmYes');
     const editconfirmNo = document.getElementById('editconfirmNo');
     const detoverlay = document.getElementById('detoverlay');
-
+    const editFormElement = document.getElementById('edit-form');
 
     detail.style.display = 'none';
     detoverlay.style.display = 'none';
@@ -1286,7 +1287,7 @@ function editProduct(data){
     overlay.style.display = 'block';
     mainContent.classList.add('blurred');
 
-
+    document.getElementById('productID').value = data['productid'];
     document.getElementById('edit-product-name-input').placeholder = data.productName;
     document.getElementById('edit-quantity-input').placeholder = data.quantity;
     document.getElementById('edit-Unit').placeholder = data.unit;
@@ -1296,19 +1297,18 @@ function editProduct(data){
     document.getElementById('edit-barcode').placeholder = data.barcode;
 
 
-    document.getElementById('edit-form').addEventListener('submit', function(event) {
+    editFormElement.onsubmit = function (event) {
         event.preventDefault(); // Prevent the default form submission
 
-        const formData = new FormData(this); // Create a FormData object from the form
-
-        // Check for empty fields and retain previous values
-        formData.forEach((value, key) => {
-            if (!value) {
-                formData.set(key, productData[key]); // Set to previous value if empty
+        const formData = new FormData(editFormElement); // Create a FormData object from the form
+        const imageFile = document.getElementById('edit-image-input').files[0];
+            if (imageFile) {
+                formData.append('image-input', imageFile);
             }
-        });
+        console.log(formData.get('id'));
 
-        fetch('https://your-api-endpoint.com/edit-product', { // Replace with your API endpoint
+
+        fetch('http://localhost:5000/api/update-product', { // Replace with your API endpoint
             method: 'POST',
             body: formData,
         })
@@ -1316,37 +1316,51 @@ function editProduct(data){
         .then(data => {
             if (data.success) {
                 alert('Product updated successfully!');
+                editform.style.display = 'none';
+                editModal.style.display = 'none';
+                overlay.style.display = 'none';
+                mainContent.classList.remove('blurred');
+                editFormElement.reset();
+                
+                
+                setTimeout(fetchAndUpdateData(),2500);
+                
+                
+                
                 // Optionally, close the edit form or refresh the product list
             } else {
-                alert('Error updating product: ' + data.message);
+                alert('Error updating product: ' + data.error);
             }
         })
         .catch(error => {
             console.error('Error:', error);
             alert('An error occurred while updating the product.');
         });
-    });
+        
+    };
+    
+        
 
-    document.getElementById('editcloseBtn').addEventListener('click', function(){
+    document.getElementById('editcloseBtn').onclick = function(){
         editModal.style.display = 'flex';
-    });
+    };
 
-    overlay.addEventListener('click', function (){
+    overlay.onclick = function (){
         //editform.style.display = 'none'
         //overlay.style.display = 'none';
         editModal.style.display = 'flex';
 
        // mainContent.classList.remove('blurred');
-    })
+    }
 
-    editconfirmYes.addEventListener('click', function(){
+    editconfirmYes.onclick=function(){
         editform.style.display = 'none';
         editModal.style.display = 'none';
         overlay.style.display = 'none';
         detail.style.display = 'block';
         detoverlay.style.display = 'block';
         console.log('change has been discarded');
-    });
+    };
     
     editconfirmNo.onclick = function(){
         editModal.style.display = 'none';
