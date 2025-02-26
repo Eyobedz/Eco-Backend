@@ -8,7 +8,7 @@ app = Flask(__name__)
 # Configure CORS to allow POST requests
 CORS(app, resources={
     r"/api/*": {
-        "origins": "http://127.0.0.1:5504",
+        "origins": "http://127.0.0.1:5503",
         "methods": ["GET", "POST", "PUT", "DELETE"],
         "allow_headers": ["Content-Type"]
     }

@@ -23,6 +23,7 @@ body {
     z-index: 500;
 }
 
+
 header {
     display: flex;
     justify-content: space-between;
@@ -62,21 +63,55 @@ header {
     flex-wrap: wrap;
 }
 
-.search-bar input, .search-bar button {
-    padding: 5px;
-    margin-right: 5px;
-    border-radius: 5px;
-    flex-shrink: 1;
-}
-
-.search-bar button {
+#search{
     background-color: #febd69;
     border: none;
+    border-radius: 5px;
     cursor: pointer;
 }
 
-.search-bar button:hover {
+#search:hover {
     background-color: #ffac3e;
+}
+
+.search-field {
+    display: flex;
+    position: relative;
+    align-items: center;
+    padding: 5px;
+    margin-right: 10px;
+    border: 1px solid #181511;
+    border-radius: 5px;
+    /* width: 300px; */
+    background-color: white;   
+    flex-shrink: 1;
+}
+
+.search-field input  {
+    /* flex: 1; */
+    border: none;
+    outline: none;
+    /* font-size: 16px; */
+    background: transparent;
+    
+}
+
+
+
+
+#clearButton {
+    position: relative;
+    right: 0px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: none;
+    /* font-size: 14px; */
+    color: #888888;
+}
+
+#clearButton:hover {
+    color: #333;
 }
 
 #search-icon{
@@ -148,9 +183,9 @@ main {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 20px;
+    gap: 10px;
     background-color: #bac8ca;
-    padding: 20px;
+    padding: 10px;
 }
 
 .product {
@@ -159,14 +194,15 @@ main {
     margin: 5px;
     padding: 10px;
     width: 100%; /* 100% width for mobile */
-    max-width: 200px; /* Max width for larger screens */
+    max-width: 180px; /* Max width for larger screens */
     text-align: center;
     border-radius: 10px;
 }
 
 .product img {
     max-width: 100%;
-    max-height: 150px;
+    max-height: 100px;
+    filter: drop-shadow(0px 15px 10px rgba(0, 0, 0, 0.5));
 }
 
 footer {
@@ -751,7 +787,7 @@ footer {
 
     <nav id="sidebar" class="nav-menu">
         <div id="logo" class="logo">
-            <img src="meh.png" alt="logo">
+            <img src="Elements/meh.png" alt="logo">
             <p> Organic Invenntory Managment</p>
         </div>
         <div class="nav-header">
@@ -782,13 +818,18 @@ footer {
         <header>
             <button class="fas fa-bars" id="hamburger-menu"></button>
             <div id="logo" class="logo">
-                <img src="meh.png" alt="logo">
+                <img src="Elements/meh.png" alt="logo">
             <p> Organic Invenntory</p>
             </div>
 
             <div class="search-bar">
-                <input type="text" placeholder="Search..." >
-                <button onclick="searchProducts()">Search</button>
+                <div class="search-field">
+                    <input type="text" placeholder="Search..." >
+                    <button id="clearButton" class="clear-btn">
+                        <i class="fa fa-xmark"></i>
+                    </button>
+                </div>
+                <button id="search" onclick="searchProducts()">Search</button>
             </div>
             <div>
                 <button class="fas fa-bell" id="notification-icon" ></button>
@@ -800,8 +841,8 @@ footer {
             </div>
             <nav>
                 <ul>
-                    <li><a href="index.html"><i id='navbtns' class="fas fa-house" title="Home"></i></a></li>
-                    <li><a href="coming.html"><i id='navbtns' title="cart" class="fas fa-cart-shopping"></i></a></li>
+                    <li><a href="admincursor.html"><i id='navbtns' class="fas fa-house" title="Home"></i></a></li>
+                    <li><a href="cart/cart.html"><i id='navbtns' title="cart" class="fas fa-cart-shopping"></i></a></li>
                     <li><a href="coming.html"></a><i id='navbtns' class="fas fa-bell" title="Notification"></i></li>
                     <li><a href="#"></a><button id="accBtn" title="account" ><i class="fas fa-user-secret" ; style="scale: 150%;"></i></button>
                         
@@ -811,7 +852,9 @@ footer {
 
 
         </header>
-    
+        <p style="position: absolute; z-index: -1; text-align: center; top: 50%; width: 99%; margin: 10px; font-size: 34px;">
+            No Product Found!!!
+       </p>
         <section class="products" id="main-content">
             <div class="product" data-stock="5" data-unit='pis' data-expiration="2024-09-01" barcode = '0073076552945' price = 370 priceper="pis">
                 <img src="items/ITEM BG/20240815_173518-removebg-preview.png" alt="Product 1">
@@ -1021,7 +1064,6 @@ footer {
     <script>
 
 document.addEventListener("DOMContentLoaded", () => {
-    checkStockAndExpiration();
     AddProduct();
     sidebar();
     fetchAndUpdateData();
@@ -1070,7 +1112,10 @@ function sidebar() {
 }
 
 function fetchAndUpdateData() {
-    fetch('http://localhost:5000/api/get-data')
+    const container = document.getElementById('main-content');
+    const fragment = document.createDocumentFragment(); // Create a DocumentFragment for batching
+
+    fetch('http://localhost:5000/api/get-data', { method: 'GET' })
         .then(response => {
             if (!response.ok) {
                 throw new Error('Network response was not ok ' + response.statusText);
@@ -1078,44 +1123,90 @@ function fetchAndUpdateData() {
             return response.json();
         })
         .then(data => {
-            const container = document.getElementById('main-content');
             container.innerHTML = ''; // Clear existing content
+
             data.forEach(row => {
                 const rowDiv = document.createElement('div');
-                
+
                 // Format the date
                 const formattedDate = formatDate(row.exdate);
-                
-                rowDiv.className = 'product'; 
-                rowDiv.setAttribute('data-id', row.id); 
+
+                rowDiv.className = 'product';
+                rowDiv.setAttribute('data-id', row.id);
                 rowDiv.setAttribute('data-name', row.product_name);
-                rowDiv.setAttribute('data-stock', row.stock);  
+                rowDiv.setAttribute('data-stock', row.stock);
                 rowDiv.setAttribute('data-unit', row.unit);
                 rowDiv.setAttribute('data-expiration', formattedDate);
                 rowDiv.setAttribute('data-barcode', row.barcode);
                 rowDiv.setAttribute('data-price', row.price);
                 rowDiv.setAttribute('data-priceper', row.per);
                 rowDiv.setAttribute('data-image', row.image_path || '');
+                rowDiv.setAttribute('onclick', 'viewDetails(this)');
+
+                // Use lazy loading for images
+                const imgElement = row.image_path
+                    ? `<img src="http://localhost:5000${row.image_path}" alt="${row.product_name}" loading="lazy">`
+                    : '';
+
+                // Pre-calculate stock and expiration information
+                const stockInfoContent = getStockAndExpirationInfo(row.stock, row.unit, formattedDate);
+
                 rowDiv.innerHTML = `
-                    ${row.image_path ? `<img src="http://localhost:5000${row.image_path}" alt="${row.product_name}">` : ''}
+                    ${imgElement}
                     <h2 style="color: blue">${row.product_name}</h2>
-                    <p style="color: lime"> ETB ${row.price} ${row.per}</p>
-                    <button class="view-details-button"onclick="viewDetails(this)">View Details</button>
-                    <p class="stock-info"></p>
+                    <p style="color: lime">ETB ${row.price} ${row.per}</p>
+                    <button class="view-details-button" >View Details</button>
+                    <p class="stock-info" style="color: ${stockInfoContent.color}">${stockInfoContent.text}</p>
                 `;
 
-                
-                container.appendChild(rowDiv);  
-               
+                fragment.appendChild(rowDiv); // Append to the DocumentFragment
             });
-            
+
+            container.appendChild(fragment); // Append the DocumentFragment to the DOM in one operation
         })
         .catch(error => {
-            console.error('Error fetching data:', error);
+            console.error('Error fetching data:', error.message || error);
+            alert('Failed to load data. Please try again later.');
         });
 }
 
-function checkStockAndExpiration() {
+function getStockAndExpirationInfo(stock, unit, expirationDateStr) {
+    const today = new Date();
+
+    if (!expirationDateStr) return { text: '', color: '' }; // Skip if no expiration date is provided
+
+    const expirationDate = new Date(expirationDateStr);
+    const timeDiff = expirationDate - today;
+    const daysToExpire = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+    let text = '';
+    let color = '';
+
+    // Check stock level
+    if (stock > 0 && stock < 10) {
+        text = `Low stock: Only ${stock} ${unit} left`;
+        color = 'orange';
+    } else if (stock === 0) {
+        text = `Out of stock`;
+        color = 'red';
+    } else {
+        text = `In stock: ${stock} ${unit}`;
+        color = 'green';
+    }
+
+    // Check expiration date
+    if (daysToExpire <= 7 && daysToExpire > 0) {
+        text += ` | Expiring in ${daysToExpire} days!`;
+        color = 'orange'; // Override color if expiring soon
+    } else if (daysToExpire <= 0) {
+        text += ` | Expired`;
+        color = 'red'; // Override color if expired
+    }
+
+    return { text, color };
+}
+
+function checkStockAndExpiraion() {
     const products = document.querySelectorAll('.product');
     const today = new Date();
 
@@ -1307,7 +1398,7 @@ function editProduct(data){
             }
         console.log(formData.get('id'));
 
-
+        
         fetch('http://localhost:5000/api/update-product', { // Replace with your API endpoint
             method: 'POST',
             body: formData,
@@ -1323,7 +1414,7 @@ function editProduct(data){
                 editFormElement.reset();
                 
                 
-                setTimeout(fetchAndUpdateData(),2500);
+                setTimeout(fetchAndUpdateData,2500);
                 
                 
                 
@@ -1485,12 +1576,26 @@ searchInput.addEventListener("keypress", function(event) {
     }
 });
 
-
+ // Show clear button when there is text in the input
+ searchInput.addEventListener('input', function () {
+    if (this.value.length > 0) {
+        clearButton.style.display = 'block';
+    } else {
+        clearButton.style.display = 'none';
+    }
+});
+ // Clear input when the button is clicked
+ clearButton.addEventListener('click', function () {
+    searchInput.value = '';
+    clearButton.style.display = 'none';
+    searchProducts(); // Clear the search results
+    searchInput.focus();
+});
 
 
 
 document.addEventListener("DOMContentLoaded", () => {
-    checkStockAndExpiration();
+    //checkStockAndExpiration();
     observeProductList();  // Call the function to start observing changes
 });
 
@@ -1512,11 +1617,6 @@ function observeProductList() {
     observer.observe(productContainer, config);
 }
 
-
-
-
-
-// Add this function to format the date
 function formatDate(dateString) {
     // Current implementation doesn't handle invalid dates
     const date = new Date(dateString);
@@ -1528,13 +1628,6 @@ function formatDate(dateString) {
     const year = String(date.getFullYear());
     return `${year}-${month}-${day}`;
 }
-
-// Initial fetch
-
-
-// Set up polling every 5 seconds (5000 milliseconds)
- //setInterval(fetchAndUpdateData, 5000);
-
 
 
     </script>

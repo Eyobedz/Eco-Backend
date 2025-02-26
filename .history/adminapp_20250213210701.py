@@ -8,7 +8,7 @@ app = Flask(__name__)
 # Configure CORS to allow POST requests
 CORS(app, resources={
     r"/api/*": {
-        "origins": "http://127.0.0.1:5504",
+        "origins": "*",
         "methods": ["GET", "POST", "PUT", "DELETE"],
         "allow_headers": ["Content-Type"]
     }
@@ -247,4 +247,4 @@ def delete_product():
 
 if __name__ == '__main__':
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-    app.run(debug=True)
+    app.run( host="0.0.0.0", port=5000 debug=True)

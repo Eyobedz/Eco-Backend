@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search with Clear Button</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    
+    <style>
+        .search-container {
+            position: relative;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            width: 300px;
+            display: flex;
+            align-items: center;
+            padding: 5px 10px;
+            background-color: white;
+        }
+
+        .search-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            background: transparent;
+        }
+
+        #clearButton {
+            position: relative;
+            right: 0px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: block;
+            font-size: 20px;
+            color: #888888;
+        }
+
+        #clearButton:hover {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+
+<div class="search-container">
+    <input type="text" id="searchInput" class="search-input" placeholder="Search...">
+    <button id="clearButton">
+        <i class="fa fa-xmark fa-large "></i>
+    </button>
+</div>
+
+<script>
+    const searchInput = document.getElementById('searchInput');
+    const clearButton = document.getElementById('clearButton');
+
+    // Show clear button when there is text in the input
+    searchInput.addEventListener('input', function () {
+        if (this.value.length > 0) {
+            clearButton.style.display = 'block';
+        } else {
+            clearButton.style.display = 'none';
+        }
+    });
+
+    // Clear input when the button is clicked
+    clearButton.addEventListener('click', function () {
+        searchInput.value = '';
+        clearButton.style.display = 'none';
+        searchInput.focus();
+    });
+</script>
+
+</body>
+</html>

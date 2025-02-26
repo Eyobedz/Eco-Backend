@@ -8,7 +8,7 @@ app = Flask(__name__)
 # Configure CORS to allow POST requests
 CORS(app, resources={
     r"/api/*": {
-        "origins": "http://127.0.0.1:5502",
+        "origins": "*",
         "methods": ["GET", "POST", "PUT", "DELETE"],
         "allow_headers": ["Content-Type"]
     }
@@ -26,7 +26,7 @@ DB_CONFIG = {
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+app.config['MAX_CONTENT_LENGTH'] = 30 * 1024 * 1024  # 30MB max file size
 
 # Ensure the upload directory exists
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -132,26 +132,65 @@ def uploaded_file(filename):
 def update_product():
     try:
         data = request.form  # Use request.form for FormData
-        product_id = data.get('id').strip()
-        product_name = data.get('product_name').strip()
-        stock = data.get('stock', '').strip()
-        unit = data.get('unit', '').strip()
-        price = data.get('price', '').strip()
-        per = data.get('per', '').strip()
-        exdate = data.get('exdate', '').strip()
-        barcode = data.get('barcode', '').strip()
+        product_id = data.get('id')
+        fields = {}
+        file = None
+        
+        if 'image-input' not in request.files:
+            pass
+        else:
+            file = request.files['image-input']
 
+            # Check if image file was uploaded
+        if file == None:
+            print("No image file provided")
+            pass
+
+        elif file.filename == '':
+            return jsonify({"error": "No selected file"}), 400
+    
+        elif not file or not allowed_file(file.filename):
+            return jsonify({"error": "Invalid file type"}), 400
+        
+        else:
+            # Save the image file
+            filename = secure_filename(file.filename)
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(file_path)
+
+            image_path = f"/uploads/{filename}"
+            print(image_path)
+            fields.update({"image_path": image_path})
+    
+        
+        
         # Validate required fields
-        if not product_id or not product_name or not stock or not unit or not price:
-            return jsonify({"success": False, "error": "Missing required fields"}), 400
+        if not product_id :
+            return jsonify({"success": False, "error": "Missing required fields (product ID)"}), 400
+        else:
+            for key, value in data.items():
+                if value == "" or key == "id":
+                    continue
+                else:
+                    fields.update({key: value})
+               
+        set_clause = ", ".join([f"{key} = %s" for key in fields.keys()])
+        values = list(fields.values())  # Extract the values to bind
+        values.append(product_id)  # Add the product_id for the WHERE clause
 
+    # Construct the query
+        query = f"""
+            UPDATE product_list 
+            SET {set_clause} 
+            WHERE id = %s
+        """
+        print(query, values)
+        print(values)
+    
         # Database update logic
         with pymysql.connect(**DB_CONFIG) as connection:
             with connection.cursor() as cursor:
-                sql = """UPDATE product_list 
-                         SET product_name=%s, stock = %s, unit = %s, price = %s, per = %s, exdate = %s, barcode = %s 
-                         WHERE id = %s"""
-                cursor.execute(sql, (product_name, stock, unit, price, per, exdate, barcode, product_id))
+                cursor.execute(query, values)
             connection.commit()
 
         return jsonify({"success": True, "message": "Product updated successfully"}), 200
@@ -178,13 +217,13 @@ def delete_product():
         return jsonify({"error": "An error occurred while deleting the product"}), 500
 
 # Route to handle the API request for adding items
-@app.route('/api/add_item', methods=['POST'])
-def add_item():
-    data = request.json  # Get JSON data from request body
-    print(data)  # Print the received data to the console for testing
+# @app.route('/api/add_item', methods=['POST'])
+# def add_item():
+#     data = request.json  # Get JSON data from request body
+#     print(data)  # Print the received data to the console for testing
 
-    # Return a success message with the received data
-    return jsonify({"message": "Data received successfully", "data": data}), 200
+#     # Return a success message with the received data
+#     return jsonify({"message": "Data received successfully", "data": data}), 200
 
 # @app.route('/api/upload-image', methods=['POST'])
 # def upload_image():
@@ -208,4 +247,4 @@ def add_item():
 
 if __name__ == '__main__':
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-    app.run(debug=True)
+    app.run(host="0.0.0.0",  debug=True)

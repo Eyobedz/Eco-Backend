@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cool Admin Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* General Styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            background-color: #f4f4f4;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 15%;
+            background: #2a2a2a;
+            color: white;
+            padding: 20px;
+            height: 100lvh;
+        }
+        .sidebar h2 {
+            text-align: center;
+        }
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+        .sidebar ul li {
+            padding: 10px;
+        }
+        .sidebar ul li a {
+            color: white;
+            text-decoration: none;
+            display: block;
+        }
+
+        .icon{
+            color: white;
+        }
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 20px;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+        }
+        header input {
+            padding: 8px;
+            width: 300px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        /* Overview Cards */
+        .overview {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .card {
+            flex: 1;
+            padding: 20px;
+            margin: 10px;
+            color: white;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .red { background: #ff4b5c; }
+        .green { background: #28a745; }
+        .orange { background: #ff9800; }
+        .blue { background: #007bff; }
+
+        /* Charts */
+        .charts {
+            display: flex;
+            justify-content: space-between;
+        }
+        .chart-container {
+            flex: 1;
+            /* padding: 20px; */
+            background: white;
+            border-radius: 5px;
+            margin: 10px;
+        }
+
+        
+
+        /* Table */
+        .tables {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background: #2a2a2a;
+            color: white;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Organic Inventory</h2>
+        <ul>
+            <li><a href="#" style="color: #28a745;"><i class="material-icons icon">dashboard</i> Dashboard</a></li>
+            <li><a href="#charts" style="color: #28a745;"><i class="fa-solid fa-chart-line icon"></i> Charts</a></li>
+            <li><a href="#tables"><i class="fa-solid fa-table icon"></i> Tables</a></li>
+            <li><a href="#"style="color: #28a745;"><i class="fa-solid fa-clipboard-list icon"></i> Report</a></li>
+            <li><a href="#"style="color: #28a745;"><i class="fa-solid fa-user icon"></i> Accounts</a></li>
+            <li><a href="#"style="color: #28a745;"><i class="fa-solid fa-clock-rotate-left icon"></i> History</a></li>
+            <li><a href="#"style="color: #28a745;"><i class="material-icons">dashboard</i> Check</a></li>
+                History</a></li>
+        </ul>
+    </div>
+    <div class="main-content">
+       
+        <section class="overview">
+            <div class="card red"> <h3>10368</h3><p>Members Online</p></div>
+            <div class="card green"> <h3>388,688</h3><p>Items Sold</p></div>
+            <div class="card orange"> <h3>1,086</h3><p>This Week</p></div>
+            <div class="card blue"> <h3>$1,060,386</h3><p>Total Earnings</p></div>
+        </section>
+        <section class="charts">
+            <div class="chart-container">
+                <canvas id="salesChart"></canvas>
+            </div>
+            <div class="chart-container" style="height: 300px; width: 300px;">
+                <canvas id="pieChart" ></canvas>
+            </div>
+        </section>
+       
+    </div>
+    <script>
+        const ctx1 = document.getElementById('salesChart').getContext('2d');
+        new Chart(ctx1, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+                datasets: [{
+                    label: 'Sales',
+                    data: [3000, 5000, 7000, 4000, 6000],
+                    borderColor: 'blue',
+                    fill: false
+                }]
+            }
+        });
+        
+        const ctx2 = document.getElementById('pieChart').getContext('2d');
+        new Chart(ctx2, {
+            type: 'doughnut',
+            data: {
+                labels: ['Products', 'Services'],
+                datasets: [{
+                    data: [75, 25],
+                    backgroundColor: ['#36A2EB', '#FF6384']
+                }]
+            }
+        });
+    </script>
+</body>
+</html>

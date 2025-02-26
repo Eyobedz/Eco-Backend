@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Organic Invenntory</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="stylesheet" href="cart.css">
+</head>
+<body>
+   
+    
+
+    <nav id="sidebar" class="nav-menu">
+        <div id="logo" class="logo">
+            <img src="/Elements/meh.png" alt="logo">
+            <p> Organic Invenntory Managment</p>
+        </div>
+        <div class="nav-header">
+            <a href="account.html"><button  class="account-btn" id="accBtn">A</button> UserName</a>
+        </div>
+        <a href="#" class="nav-item active"><i class="fas fa-house" id="icon"></i>Home</a>
+        <a href="coming.html" class="nav-item"><i class="fas fa-cart-shopping" id="icon"></i>Cart</a>
+        <a href="coming.html" class="nav-item"><i class="fas fa-bell" id="icon"></i>Notification</a>
+        <a href="coming.html" class="nav-item"><i class="fas fa-user-secret" id="icon"></i>Account</a>
+        <a href="coming.html" class="nav-item"><i class="fas fa-list-check" id="icon"></i>Order List</a>
+        <a href="coming.html" class="nav-item"><i class="fas fa-gear" id="icon"></i>Setting</a>
+        <a href="index.html" class="nav-item" style="color: red; font-weight: bold;"><i id="icon"></i>Log out</a>
+        
+    </nav>
+
+    
+
+
+    <main>
+        <div id="loader" class="center" style="display:none;">
+            <div class="spinner">
+                <div class="dot" id="dot1"></div>
+                <div class="dot" id="dot2"></div>
+                <div class="dot" id="dot3"></div>
+                <div class="dot" id="dot4"></div>
+            </div>
+        </div>
+
+        <header>
+            <button class="fas fa-bars" id="hamburger-menu"></button>
+            <div id="logo" class="logo">
+                <img src="/Elements/meh.png" alt="logo">
+           
+            </div>
+
+            <div class="search-bar">
+                <div class="search-field">
+                    <input type="text" placeholder="Search..." >
+                    <button id="clearButton" class="clear-btn">
+                        <i class="fa fa-xmark"></i>
+                    </button>
+                </div>
+                <button id="search" onclick="searchProducts()">Search</button>
+            </div>
+
+            <!-- for small screen -->
+            <div>
+                <button class="fas fa-bell" id="notification-icon" ></button>
+                
+            </div>
+            <div>
+                <button class="fas fa-magnifying-glass" id="search-icon"></button>
+                
+            </div>
+
+            <nav>
+                <ul>
+                    <li><a href="/admincursor.html"><i id='navbtns' class="fas fa-house" title="Home"></i></a></li>
+                    <li><a href="coming.html"><i id='navbtns' title="cart" class="fas fa-cart-shopping"></i></a></li>
+                    <li><a href="coming.html"></a><i id='navbtns' class="fas fa-bell" title="Notification"></i></li>
+                    <li><a href="#"></a><button id="accBtn" title="account" ><i class="fas fa-user-secret" ; style="scale: 150%;"></i></button>
+                        
+                    </li>
+                </ul>
+            </nav>
+
+
+        </header>
+
+    
+    <div style="display: flex; width: 65%;">
+        <p style="position: absolute; z-index: -1; text-align: center; top: 50%; width: 65%; margin: 10px; font-size: 34px;">
+             No Product Found!!!
+        </p>
+            <section class="products" id="main-content">
+                <!-- Products will be added here -->
+            </section>
+        </div>
+            <div id="cart">
+                
+                <h2 >Cart</h2>
+                <div id="cart-items" class="cart-items">
+                    <div class="table-wrapper">
+                        <table>
+                            <thead style="padding: 10px;">
+                                <tr>
+                                    <th class="tbcheck">
+                                         <input type="checkbox" id="selectAllCheckbox" style="display: none;">
+                                        <!--<label>All</label> -->
+                                    </th>
+                                    <th class="tbname">Product</th>
+                                    <th class="tbquantity">Quantity</th>
+                                    <th class="tbprice">Price</th>
+                                    <th class="tbsubtotal">SubTotal</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody">
+                                <tr>
+                                    
+                                </tr>
+                                
+                            
+                                
+                                
+                        
+                                <!-- Cart items will be added here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <button id="clear-btn" onclick="clearCheckedItems()" style="display:none" >Clear</button>
+                </div>
+                <hr width="100%">
+                <div class="total">
+                    <p>Total: <span id="total">0</span></p>
+                    <button id="checkout" onclick="checkout()">Checkout</button>
+                </div>
+                
+            </div>
+       
+        
+
+
+
+    <!-- <footer>
+        <p>&copy; 2024 Organic Invenntory. All rights reserved.</p>
+    </footer> -->
+
+    <!-- Overlay for background blur -->
+    <div class="overlay" id="detoverlay"></div>
+    <div class="overlay" id="editoverlay"></div>
+    <div class="overlay" id="addoverlay"></div>
+    <!-- <div class="overlay" id="confirmoverlay"></div> -->
+    <div class="overlay" id="sideoverlay"></div>
+
+    
+    <script src="cart.js"></script>
+</body>
+</html>
