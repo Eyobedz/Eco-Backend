@@ -41,7 +41,11 @@ app.config['MAX_CONTENT_LENGTH'] = 30 * 1024 * 1024  # 30MB max file size
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSION
+
+@app.route('/' , methods=['GET'])
+def home():
+    return "<h1>Your server is live</h1>"
 
 @app.route('/api/login', methods=['POST'])
 def login():
