@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart</title>
+    <style>
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 5px;
+            padding: 16px;
+            position: fixed;
+            z-index: 1;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            font-size: 17px;
+        }
+
+        #toast.show {
+            visibility: visible;
+            animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        }
+
+        @keyframes fadein {
+            from {bottom: 0; opacity: 0;}
+            to {bottom: 30px; opacity: 1;}
+        }
+
+        @keyframes fadeout {
+            from {bottom: 30px; opacity: 1;}
+            to {bottom: 0; opacity: 0;}
+        }
+    </style>
+    <script>
+        function updatePrice() {
+            let weight = parseFloat(document.getElementById("weight").value) || 0;
+            let pricePer100g = parseFloat(document.getElementById("pricePer100g").innerText);
+            let pricePerKg = parseFloat(document.getElementById("pricePerKg").innerText);
+            let unit = document.getElementById("unit").value;
+            let totalPrice;
+
+            if (unit === "grams") {
+                totalPrice = (weight / 100) * pricePer100g;
+            } else {
+                totalPrice = (weight / 1000) * pricePerKg;
+            }
+            
+            document.getElementById("totalPrice").innerText = totalPrice.toFixed(2);
+        }
+
+        function showToast(message) {
+            let toast = document.getElementById("toast");
+            toast.innerText = message;
+            toast.className = "show";
+            setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
+        }
+
+        function addToCart() {
+            let productId = document.getElementById("productId").value;
+            let weight = parseFloat(document.getElementById("weight").value) || 0;
+            let unit = document.getElementById("unit").value;
+
+            fetch("/add-to-cart", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ product_id: productId, weight: weight, unit: unit })
+            }).then(response => response.json())
+              .then(data => showToast(data.message))
+              .catch(error => showToast("Error adding to cart"));
+        }
+    </script>
+</head>
+<body>
+    <h2>Product: Fresh Meat</h2>
+    <p>Price per 100g: <span id="pricePer100g">5.00</span> USD</p>
+    <p>Price per Kg: <span id="pricePerKg">50.00</span> USD</p>
+    <input type="hidden" id="productId" value="1">
+    <label for="unit">Select unit:</label>
+    <select id="unit" onchange="updatePrice()">
+        <option value="grams">Grams</option>
+        <option value="kg">Kilograms</option>
+    </select>
+    <label for="weight">Enter weight:</label>
+    <input type="number" id="weight" oninput="updatePrice()" placeholder="e.g. 250">
+    <p>Total Price: <span id="totalPrice">0.00</span> USD</p>
+    <button onclick="addToCart()">Add to Cart</button>
+    
+    <div id="toast"></div>
+</body>
+</html>

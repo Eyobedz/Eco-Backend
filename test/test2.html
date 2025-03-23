@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body{
+            display: flex;
+            place-content: center;
+        }
+        #add {
+            display: flex;
+            /* justify-content: center;
+            align-items: center; */
+            gap: 10px;
+            background-color: green;
+        }
+        #add:hover {
+            cursor: pointer;
+            background-color: rgb(0, 122, 128);
+            scale: 2;
+            animation: hide 2s;
+
+        }
+        #new {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            background-color: blue;
+            animation: show 2s;
+        }
+        #restock {
+            display: flex;
+            justify-content: center;
+            /* align-items: center; */
+            gap: 10px;
+            background-color: red;
+            animation: show 2s;
+
+        }
+
+        @keyframes show {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        @keyframes hide {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <!-- popover works
+    <button popovertarget="popover1">Click me</button>
+    <div id="popover1"  popover="auto">
+        <h3>Popover Title</h3>
+        <p>Popover content</p> -->
+
+
+    <div class="add">
+        <button id="add">Add</button>
+        <button id="new">New</button>
+        <button id="restock">restock</button>
+    </div>
+</body>
+</html>

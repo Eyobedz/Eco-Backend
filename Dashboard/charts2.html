@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <h2>Inventory Dashboard</h2>
+
+        <div class="chart-container">
+            <h3>Monthly Sales & Profit</h3>
+            <canvas id="salesChart"></canvas>
+        </div>
+
+        <div class="chart-container">
+            <h3>Stock Levels by Category</h3>
+            <canvas id="stockChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const salesData = {
+                labels: ["Jan", "Feb", "Mar", "Apr", "May"],
+                datasets: [
+                    {
+                        label: "Sales",
+                        backgroundColor: "#8884d8",
+                        data: [12000, 15000, 18000, 17000, 16000]
+                    },
+                    {
+                        label: "Profit",
+                        backgroundColor: "#82ca9d",
+                        data: [4000, 5000, 6000, 5500, 5200]
+                    }
+                ]
+            };
+
+            const stockData = {
+                labels: ["Fruits", "Vegetables", "Dairy", "Bakery", "Meat"],
+                datasets: [
+                    {
+                        label: "Stock Levels",
+                        backgroundColor: "#82ca9d",
+                        data: [1000, 800, 600, 500, 700]
+                    }
+                ]
+            };
+
+            new Chart(document.getElementById("salesChart"), {
+                type: "bar",
+                data: salesData
+            });
+
+            new Chart(document.getElementById("stockChart"), {
+                type: "bar",
+                data: stockData
+            });
+        });
+    </script>
+</body>
+</html>

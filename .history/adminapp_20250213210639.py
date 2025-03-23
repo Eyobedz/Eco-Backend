@@ -3,20 +3,12 @@ import pymysql
 from flask_cors import CORS
 import os
 from werkzeug.utils import secure_filename
-import time
-from dotenv import load_dotenv
-import hashlib
-import gunicorn
-
-# Load environment variables
-load_dotenv()
 
 app = Flask(__name__)
 # Configure CORS to allow POST requests
 CORS(app, resources={
     r"/api/*": {
-        "origins": "http://127.0.0.1:*",
-        # "origins": "*",
+        "origins": "*",
         "methods": ["GET", "POST", "PUT", "DELETE"],
         "allow_headers": ["Content-Type"]
     }
@@ -24,11 +16,10 @@ CORS(app, resources={
 
 # Database connection configuration
 DB_CONFIG = {
-    "host": os.getenv("DB_HOST"),
-    "user": os.getenv("DB_USER"),
-    "port": int(os.getenv("DB_PORT")),
-    "password": os.getenv("DB_PASSWORD"),
-    "database": os.getenv("DB_NAME"),
+    "host": "localhost",
+    "user": "root",
+    "password": "Eyobed579@papa",
+    "database": "organicdb"
 }
 
 # Configure upload folder
@@ -43,39 +34,9 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-@app.route('/api/login', methods=['POST'])
-def login():
-    try:
-        data = request.json
-        username = data['username']
-        password = data['password']
-        hashed_password = hashlib.md5(password.encode()).hexdigest()
-        print(username, password, hashed_password)
-
-        with pymysql.connect(**DB_CONFIG) as connection:
-            with connection.cursor() as cursor:
-                sql = """SELECT * FROM users WHERE username = %s AND password = %s"""
-                cursor.execute(sql, (username, hashed_password))
-                user = cursor.fetchone()
-                usertype = user[4]
-                print(usertype)
-        
-        if user:
-            return jsonify({
-                "message": "Login successful",
-                'user_type': usertype
-                }), 200
-        else:
-            return jsonify({"message": "Invalid username or password"}), 401
-    except Exception as e:
-        print(f"Error: {e}")
-        return jsonify({"error": str(e)}), 500
-
-
 @app.route('/api/get-data', methods=['GET'])
 def get_data():
     try:
-        #time.sleep(10)
         with pymysql.connect(**DB_CONFIG) as connection:
             with connection.cursor() as cursor:
                 cursor.execute("SELECT * FROM product_list")
@@ -90,8 +51,7 @@ def get_data():
             'per': row[5],
             'exdate': row[6],
             'barcode': row[7],
-            'image_path': row[8],
-            'catagory': row[9]} for row in rows]
+            'image_path': row[8]} for row in rows]
         #print(result)
         return jsonify(result)
 
@@ -122,7 +82,6 @@ def add_product():
         
         # Get form data with validation
         product_name = request.form.get('product-name-input')
-        catagory = request.form.get('catagory')
         stock = request.form.get('quantity-input')
         unit = request.form.get('Unit')
         price = request.form.get('price-input')
@@ -139,16 +98,15 @@ def add_product():
         with pymysql.connect(**DB_CONFIG) as connection:
             with connection.cursor() as cursor:
                 sql = """INSERT INTO product_list 
-                        (product_name, stock, unit, price, per, exdate, barcode, image_path, catagory) 
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"""
-                cursor.execute(sql, (product_name, stock, unit, price, per, exdate, barcode, image_path, catagory))
+                        (product_name, stock, unit, price, per, exdate, barcode, image_path) 
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
+                cursor.execute(sql, (product_name, stock, unit, price, per, exdate, barcode, image_path))
             connection.commit()
         
         return jsonify({
             "message": "Product added successfully",
             "product": {
                 "product_name": product_name,
-                "catagory": catagory,
                 "stock": stock,
                 "unit": unit,
                 "price": price,
@@ -224,7 +182,7 @@ def update_product():
         query = f"""
             UPDATE product_list 
             SET {set_clause} 
-            WHERE product_id = %s
+            WHERE id = %s
         """
         print(query, values)
         print(values)
@@ -250,7 +208,7 @@ def delete_product():
     try:
         with pymysql.connect(**DB_CONFIG) as connection:
             with connection.cursor() as cursor:
-                cursor.execute("DELETE FROM product_list WHERE product_id = %s", (data['id'],))
+                cursor.execute("DELETE FROM product_list WHERE id = %s", (data['id'],))
             connection.commit()
             
         return jsonify({"message": "Product deleted successfully"}), 200
@@ -258,137 +216,35 @@ def delete_product():
         print(f"Error: {e}")
         return jsonify({"error": "An error occurred while deleting the product"}), 500
 
+# Route to handle the API request for adding items
+# @app.route('/api/add_item', methods=['POST'])
+# def add_item():
+#     data = request.json  # Get JSON data from request body
+#     print(data)  # Print the received data to the console for testing
 
-@app.route('/api/add-to-cart', methods=['POST'])
-def add_to_cart():
-    try:
-       
-        for product in request.json:
-            product_id = product['id']
-            quantity = product['quantity']
-            price = product['price']
-            date = product['date']
-        
-            print(product_id, quantity, price, date)
+#     # Return a success message with the received data
+#     return jsonify({"message": "Data received successfully", "data": data}), 200
 
-            with pymysql.connect(**DB_CONFIG) as connection:
-                with connection.cursor() as cursor:
-                    sql = """INSERT INTO carts 
-                            (product_id, quantity, price, date) 
-                            VALUES (%s, %s, %s, %s)"""
-                    cursor.execute(sql, (product_id, quantity, price, date))
-                connection.commit()
+# @app.route('/api/upload-image', methods=['POST'])
+# def upload_image():
+#     if 'image' not in request.files:
+#         return jsonify({"success": False, "error": "No file part"}), 400
 
-            with pymysql.connect(**DB_CONFIG) as connection:
-                with connection.cursor() as cursor:
-                    sql2 = """UPDATE product_list
-                            SET stock = stock - %s
-                            WHERE product_id = %s;
-                            """
-                    cursor.execute(sql2, (quantity, product_id))
-                connection.commit()
+#     file = request.files['image']
 
+#     if file.filename == '':
+#         return jsonify({"success": False, "error": "No selected file"}), 400
 
-        # Get form data with validation
-        # product_id = request.form.get('id')
-        # quantity = request.form.get('quantity')
-        # price = request.form.get('price')
-        # date = request.form.get('date')
-        
-        # print(product_id, quantity, price, date)
-        
-        
-        # Database insertion
-        
-        
-        return jsonify({
-            "message": "Product added successfully",
-            "product": {
-                "product_id": product_id,
-                "quantity": quantity,
-                "price": price,
-                "date": date,
-                
-            }
-        }), 201
-        
-    except Exception as e:
-        print(f"Error: {e}")
-        return jsonify({"error": str(e)}), 500
-    
-@app.route('/api/get-history', methods=['GET'])
-def get_history():
-    try:
-        with pymysql.connect(**DB_CONFIG) as connection:
-            with connection.cursor() as cursor:
-                cursor.execute('''SELECT 
-                                    carts.id AS cart_id, 
-                                    product_list.product_name AS product_name, 
-                                    product_list.image_path, 
-                                    carts.quantity, 
-                                    carts.price, 
-                                    carts.date
-                                FROM carts
-                                JOIN product_list ON carts.product_id = product_list.product_id;
-                                ''')
-                rows = cursor.fetchall()
-                #print(rows)
-        result = [{
-            'id': row[0],
-            'product_name': row[1],
-            'image_path': row[2],
-            'quantity': row[3],
-            'price': row[4],
-            'date': row[5]} for row in rows]
-        #print(result)
-        return jsonify(result)
+#     if file:
+#         # Save the file to the specified directory
+#         file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+#         file.save(file_path)
 
-    except Exception as e:
-        print(f"Error: {e}")
-        return jsonify({"error": "An error occurred while fetching data"}), 500
+#         # Return the path of the saved image
+#         return jsonify({"success": True, "image_path": file_path}), 200
 
-    
-
-@app.route('/api/get-filter', methods=['GET'])
-def get_filter():
-    try:
-        with pymysql.connect(**DB_CONFIG) as connection:
-            with connection.cursor() as cursor:
-                cursor.execute("SELECT catagory, unit FROM product_list")
-                rows = cursor.fetchall()
-                #print(rows)
-        result = [{
-            'catagory': row[0],
-            'unit': row[1]} for row in rows]
-        #print(result)
-        return jsonify(result)
-
-    except Exception as e:
-        print(f"Error: {e}")
-        return jsonify({"error": "An error occurred while fetching data"}), 500
-
-
-@app.route('/api/get-user', methods=['GET'])
-def getUser():
-    try:
-        with pymysql.connect(**DB_CONFIG) as connection:
-            with connection.cursor() as cursor:
-                cursor.execute("SELECT * FROM users")
-                rows = cursor.fetchall()
-                #print(rows)
-        result = [{
-            'id': row[0],
-            'full_name': row[1],
-            'username': row[2],
-            'password': row[3],
-            'role': row[4]} for row in rows]
-        #print(result)
-        return jsonify(result)
-
-    except Exception as e:
-        print(f"Error: {e}")
-        return jsonify({"error": "An error occurred while fetching data"}), 500
+#     return jsonify({"success": False, "error": "File upload failed"}), 500
 
 if __name__ == '__main__':
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port= debug=True)

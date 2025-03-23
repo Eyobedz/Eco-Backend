@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <div id="chart"></div>
+
+    <script>
+        fetch('http://127.0.0.1:5000/stock-trend', {method: 'GET'})
+            .then(response => response.json())
+            .then(data => {
+                let figure = JSON.parse(data);
+                Plotly.newPlot('chart', figure.data, figure.layout);
+            });
+    </script>
+</body>
+</html>

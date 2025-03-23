@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cool Admin Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://site-assets.fontawesome.com/releases/v6.7.2/css/all.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* General Styles */
+        html{
+            height: 100%;
+        }
+        body {
+            /* font-family: Arial, sans-serif; */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            background-color: #f4f4f4;
+            overflow: hidden;
+        }
+
+       
+        /* Main Content */
+        .mainContent {
+            flex: 1;
+            /* padding: 20px; */
+            float: right;
+            width: 100%;
+            margin: 0;
+            
+        }
+        
+
+        /* Overview Cards */
+        .overview {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            /* margin-bottom: 20px; */
+        }
+        .card {
+            display: flex;
+            flex: 1;
+            padding: 10px;
+            margin: 10px;
+            color: white;
+            border-radius: 5px;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card a{
+            align-items: center;
+            text-align: center;
+            margin-left: 40px;
+            font-weight: bold;        
+        }
+
+        .alerts {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            text-align: center;
+
+            /* margin-bottom: 20px; */
+        }
+        .alert {
+            display: flex;
+            width: 100%;
+            align-items: center;
+            justify-content: space-between;
+            gap: 30px;
+            /* flex-direction: row; */
+            /* padding: 0%; */
+        }
+        .alert p{
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .alert h3 {
+            font-size: 25px;
+            font-weight: bold;
+            margin-left: 20px;
+        }
+
+        .fa {
+            position: relative;
+            float: right;
+            justify-self: flex-end;
+            /* top: 30%; */
+            /* left: -5px; */
+            color: #ffffff50;
+            font-size: 70px;
+        }
+
+        .red { background: #fc1e34; }
+        .green { background: #28a745; }
+        .orange { background: #ff9800; }
+        .blue { background: #007bff; }
+
+        /*================= Charts ===========*/
+        .charts {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 2px solid #2a2a2a;
+        }
+        .chart-container {
+            display: flex;
+            justify-content: center;
+            flex: 1;
+            /* padding: 20px; */
+            background: rgb(225, 233, 235);
+            border-radius: 5px;
+            margin: 10px;
+            align-items: center;
+        }
+
+        
+
+        
+
+    </style>
+</head>
+<body>
+    
+    <div class="mainContent">
+       
+        <section class="overview">
+            <div class="card red"> <a><p>Total Item Sold</p><h3>10368</h3></a><i class="fa fa-box-check"></i></div>
+            <div class="card green"> <a><p>Items Sold</p><h3>388,688</h3></a><i class="fa fa-tags"></i></div>
+            <div class="card orange"> <a><p>This Week</p><h3>1,086</h3></a><i class="fa fa-tag"></i></div>
+            <div class="card blue"> <a><p>Total Earnings</p><h3>$1,060,386</h3></a><i class="fa fa-money-bills"></i></div>
+            
+        </section>
+        <section class="alerts">
+            <div class="alert card blue"><h3>3</h3><p>Out of Stock Alert</p><i class="fa fa-box-open"></i></div>
+            <div class="alert card green"><h3>20</h3><p>Expired Alert</p><i class="fa fa-bell-exclamation"></i></div>
+            <div class="alert card red"></i><h3>$1,060</h3><p>Total Loss</p><i class="fa fa-coins"></i></div>
+        </section>
+        <section class="charts">
+            <div class="chart-container">
+                <canvas id="salesChart"></canvas>
+            </div>
+            <div class="chart-container" style="height: 350px; width: 350px;">
+                <canvas id="pieChart" ></canvas>
+            </div>
+        </section>
+       
+    </div>
+    <script>
+        const ctx1 = document.getElementById('salesChart').getContext('2d');
+        new Chart(ctx1, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                datasets: [{
+                    label: 'Sales',
+                    data: [3000, 5000, 7000, 4000, 6000, 8000, 10000, 12000, 14000, 16000, 18000, 20000],
+                    borderColor: 'blue',
+                    fill: false
+                },
+                {
+                    label: 'Cost',
+                    data: [5000, 4000, 8000, 1000, 200, 5000, 7000, 3000, 2000, 1000, 5000, 6000],
+                    borderColor: 'red',
+                    fill: false
+                },
+                {
+                    label: 'Profit',
+                    data: [0, 6000, 9000, 3000, 2000, 3000, 5000, 7000, 8000, 9000, 7000, 9000],
+                    borderColor: 'green',
+                    fill: false
+                },
+                {
+                    label: 'Tax',
+                    data: [900, 5400, 8200, 300, 9000, 4000, 2000, 1000, 9000, 9000, 10000, 12000],
+                    borderColor: 'violet',
+                    fill: false
+                }]
+                
+            }
+        });
+       
+        
+        const ctx2 = document.getElementById('pieChart').getContext('2d');
+        new Chart(ctx2, {
+            type: 'doughnut',
+            data: {
+                labels: ['Products', 'Services', 'Subscriptions'],
+                datasets: [{
+                    data: [60, 25, 15],
+                    backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56']
+                }]
+            },
+
+            options: {
+        plugins: {
+            legend: {
+                position: "right", // Moves labels to the right side
+                labels: {
+                    boxWidth: 15, // Adjusts the small colored box size
+                    padding: 10, // Adds spacing between labels
+                },
+            },
+        },
+    },
+        });
+    </script>
+</body>
+</html>

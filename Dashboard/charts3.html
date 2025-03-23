@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+
+        .dashboard-container {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #333;
+        }
+
+        .charts {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .chart-card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <h2>Inventory Dashboard</h2>
+
+        <div class="charts">
+            <div class="chart-card">
+                <h3>Monthly Revenue vs Expenses</h3>
+                <canvas id="revenueChart"></canvas>
+            </div>
+
+            <div class="chart-card">
+                <h3>Stock Category Distribution</h3>
+                <canvas id="stockChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Line Chart: Monthly Revenue vs Expenses
+            const revenueCtx = document.getElementById("revenueChart").getContext("2d");
+            new Chart(revenueCtx, {
+                type: "line",
+                data: {
+                    labels: ["Jan", "Feb", "Mar", "Apr", "May"],
+                    datasets: [
+                        {
+                            label: "Revenue",
+                            data: [12000, 15000, 18000, 17000, 16000],
+                            borderColor: "#4CAF50",
+                            fill: false,
+                        },
+                        {
+                            label: "Expenses",
+                            data: [8000, 9500, 11000, 10500, 9800],
+                            borderColor: "#FF5722",
+                            fill: false,
+                        },
+                    ],
+                },
+            });
+
+            // Pie Chart: Stock Category Distribution
+            const stockCtx = document.getElementById("stockChart").getContext("2d");
+            new Chart(stockCtx, {
+                type: "pie",
+                data: {
+                    labels: ["Fruits", "Vegetables", "Dairy", "Bakery", "Meat"],
+                    datasets: [
+                        {
+                            data: [30, 25, 20, 15, 10],
+                            backgroundColor: ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#A28DFF"],
+                        },
+                    ],
+                },
+            });
+        });
+    </script>
+</body>
+</html>

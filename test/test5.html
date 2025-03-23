@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Content Loading</title>
+    <style>
+        /* Basic Styling */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            display: flex;
+        }
+
+        /* Sidebar */
+        .sidenav {
+            height: 100vh;
+            width: 200px;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background-color: #111;
+            padding-top: 20px;
+        }
+
+        .sidenav a {
+            padding: 10px 15px;
+            display: block;
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .sidenav a:hover {
+            background-color: #575757;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 220px;
+            padding: 20px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar Navigation -->
+    <div class="sidenav">
+        <a onclick="loadContent('home')">Home</a>
+        <a onclick="loadContent('services')">Services</a>
+        <a onclick="loadContent('contact')">Contact</a>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="main-content" id="content">
+        <h2>Welcome</h2>
+        <p>Select a menu option to load content dynamically.</p>
+    </div>
+
+    <script>
+        function loadContent(page) {
+            let contentDiv = document.getElementById("content");
+
+            // Define content for each section
+            let content = {
+                "home": "<h2>Home</h2><p>Welcome to the Home section.</p>",
+                "services": "<h2>Services</h2><p>Here are our services.</p>",
+                "contact": "<h2>Contact</h2><p>Contact us at example@email.com.</p>"
+            };
+
+            // Update content dynamically
+            contentDiv.innerHTML = content[page];
+        }
+    </script>
+
+</body>
+</html>

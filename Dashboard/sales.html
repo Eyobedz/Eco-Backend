@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://site-assets.fontawesome.com/releases/v6.7.2/css/all.css">
+    <link rel="stylesheet" href="/Elements/toastNotification.css">
+    
+    <title>History</title>
+
+    <style>
+        body{
+            padding: 0;
+            margin: 0;
+            /* box-sizing: border-box; */
+        }
+
+        .title{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 0px;
+        }
+
+       .header{
+            display: grid;
+            grid-template-columns: 110px 1fr 1fr 1fr 1fr 1fr;
+            position: sticky;
+            top: 0;
+            background-color: rgb(0, 0, 0);
+            color: white;
+            font-size: large;
+            font-weight: bold;
+            padding: 5px;
+            border-radius: 15px;
+        }
+        
+        #mainContent{
+            padding: 0;
+            margin: 0;
+            background-color: rgb(230, 234, 230);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .product{
+            display: grid;
+            grid-template-columns: 110px 1fr 1fr 1fr 1fr 1fr;
+            /* justify-content: space-between; */
+            align-items: center;
+            background-color: rgba(109, 223, 249, 0.468);
+            font-size: large;
+            margin: 10px;
+            padding: 5px;
+            width: 97%;
+            border-radius: 15px;
+
+        }
+
+        .product img {
+            max-width: 100%;
+            max-height: 80px;
+        }
+
+    </style>
+</head>
+<body>
+    <h1 style="padding: 0; margin: 0;">Sales</h1>
+    <div class="title">
+        <p>Date</p>
+        <div>
+            <input type="date" id="date">
+            
+        </div>
+    </div>  
+    <div class="header">
+        <p>Image</p>
+        <p>Name</p>
+        <p>Price</p>
+        <p>Quantity</p>
+        <p>Sub Total</p>
+        <p>Date</p>
+    </div>
+    <p style="position: absolute; z-index: -1; text-align: center; top: 50%; width: 99%; margin: 10px; font-size: 34px;">
+        No Product Found!!!
+   </p>
+    <section id="mainContent"></section>
+
+    <script src="/Elements/toastNotification.js"></script>
+
+    <script>
+        
+        document.addEventListener("DOMContentLoaded", () => {
+    
+    fetchAndUpdateData();
+});
+
+const notifier = new ToastNotification();
+
+
+function fetchAndUpdateData() {
+    const container = document.getElementById('mainContent');
+    const fragment = document.createDocumentFragment(); // Create a DocumentFragment for batching
+
+    fetch('http://localhost:5000/api/get-history', { method: 'GET' })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok ' + response.statusText);
+            }
+            return response.json();
+        })
+        .then(data => {
+            container.innerHTML = ''; // Clear existing content
+
+            data.forEach(row => {
+                const rowDiv = document.createElement('div');
+
+                
+                rowDiv.className = 'product'; // Apply a class for styling
+               
+
+                // Use lazy loading for images
+                const imgElement = row.image_path
+                    ? `<img src="http://localhost:5000${row.image_path}" alt="${row.product_name}" loading="lazy">`
+                    : '';
+
+                // Pre-calculate stock and expiration information
+                const stock = row.stock;
+                const subTotal = row.quantity*row.price;
+                rowDiv.setAttribute('data-stock', stock);
+                rowDiv.setAttribute('subTotal', subTotal);
+                rowDiv.setAttribute('data-date', row.date);
+                rowDiv.innerHTML = `
+                    ${imgElement}
+                    <h2 calss ="name">${row.product_name}</h2>
+                    <p>ETB ${row.price.toLocaleString()}</p>
+                    <p>${row.quantity.toLocaleString()}</p>
+                    <p>ETB ${subTotal.toLocaleString()}</p>
+                    <p class='date'>${row.date.split(' 00:00:00')[0]}</p>
+                    `;
+
+                fragment.appendChild(rowDiv); // Append to the DocumentFragment
+            });
+
+            container.appendChild(fragment); // Append the DocumentFragment to the DOM in one operation
+            filterData();
+            sortProductsByDateAndName();
+       
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error.message || error);
+            // alert('Failed to load data. Please try again later.');
+            notifier.error('Failed to load data. Please try again later.', 3000);
+
+        });
+}
+    
+function filterData() {
+
+document.getElementById('date').addEventListener('input', function() {
+    const container = document.getElementById('mainContent');
+    const rows = container.querySelectorAll('.product'); // Adjust selector as needed
+    const clearButton = document.getElementById('clearButton');
+    console.log(rows);
+    rows.forEach(row => {
+        const rowDate = row.getAttribute('data-date').toLocaleString().split(' 00:00:00')[0];
+
+        console.log(row);
+        if (rowDate === formatDate(this.value)) {
+            console.log("Date selected:", formatDate(this.value));
+            row.style.display = 'grid';
+        } 
+        else if (this.value === '') {
+            console.log("No date selected.");
+            row.style.display = 'grid';
+        }
+        else {
+            // console.log(rowDate);
+            // console.log("No date selected.");
+            row.style.display = 'none';
+        }
+    });
+    sortProductsByDateAndName();
+});
+
+
+}
+
+
+  
+function formatDate(dateStr) {
+    let dateObj = new Date(dateStr); 
+    return dateObj.toLocaleDateString('en-GB', {
+        weekday: 'short', // "Wed"
+        day: '2-digit',   // "05"
+        month: 'short',   // "Mar"
+        year: 'numeric'   // "2025"
+    });
+}
+
+function sortProductsByDateAndName() {
+    const container = document.getElementById('mainContent');
+    const rows = Array.from(container.querySelectorAll('.product'));
+
+    rows.sort((a, b) => {
+        // Extract and parse dates
+        let dateA = new Date(a.querySelector('p.date').textContent.trim());
+        let dateB = new Date(b.querySelector('p.date').textContent.trim());
+
+        // Compare dates first
+        if (dateA.getTime() !== dateB.getTime()) {
+            return dateB - dateA; // Ascending order (earliest date first)
+        }
+
+        // If dates are the same, sort by name
+        let nameA = a.querySelector('h2').textContent.trim().toLowerCase();
+        let nameB = b.querySelector('h2').textContent.trim().toLowerCase();
+
+        return nameA.localeCompare(nameB);
+    });
+
+    // Append sorted elements back to the container
+    rows.forEach(row => container.appendChild(row));
+}
+
+
+
+    </script>
+</body>
+</html>

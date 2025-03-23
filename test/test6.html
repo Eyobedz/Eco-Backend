@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dark Mode Toggle</title>
+    <style>
+        /* From Uiverse.io by gharsh11032000 */ 
+        .switch {
+            font-size: 17px;
+            position: relative;
+            display: inline-block;
+            width: 3.5em;
+            height: 2em;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            border: 2px solid #414141;
+            border-radius: 50px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 1.4em;
+            width: 1.4em;
+            left: 0.2em;
+            bottom: 0.2em;
+            background-color: rgb(191, 188, 188);
+            border-radius: inherit;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+        }
+
+        .switch input:checked + .slider {
+            box-shadow: 0 0 20px rgba(9, 117, 241, 0.8);
+            border: 2px solid #0974f1;
+        }
+
+        .switch input:checked + .slider:before {
+            transform: translateX(1.5em);
+        }
+
+        /* Dark mode styles */
+        .dark-mode {
+            background-color: black;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <label class="switch">
+        <input type="checkbox" id="toggle">
+        <span class="slider"></span>
+    </label>
+
+    <script>
+        const toggle = document.getElementById('toggle');
+
+        // Load the saved mode from localStorage
+        if (localStorage.getItem('darkMode') === 'enabled') {
+            document.body.classList.add('dark-mode');
+            toggle.checked = true;
+        }
+
+        toggle.addEventListener('change', function() {
+            if (this.checked) {
+                document.body.classList.add('dark-mode');
+                localStorage.setItem('darkMode', 'enabled');
+            } else {
+                document.body.classList.remove('dark-mode');
+                localStorage.setItem('darkMode', 'disabled');
+            }
+        });
+    </script>
+
+</body>
+</html>

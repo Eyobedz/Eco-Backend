@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register and Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <style>
+        *{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'poppins',sans-serif;
+}
+
+body{
+    background-image: url(Elements/blob-scene-haikei\ \(4\).svg);
+    background-size:auto;
+
+}
+/* #bac8ca, #e0e4cc /*/
+.container{
+    background-color:rgba(53, 86, 99, 0.447) ;
+    width: 450px;
+    padding: 1.5rem;
+    margin: 70px auto;
+    border-radius: 10px;
+    box-shadow: 0 20px 35px rgba(0, 0, 1, 0.9);
+    backdrop-filter: blur(10px);
+}
+
+form{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    margin: 0 2rem;
+    height: 200px;
+}
+.form-title{
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-align: center;
+    padding: 1.3rem;
+    margin-bottom: 0.4rem;
+    color: #e0e4cc ;
+}
+
+input{
+    color: inherit;
+    width: 100%;
+    background-color: transparent;
+    border: none;
+    border-bottom: 1px solid #757575;
+    padding-left: 1.5rem;
+    font-size: 15px;
+    gap: 20px;
+    
+}
+
+.input-group{
+    padding: 1% 0;
+    position: relative;
+}
+
+.input-group i{
+    position: absolute;
+    color: black;
+}
+input:focus{
+    background-color: transparent;
+    outline: transparent;
+    border-bottom: 2px solid hsl(247, 90%, 28%);
+}
+
+input::placeholder{
+    padding-bottom: 10px;
+    color: #dfe9f5;
+}
+
+label{
+    color: #757575;
+    position: relative;
+    left: 1.2em;
+    top: -1.3em;
+    cursor: auto;
+    transition: 0.3s ease all;
+}
+
+input:focus{
+    top: -3em;
+    color: hsl(194, 90%, 28%);
+    font-size: 15px;
+}
+
+
+
+.btn{
+    font-size: 1.1rem;
+    padding: 8px 0;
+    border-radius: 5px;
+    outline: none;
+    border: none;
+    width: 100%;
+    background: rgb(125, 125, 235);
+    color: white;
+    cursor: pointer;
+    transition: 0.5s;
+}
+
+.btn:hover{
+    background: hsl(0, 98%, 49%);
+}
+
+
+
+
+    </style>
+
+</head>
+<body >
+    <div class="container" id="signin" >
+        <h1 class="form-title">Log In</h1>
+        <form id="signin-form" method="post" enctype="multipart/form-data">
+        
+            <div class="input-group">
+                <i class="fas fa-user-secret"></i>
+                <input type="username" name="username" id="username" placeholder="Username" required>
+               
+            </div>
+
+            <div class="input-group">
+                <i class="fas fa-lock"></i>
+                <input type="password" name="password" id="password" placeholder="Password" required>
+                
+            </div><br>
+            <input type="submit" class="btn" value="Sign In" name="signin">
+        </form>
+
+        <div id="message" class="message"></div>
+
+      
+    </div>
+
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      validateForm();
+    });
+
+    function validateForm() {
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+      const message = document.getElementById("message");
+     
+      document.getElementById("signin-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+       
+          const formData = new FormData();
+          formData.append("username", username);
+          formData.append("password", password);
+
+          fetch('http://127.0.0.1:5000/api/login', {  
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'  // Ensure correct content type
+            },
+            body: JSON.stringify({ 
+                username: document.getElementById('username').value, 
+                password: document.getElementById('password').value 
+            })
+            })
+            .then(response => response.json())
+            .then(data => {
+              console.log(data);
+              if (data.user_type === "admin") {
+                window.location.href = "admincursor.html";
+              } else if (data.user_type === "user") {
+                window.location.href = "indexs.html";
+              } else {
+                message.innerHTML = "Invalid Username or Password";
+              }
+              message.innerHTML = data.message;
+
+            })
+            .catch (error => {
+              console.error('Error:', error);
+              message.innerHTML = "Error Logging In Try again";
+            })
+            .finally(() => {
+              message.innerHTML = "";
+              document.getElementById("signin-form").reset();
+             
+              
+            });
+
+       
+    
+    });
+    }
+
+  </script>
+      
+</body>
+</html>

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Organic Invenntory</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="stylesheet" href="cart.css">
+    <link rel="stylesheet" href="/Elements/toastNotification.css">
+
+</head>
+<body>
+   
+    
+
+    <nav id="sidebar" class="nav-menu">
+        <div id="logo" class="logo">
+            <img src="/Elements/meh.png" alt="logo">
+            <p> Organic Invenntory Managment</p>
+        </div>
+        <div class="nav-header">
+            <a href="account.html"><button  class="account-btn" id="accBtn">A</button> UserName</a>
+        </div>
+        <a href="#" class="nav-item active"><i class="fas fa-house" id="icon"></i>Home</a>
+        <a href="coming.html" class="nav-item"><i class="fas fa-cart-shopping" id="icon"></i>Cart</a>
+        <a href="coming.html" class="nav-item"><i class="fas fa-bell" id="icon"></i>Notification</a>
+        <a href="coming.html" class="nav-item"><i class="fas fa-user-secret" id="icon"></i>Account</a>
+        <a href="coming.html" class="nav-item"><i class="fas fa-list-check" id="icon"></i>Order List</a>
+        <a href="coming.html" class="nav-item"><i class="fas fa-gear" id="icon"></i>Setting</a>
+        <a href="index.html" class="nav-item" style="color: red; font-weight: bold;"><i id="icon"></i>Log out</a>
+        
+    </nav>
+
+    
+
+
+    <main>
+        <div id="loader" class="center" style="display:none;">
+            <div class="spinner">
+                <div class="dot" id="dot1"></div>
+                <div class="dot" id="dot2"></div>
+                <div class="dot" id="dot3"></div>
+                <div class="dot" id="dot4"></div>
+            </div>
+        </div>
+
+        <header>
+            <button class="fas fa-bars" id="hamburger-menu"></button>
+            <div id="logo" class="logo">
+                <img src="/Elements/meh.png" alt="logo">
+           
+            </div>
+
+            <div class="search-bar">
+                <div class="search-field">
+                    <input type="text" placeholder="Search..." >
+                    <button id="clearButton" class="clear-btn">
+                        <i class="fa fa-xmark"></i>
+                    </button>
+                    <button id="filterButton" class="filter-btn" onclick="fetchFilterData()" popovertarget="filterMenu">
+                        <i class="fa fa-filter icon"></i>
+                    </button>
+                </div>
+                <button id="search" onclick="searchProducts()">Search</button>
+            </div>
+
+
+            <div popover id="filterMenu" anchor="filter-btn" class="filterMenu">
+                <div class="filter">
+                    <section class="header">
+                        <p>Search Filters</p>
+                        
+                    </section>
+            
+                    <section class="filter-options">
+                        <div class="stock-options">
+                            <p>Stock</p>
+                            <ul>
+                                <li><label><input type="checkbox" class="filter-checkbox" value="instock">In Stock</label></li>
+                                <li><label><input type="checkbox" class="filter-checkbox" value="outstock">Out of Stock</label></li>
+                                <li><label><input type="checkbox" class="filter-checkbox" value="lowstock">Low Stock</label></li>
+                            </ul>
+                        </div>
+                        <div class="expire-options">
+                            <p>Expire Date</p>
+                            <ul>
+                                <li><label><input type="checkbox" class="filter-checkbox" value="expired">Expired</label></li>
+                                <li><label><input type="checkbox" class="filter-checkbox" value="expiring">Near Expiration</label></li>
+                            </ul>
+                        </div>
+                        <div class="unit-options">
+                            <p>Unit</p>
+                            <ul>
+                                <!-- Unit will be added here -->
+                            </ul>
+                        </div>
+                        <div class="category-options">
+                            <p>Category</p>
+                            <ul>
+                                <!-- Catagory will be added here --> 
+                            </ul>
+                        </div>
+                        <div class="view-options">
+                            <p>View</p>
+                            <ul>
+                                <li><label><input type="radio" name="view" value="grid" checked>Grid</label></li>
+                                <li><label><input type="radio" name="view" value="list">List</label></li>
+                            </ul>
+                        </div>
+                        <div class="sort-options">
+                            <p>Sort By</p>
+                            <ul>
+                                <li><label><input type="radio" name="sort" value="AZ">A-Z</label></li>
+                                <li><label><input type="radio" name="sort" value="stock">Stock</label></li>
+                                <li><label><input type="radio" name="sort" value="exdate">Expiration Date</label></li>
+                            </ul>
+                        </div>
+            
+                    </section>
+                    <section class="footer">
+                        <button class="clear-btn btn" onclick="clearFilter()">Clear</button>
+                        <button class="apply-btn btn" onclick="filterProducts()">Apply</button>
+                    </section>
+                </div>
+                
+            </div>
+
+            <!-- for small screen -->
+            <div>
+                <button class="fas fa-bell" id="notification-icon" ></button>
+                
+            </div>
+            <div>
+                <button class="fas fa-magnifying-glass" id="search-icon"></button>
+                
+            </div>
+
+            <nav>
+                <ul>
+                    <li><a href="/admincursor.html"><i id='navbtns' class="fas fa-house" title="Home"></i></a></li>
+                    <li><a href="coming.html"><i id='navbtns' title="cart" class="fas fa-cart-shopping"></i></a></li>
+                    <li><a href="coming.html"></a><i id='navbtns' class="fas fa-bell" title="Notification"></i></li>
+                    <li class="navicon"><button id="accBtn" popovertarget="dropdownMenu"><i id="navbtns" title="Account" class="fas fa-user-secret"></i></button>
+
+                        
+                    </li>
+                </ul>
+            </nav>
+
+            <div popover id="dropdownMenu" anchor="accBtn" class="dropdown">
+                <a href="#">Profile</a>
+                <a href="/Dashboard/test5.2.html">Dashboard</a>
+                <a href="#">Settings</a>
+                <a href="/login.html">Logout</a>
+                
+            </div>
+
+        </header>
+
+    
+    <div style="display: flex; width: 65%;">
+        <p id="no-result" style="position: absolute; z-index: -1; text-align: center; top: 50%; width: 65%; margin: 10px; font-size: 34px;">
+             No Product Found!!!
+        </p>
+            <section class="products" id="main-content">
+                <!-- Products will be added here -->
+            </section>
+        </div>
+            <div id="cart">
+                
+                <h2 >Cart</h2>
+                <input type="date" id="cart-date">
+                <div id="cart-items" class="cart-items">
+                    <div class="table-wrapper">
+                        <table id="carttable">
+                            <thead style="padding: 10px;">
+                                <tr>
+                                    <th class="tbcheck">
+                                         <input type="checkbox" id="selectAllCheckbox" style="display: none;">
+                                        <!--<label>All</label> -->
+                                    </th>
+                                    <th class="tbname">Product</th>
+                                    <th class="tbquantity">Quantity</th>
+                                    <th class="tbprice">Price</th>
+                                    <th class="tbsubtotal">SubTotal</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody">
+                                <tr>
+                                    
+                                </tr>
+                                
+                            
+                                
+                                
+                        
+                                <!-- Cart items will be added here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <button id="clear-btn" onclick="clearCheckedItems()" style="display:none" >Clear</button>
+                </div>
+                <hr width="100%">
+                <div class="total">
+                    <p>Total: <span id="total">0</span></p>
+                    <button id="checkout" onclick="checkout()">Checkout</button>
+                </div>
+                
+            </div>
+       
+        
+
+
+
+    <!-- <footer>
+        <p>&copy; 2024 Organic Invenntory. All rights reserved.</p>
+    </footer> -->
+
+    <!-- Overlay for background blur -->
+    <div class="overlay" id="detoverlay"></div>
+    <div class="overlay" id="editoverlay"></div>
+    <div class="overlay" id="addoverlay"></div>
+    <!-- <div class="overlay" id="confirmoverlay"></div> -->
+    <div class="overlay" id="sideoverlay"></div>
+
+    <script src="/Elements/toastNotification.js"></script>
+    <script defer src="/test/test7.3.js"></script>
+    
+    <script src="cart.js"></script>
+</body>
+</html>
