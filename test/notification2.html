@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SweetAlert2 Examples</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+        }
+        button {
+            margin: 10px;
+            padding: 10px 15px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            background-color: #3085d6;
+            color: white;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #256ab2;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>SweetAlert2 Examples</h2>
+
+    <button onclick="showAlert()">Basic Alert</button>
+    <button onclick="showConfirmation()">Confirmation Dialog</button>
+    <button onclick="showInputAlert()">Input Field Alert</button>
+    <button onclick="showAutoCloseAlert()">Auto Close Alert</button>
+
+    <script>
+        function showAlert() {
+            Swal.fire({
+                title: 'Success!',
+                text: 'This is a SweetAlert2 popup.',
+                icon: 'success',
+                confirmButtonText: 'OK'
+            });
+        }
+
+        function showConfirmation() {
+            Swal.fire({
+                title: "Are you sure?",
+                text: "You won't be able to revert this!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes, delete it!"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire("Deleted!", "Your file has been deleted.", "success");
+                }
+            });
+        }
+
+        function showInputAlert() {
+            Swal.fire({
+                title: "Enter your name",
+                input: "text",
+                inputPlaceholder: "Type your name here...",
+                showCancelButton: true
+            }).then((result) => {
+                if (result.value) {
+                    Swal.fire(`Hello, ${result.value}!`);
+                }
+            });
+        }
+
+        function showAutoCloseAlert() {
+            Swal.fire({
+                title: "Auto closing alert!",
+                text: "This will close in 3 seconds.",
+                icon: "info",
+                timer: 3000,
+                showConfirmButton: false
+            });
+        }
+    </script>
+
+</body>
+</html>

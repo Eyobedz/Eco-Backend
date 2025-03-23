@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Popover Dropdown</title>
+    <style>
+        .profile-btn {
+            background: #15368a;
+            border: none;
+            cursor: pointer;
+            width: fit-content;
+            height: 40px;
+            border-radius: 50%;
+        }
+
+        .profile-btn img {
+            width: 100%;
+            border-radius: 50%;
+        }
+
+        .dropdown {
+            inset: unset;
+            top: anchor(bottom);
+            left: anchor(center);
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: rgb(21, 77, 117);
+            padding: 10px;
+            width: 150px;
+            text-align: left;
+        }
+        
+
+        .dropdown a {
+            display: block;
+            padding: 8px;
+            text-decoration: none;
+            color: black;
+        }
+
+        .dropdown a:hover {
+            background: #f0f0f0;
+        }
+       
+    </style>
+</head>
+<body>
+
+    <button class="profile-btn" id="profileBtn" popovertarget="dropdownMenu">
+        Account
+    </button>
+
+    <div popover id="dropdownMenu" anchor="profileBtn" class="dropdown">
+        <a href="#">Profile</a>
+        <a href="#">Settings</a>
+        <a href="#">Logout</a>
+    </div>
+
+</body>
+</html>

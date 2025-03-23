@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .chart-container { width: 45%; display: inline-block; padding: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Supermarket Inventory Dashboard</h1>
+    
+    <div class="chart-container">
+        <canvas id="salesChart"></canvas>
+    </div>
+    <div class="chart-container">
+        <canvas id="stockChart"></canvas>
+    </div>
+    <div class="chart-container">
+        <canvas id="profitChart"></canvas>
+    </div>
+    <div class="chart-container">
+        <canvas id="lowStockChart"></canvas>
+    </div>
+    <div class="chart-container">
+        <canvas id="supplierChart"></canvas>
+    </div>
+    
+    <script>
+        // Monthly Sales Revenue Chart
+        new Chart(document.getElementById("salesChart"), {
+            type: 'bar',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+                datasets: [{
+                    label: 'Sales Revenue ($)',
+                    data: [5000, 7000, 6500, 8000, 9000],
+                    backgroundColor: 'blue'
+                }]
+            }
+        });
+
+        // Stock Levels Over Time
+        new Chart(document.getElementById("stockChart"), {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+                datasets: [{
+                    label: 'Total Stock',
+                    data: [1200, 1100, 1150, 1050, 950],
+                    borderColor: 'red',
+                    fill: false
+                }]
+            }
+        });
+
+        // Profit Margin by Category
+        new Chart(document.getElementById("profitChart"), {
+            type: 'bar',
+            data: {
+                labels: ['Dairy', 'Beverages', 'Snacks', 'Produce', 'Frozen'],
+                datasets: [{
+                    label: 'Profit Margin (%)',
+                    data: [25, 30, 20, 15, 28],
+                    backgroundColor: 'green'
+                }]
+            }
+        });
+
+        // Low Stock Alerts
+        new Chart(document.getElementById("lowStockChart"), {
+            type: 'pie',
+            data: {
+                labels: ['Milk', 'Eggs', 'Bread', 'Cereal', 'Meat'],
+                datasets: [{
+                    label: 'Low Stock',
+                    data: [5, 3, 8, 2, 4],
+                    backgroundColor: ['red', 'blue', 'yellow', 'green', 'purple']
+                }]
+            }
+        });
+
+        // Supplier Performance
+        new Chart(document.getElementById("supplierChart"), {
+            type: 'bar',
+            data: {
+                labels: ['Supplier A', 'Supplier B', 'Supplier C', 'Supplier D'],
+                datasets: [{
+                    label: 'On-Time Deliveries (%)',
+                    data: [90, 80, 85, 70],
+                    backgroundColor: 'orange'
+                }]
+            }
+        });
+    </script>
+</body>
+</html>

@@ -5,7 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Organic Invenntory</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-    <style>
+    <link rel="stylesheet" href="https://site-assets.fontawesome.com/releases/v6.7.2/css/all.css">
+    <link rel="stylesheet" href="Elements/toastNotification.css">
+    <script defer src="test/test7.3.js"></script>
+   <style>
         /* home page */
 
 * {
@@ -30,11 +33,11 @@ header {
     align-items: center;
     background-color: #232f4e;
     color: white;
-    padding: 10px 20px;
+    padding: 5px 20px;
     position: sticky;
     top: 0;
     min-width: 100%;
-    z-index: 500;
+    z-index: 50;
 }
 
 .logo {
@@ -114,6 +117,119 @@ header {
     color: #333;
 }
 
+.filter-btn{
+    background: none;
+    border: none;
+    cursor: pointer;
+    scale: 1.2;
+    /* display: none; */
+    /* font-size: 14px; */
+    color: #888888;
+}
+
+.filter-btn i {
+    color: #888888;
+}
+
+.filterMenu{
+    border: 1px solid #00ff80;
+    border-radius: 10px;
+    filter: drop-shadow(0px 15px 10px rgba(0, 0, 0, 0.5));
+}
+
+.filter {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+
+    }
+
+
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        /* padding: 1rem; */
+        border-bottom: 1px solid #ddd;
+    }
+
+    .header p {
+        font-size: 1.5rem;
+    }
+
+    .exit-btn {
+        background-color: transparent;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+
+    .filter-options {
+        display: flex;
+        /* flex-direction: row; */
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 1rem;
+    }
+    .filter-options div {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        margin: 5px;
+    }
+
+    .filter-options p {
+        padding: 0;
+        margin: 0;
+        font-size: 1.2rem;
+        margin-bottom: 0.5rem;
+        border-bottom: 0.5px dashed #000000;
+    }
+
+    .filter-options ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    .filter-options li {
+        /* text-align: center; */
+        font-size: 1rem;
+        padding: 0.5rem ;
+        cursor: pointer;
+    }
+
+    .filter-checkbox {
+        accent-color: lime;
+    }
+
+    .footer {
+        display: flex;
+        justify-content: end;
+        padding: 1rem;
+        border-top: 1px solid #ddd;
+    }
+
+    .btn {
+        width: 10%;
+        border: none;
+        background-color:transparent;
+        color: #555;
+        font-size: 1.2rem;
+        cursor: pointer;
+    }
+
+    .clear-btn:hover {
+        color: red;
+    }
+
+    .apply-btn:hover {
+        color: green;
+    }
+
+
+
+
 #search-icon{
     display: none;
 }
@@ -123,21 +239,29 @@ nav ul {
     list-style: none;
     display: flex;
     margin: 0;
+    margin-right: 20px;
     padding: 0;
     gap: 10px;
     align-items: center;
     flex-wrap: wrap;
     scale: 1.15;
+    
 }
 
 nav li {
-    margin-left: 20px;
+    margin: 0px 10px;
 }
 
 nav a {
-    color: #fff;
+    color: #ffffff;
     text-decoration: none;
     
+}
+
+.navicon {
+    height: 20px;
+    width: 20px;
+    justify-self: center;
 }
 
 .nav-menu {
@@ -160,10 +284,40 @@ nav a {
 }
 
 #accBtn {
-    border-radius: 25px;
-    height: 30px;
-    width: 30px;
+    border-radius: 50%;
+    height: auto;
+    width: 20px; 
+    padding: 0;
+    margin: 0;
+    scale: 1.5 ;
 }
+
+.dropdown {
+    inset: unset;
+    top: anchor(bottom);
+    right: anchor(center);
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background: rgb(21, 77, 117);
+    padding: 10px;
+    width: 150px;
+    text-align: left;
+    transform: translate(10px, 20px);
+}
+
+
+.dropdown a {
+    display: block;
+    padding: 8px;
+    text-decoration: none;
+    color: black;
+}
+
+.dropdown a:hover {
+    background: #f0f0f0;
+}
+
+
 
 #search-icon{
     display: none;
@@ -188,7 +342,7 @@ main {
     padding: 10px;
 }
 
-.product {
+.product.grid-view {
     border: 1px solid #000;
     background-color: #f7f7f7;
     margin: 5px;
@@ -197,19 +351,42 @@ main {
     max-width: 180px; /* Max width for larger screens */
     text-align: center;
     border-radius: 10px;
+    
 }
 
-.product img {
+.grid-view.product img {
     max-width: 100%;
     max-height: 100px;
-    filter: drop-shadow(0px 15px 10px rgba(0, 0, 0, 0.5));
+    /* filter: drop-shadow(0px 15px 10px rgba(0, 0, 0, 0.5)); */
 }
+
+
+.product.list-view {
+        display: grid;
+        grid-template-columns: 110px 1fr 1fr 1fr 1fr;
+        gap:5px;
+        /* justify-content: space-between; */
+        align-items: center;
+        background-color: #f7f7f7;
+        /* background-color: rgba(240, 249, 109, 0.468); */
+        font-size: large;
+        margin: 10px;
+        padding: 5px;
+        width: 97%;
+        border-radius: 15px;
+
+    }
+
+    .product.product.list-view img {
+        max-width: 100%;
+        max-height: 80px;
+    }
 
 footer {
     background-color: #232f3e;
     color: white;
     text-align: center;
-    padding: 10px;
+    padding: 5px;
     position: relative;
     width: 100%;
     bottom: 0;
@@ -416,7 +593,7 @@ footer {
 }
 
 #submitBtn:hover {
-    background-color: red;
+    background-color: rgb(0, 255, 26);
 }
 
 
@@ -436,88 +613,15 @@ footer {
     filter: blur(5px);
 }
 
-.center {
+
+
+ .center {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    height: 100px;
 }
 
-.loading-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-}
-
-.spinner {
-    display: grid;
-    grid-template-columns: repeat(2,1fr);
-    grid-template-rows: repeat(2,1fr);
-    width: 60px;
-    height: 60px;
-    transform-origin:center;
-    border-radius: 0%;
-    animation: spin  2s infinite;
-    background: transparent;
-}
-
-.dot{
-    height: 25px;
-    width: 25px;
-    border-radius: 50%;
-    background-color: black;
-}
-
-#dot1{
-    background-color: rgb(63, 230, 130);
-    grid-column: 1;
-    grid-row: 1;
-    align-self: flex-start;
-    justify-self: flex-start;
-}
-
-#dot2{
-    position: relative;
-    background-color: rgb(0, 0, 255);
-    grid-column: 2;
-    grid-row: 1;
-    align-self: start;
-    justify-self: flex-end;
-    
-}
-
-#dot3{
-    position: relative;
-    background-color: rgb(0,0, 255);
-    grid-column: 1;
-    grid-row: 2;
-    align-self: flex-end;
-    justify-self: flex-start;
-   
-}
-
-#dot4{
-    position: relative;
-    background-color: rgb(0, 0, 255);
-    grid-column: 2;
-    grid-row: 2;
-    align-self: flex-end;
-    justify-self: flex-end;
-   
-}
-
-@keyframes spin {
-    0%{transform: rotate(0deg);
-        gap: 0px;}
-    25%{gap: 5px;}
-    50%{gap: 15px;
-        scale: 1.25;}
-    100% {transform: rotate(720deg);
-          gap: 5px;}
-        
-    
-}
 
 /* Media Queries for smaller screens */
 @media (max-width: 768px) {
@@ -807,14 +911,7 @@ footer {
 
 
     <main>
-        <div id="loader" class="center" style="display:none;">
-            <div class="spinner">
-                <div class="dot" id="dot1"></div>
-                <div class="dot" id="dot2"></div>
-                <div class="dot" id="dot3"></div>
-                <div class="dot" id="dot4"></div>
-            </div>
-        </div>
+        
         <header>
             <button class="fas fa-bars" id="hamburger-menu"></button>
             <div id="logo" class="logo">
@@ -826,11 +923,78 @@ footer {
                 <div class="search-field">
                     <input type="text" placeholder="Search..." >
                     <button id="clearButton" class="clear-btn">
-                        <i class="fa fa-xmark"></i>
+                        <i class="fa fa-x"></i>
+                    </button>
+                    <button id="filterButton" class="filter-btn" onclick="fetchFilterData()" popovertarget="filterMenu">
+                        <i class="fa fa-filter icon"></i>
                     </button>
                 </div>
                 <button id="search" onclick="searchProducts()">Search</button>
             </div>
+
+
+            <div popover id="filterMenu" anchor="filter-btn" class="filterMenu">
+                <div class="filter">
+                    <section class="header">
+                        <p>Search Filters</p>
+                        
+                    </section>
+            
+                    <section class="filter-options">
+                        <div class="stock-options">
+                            <p>Stock</p>
+                            <ul>
+                                <li><label><input type="checkbox" class="filter-checkbox" value="instock">In Stock</label></li>
+                                <li><label><input type="checkbox" class="filter-checkbox" value="outstock">Out of Stock</label></li>
+                                <li><label><input type="checkbox" class="filter-checkbox" value="lowstock">Low Stock</label></li>
+                            </ul>
+                        </div>
+                        <div class="expire-options">
+                            <p>Expire Date</p>
+                            <ul>
+                                <li><label><input type="checkbox" class="filter-checkbox" value="expired">Expired</label></li>
+                                <li><label><input type="checkbox" class="filter-checkbox" value="expiring">Near Expiration</label></li>
+                            </ul>
+                        </div>
+                        <div class="unit-options">
+                            <p>Unit</p>
+                            <ul>
+                                <!-- Unit will be added here -->
+                            </ul>
+                        </div>
+                        <div class="category-options">
+                            <p>Category</p>
+                            <ul>
+                                <!-- Catagory will be added here --> 
+                            </ul>
+                        </div>
+                        <div class="view-options">
+                            <p>View</p>
+                            <ul>
+                                <li><label><input type="radio" name="view" value="grid" checked>Grid</label></li>
+                                <li><label><input type="radio" name="view" value="list">List</label></li>
+                            </ul>
+                        </div>
+                        <div class="sort-options">
+                            <p>Sort By</p>
+                            <ul>
+                                <li><label><input type="radio" name="sort" value="AZ">A-Z</label></li>
+                                <li><label><input type="radio" name="sort" value="stock">Stock</label></li>
+                                <li><label><input type="radio" name="sort" value="exdate">Expiration Date</label></li>
+                            </ul>
+                        </div>
+            
+                    </section>
+                    <section class="footer">
+                        <button class="clear-btn btn" onclick="clearFilter()">Clear</button>
+                        <button class="apply-btn btn" onclick="filterProducts()">Apply</button>
+                    </section>
+                </div>
+                
+            </div>
+
+
+
             <div>
                 <button class="fas fa-bell" id="notification-icon" ></button>
                 
@@ -839,30 +1003,52 @@ footer {
                 <button class="fas fa-magnifying-glass" id="search-icon"></button>
                 
             </div>
+
+            
+
             <nav>
                 <ul>
-                    <li><a href="admincursor.html"><i id='navbtns' class="fas fa-house" title="Home"></i></a></li>
-                    <li><a href="cart/cart.html"><i id='navbtns' title="cart" class="fas fa-cart-shopping"></i></a></li>
-                    <li><a href="coming.html"></a><i id='navbtns' class="fas fa-bell" title="Notification"></i></li>
-                    <li><a href="#"></a><button id="accBtn" title="account" ><i class="fas fa-user-secret" ; style="scale: 150%;"></i></button>
+                    <li class="navicon"><a href="admincursor.html"><i id='navbtns' title="Home" class="fas fa-house" ></i></a></li>
+                    <li class="navicon"><a href="cart/cart.html"><i id='navbtns' title="cart" class="fas fa-cart-shopping"></i></a></li>
+                    <li class="navicon"><a href="coming.html"><i id='navbtns' title="Notification" class="fas fa-bell" ></i></a></li>
+                    <li class="navicon"><button id="accBtn" popovertarget="dropdownMenu"><i id="navbtns" title="Account" class="fas fa-user-secret"></i></button>
                         
                     </li>
                 </ul>
             </nav>
-
+            <div popover id="dropdownMenu" anchor="accBtn" class="dropdown">
+                <a href="#">Profile</a>
+                <a href="Dashboard/test5.2.html">Dashboard</a>
+                <a href="#">Settings</a>
+                <a href="login.html">Logout</a>
+                
+            </div>
 
         </header>
-        <p style="position: absolute; z-index: -1; text-align: center; top: 50%; width: 99%; margin: 10px; font-size: 34px;">
+
+       
+
+        <!-- <div id="loader" class="center" style="display:none;">
+            <div class="spinner">
+                <div class="dot" id="dot1"></div>
+                <div class="dot" id="dot2"></div>
+                <div class="dot" id="dot3"></div>
+                <div class="dot" id="dot4"></div>
+            </div>
+        </div> -->
+
+
+        <p id="no-result" style="position: absolute; z-index: -1; text-align: center; top: 50%; width: 99%; margin: 10px; font-size: 34px;">
             No Product Found!!!
        </p>
         <section class="products" id="main-content">
-            <div class="product" data-stock="5" data-unit='pis' data-expiration="2024-09-01" barcode = '0073076552945' price = 370 priceper="pis">
+            <!-- <div class="product" data-stock="5" data-unit='pis' data-expiration="2024-09-01" barcode = '0073076552945' price = 370 priceper="pis">
                 <img src="items/ITEM BG/20240815_173518-removebg-preview.png" alt="Product 1">
                 <h2>Doritos Chips Tortilla</h2>
                 <p>$600</p>
                 <button onclick="viewDetails(this)">View Details</button>
                 <p class="stock-info"></p>
-            </div>
+            </div> -->
 
             <!-- Add more products as needed -->
         </section>
@@ -881,6 +1067,16 @@ footer {
                     <tr><td><Label for="product-name-input">Product Name</Label><td>
                         <input type="text" id="product-name-input" placeholder="Product Name" ></td></td>
         
+                    <tr><td><Label for="Catagory">Catagory</Label><td>
+                        <input name="catagory list" list="catList" id="catagory" placeholder="Catagory" >
+                            <datalist id="catList">
+                                <option>General</option>
+                                <option>Food</option>
+                                <option>Drink</option>
+                            </datalist>
+                    </td></tr>
+            
+                    
                     <tr><td><Label for="quantity-input">Quantity</Label><td>
                         <input type="number" id="quantity-input" placeholder="Quantity" ></td></tr>
         
@@ -938,10 +1134,16 @@ footer {
             <table id="info">
                 
                 <tr>
-                    <td class="tbco0" rowspan="5"><img src="" alt="product image" id="detimg" ></td>
+                    <td class="tbco0" rowspan="6"><img src="" alt="product image" id="detimg" ></td>
                     <td id="tbco1">Product Name:</td>
                     <td id="tbco2"><label id="pdName"></label></td>
                 </tr>
+
+                <tr>
+                    <td id="tbco1">Catagory:</td>
+                    <td id="tbco2"><label id="pdcatagory"></label></td>
+                </tr>
+                
         
                 <tr>
                     <td id="tbco1">Stock:</td>
@@ -967,8 +1169,8 @@ footer {
                 
             </table>
             <div class="choice">
-                <button  id="editbtn" title="Edit this item">Edit</button>
-                <button  id="deletebtn" title="Delete this item">Delete</button>
+                <button  id="editbtn" title="Edit this item"><i class="fa-solid fa-pen"></i> Edit</button>
+                <button  id="deletebtn" title="Delete this item"><i class="fa-solid fa-trash-can-xmark"></i> Delete</button>
             </div>
         
             <!-- Modal for confirmation -->
@@ -995,6 +1197,15 @@ footer {
                     <tr><td><Label for="edit-product-name-input">Product Name</Label><td>
                         <input type="text" name="product_name" id="edit-product-name-input" placeholder="Product Name" ></td></td>
         
+                    <tr><td><Label for="edit-catagory">Catagory</Label><td>
+                        <input name="catagory"  list="catList" id="edit-catagory" placeholder="Catagory" >
+                            <datalist id="catList">
+                                <option value="General">General</option>
+                                <option value="Food">Food</option>
+                                <option value="Drink">Drink</option>
+                            </datalist>
+                    </td></tr>
+                    
                     <tr><td><Label for="edit-quantity-input">Quantity</Label><td>
                         <input type="number" name='stock' id="edit-quantity-input" placeholder="Quantity" ></td></tr>
         
@@ -1060,14 +1271,18 @@ footer {
     <!-- <div class="overlay" id="confirmoverlay"></div> -->
     <div class="overlay" id="sideoverlay"></div>
 
-    
+    <script src="Elements/toastNotification.js"></script>
     <script>
 
 document.addEventListener("DOMContentLoaded", () => {
     AddProduct();
     sidebar();
     fetchAndUpdateData();
+    storedValue();
 });
+
+const notifier = new ToastNotification();
+
 
 function sidebar() {
     // Get the elements
@@ -1114,8 +1329,14 @@ function sidebar() {
 function fetchAndUpdateData() {
     const container = document.getElementById('main-content');
     const fragment = document.createDocumentFragment(); // Create a DocumentFragment for batching
+    const noResult = document.getElementById('no-result');
+    
+    noResult.style.display = 'none';
 
-    fetch('http://localhost:5000/api/get-data', { method: 'GET' })
+    GearboxLoader.show();
+
+
+    fetch('https://ofs-webapp.onrender.com/api/get-data', { method: 'GET' })
         .then(response => {
             if (!response.ok) {
                 throw new Error('Network response was not ok ' + response.statusText);
@@ -1132,7 +1353,9 @@ function fetchAndUpdateData() {
                 const formattedDate = formatDate(row.exdate);
 
                 rowDiv.className = 'product';
+                // rowDiv.classList.add('grid-view')
                 rowDiv.setAttribute('data-id', row.id);
+                rowDiv.setAttribute('data-catagory', row.catagory);
                 rowDiv.setAttribute('data-name', row.product_name);
                 rowDiv.setAttribute('data-stock', row.stock);
                 rowDiv.setAttribute('data-unit', row.unit);
@@ -1145,7 +1368,7 @@ function fetchAndUpdateData() {
 
                 // Use lazy loading for images
                 const imgElement = row.image_path
-                    ? `<img src="http://localhost:5000${row.image_path}" alt="${row.product_name}" loading="lazy">`
+                    ? `<img src="https://ofs-webapp.onrender.com/${row.image_path}" alt="${row.product_name}" loading="lazy">`
                     : '';
 
                 // Pre-calculate stock and expiration information
@@ -1161,14 +1384,218 @@ function fetchAndUpdateData() {
 
                 fragment.appendChild(rowDiv); // Append to the DocumentFragment
             });
-
+            
             container.appendChild(fragment); // Append the DocumentFragment to the DOM in one operation
+
+            view();
+
         })
         .catch(error => {
             console.error('Error fetching data:', error.message || error);
-            alert('Failed to load data. Please try again later.');
+            // alert('Failed to load data. Please try again later.');
+            notifier.error('Failed to load data. Please try again later.');
+
+        })
+
+        .finally(() => {
+            // Hide loader after fetching data (success or error)
+            GearboxLoader.hide();
+            noResult.style.display = 'block';
+
+           
         });
 }
+
+function fetchFilterData() {
+            fetch('http://localhost:5000/api/get-filter', { method: 'GET' })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(data => {
+                document.querySelector('.category-options ul').innerHTML = ``;
+                document.querySelector('.unit-options ul').innerHTML = ``;
+
+                catagory = [];
+                unit = [];
+                data.forEach(row => {
+                    if (!catagory.includes(row.catagory)){
+                        catagory.push(row.catagory);
+
+                        document.querySelector('.category-options ul').innerHTML += `<li><label><input type="checkbox" class="filter-checkbox" value="${row.catagory}">${row.catagory}</label></li>`;
+                    }
+
+                    if (!unit.includes(row.unit)){
+                        unit.push(row.unit);
+
+                        document.querySelector('.unit-options ul').innerHTML += `<li><label><input type="checkbox" class="filter-checkbox" value="${row.unit}">${row.unit}</label></li>`;
+                    }
+                });
+                // alert('Data fetched successfully');
+                // console.log(catagory, unit);
+                })
+            .catch(error => {
+                console.error('Error fetching data:', error.message || error);
+                // alert('Failed to load data. Please try again later.');
+                // notifier.error('Failed to load data. Please try again later.');
+
+            })
+
+        //    .finally(() => {
+        //         // Hide loader after fetching data (success or error)
+        //         GearboxLoader.hide();
+        //          //loader.style.display = 'none';
+        //     });
+
+    }
+    
+function clearFilter() {
+    document.querySelectorAll('.filter-options input[type="checkbox"]').forEach(input => input.checked = false);
+    // filterProducts();
+}
+
+function filterProducts() {
+    const products = document.querySelectorAll('.product');
+
+    const selectedStock = Array.from(document.querySelectorAll('.stock-options input[type="checkbox"]:checked'))
+        .map(option => option.value);
+    
+    const selectedExpiration = Array.from(document.querySelectorAll('.expire-options input[type="checkbox"]:checked'))
+        .map(option => option.value);
+
+    const selectedUnits = Array.from(document.querySelectorAll('.unit-options input[type="checkbox"]:checked'))
+        .map(option => option.value);
+
+    const selectedCatagory = Array.from(document.querySelectorAll('.category-options input[type="checkbox"]:checked'))
+        .map(option => option.value);
+
+    products.forEach(product => {
+        let isVisible = true;
+
+        // Stock Filter
+        const stock = Number(product.getAttribute('data-stock'));
+        if (selectedStock.length > 0) {
+            if (selectedStock.includes('instock') && stock > 0) {
+                // Keep it visible
+            } else if (selectedStock.includes('outstock') && stock === 0) {
+                // Keep it visible
+            } else if (selectedStock.includes('lowstock') && stock > 0 && stock < 10) {
+                // Keep it visible
+            } else {
+                isVisible = false;
+            }
+        }
+
+        // Expiration Filter
+        const expirationDate = new Date(product.getAttribute('data-expiration'));
+        const today = new Date();
+        const daysToExpire = Math.ceil((expirationDate - today) / (1000 * 3600 * 24));
+        if (selectedExpiration.length > 0) {
+            if (selectedExpiration.includes('expired') && daysToExpire <= 0) {
+                // Keep it visible
+            } else if (selectedExpiration.includes('expiring') && daysToExpire <= 7 && daysToExpire > 0) {
+                // Keep it visible
+            } else {
+                isVisible = false;
+            }
+        }
+
+        // Unit Filter
+        const productUnit = product.getAttribute('data-unit');
+        if (selectedUnits.length > 0 && !selectedUnits.includes(productUnit)) {
+            isVisible = false;
+        }
+
+        // categor Filter
+        const productCatagory = product.getAttribute('data-catagory');
+        if (selectedCatagory.length > 0 && !selectedCatagory.includes(productCatagory)) {
+            isVisible = false;
+            // console.log('made it here');
+        }
+        let dis
+        if (localStorage.getItem("selectedView")==='list') {
+            dis = 'grid';
+        } else {
+            dis = 'block';
+        }
+
+        // Apply final visibility
+        product.style.display = isVisible ? dis : 'none';
+    });
+    document.getElementById('filterMenu').hidePopover();
+    view();
+}
+
+function storedValue() {
+    const ViewRadios = document.querySelectorAll('input[name="view"]');
+    const SortRadios = document.querySelectorAll('input[name="sort"]');
+
+    const storedView = localStorage.getItem("selectedView");
+    const storedSort = localStorage.getItem("selectedSort");
+
+    // Restore saved value
+    if (storedView) {
+        ViewRadios.forEach(radio => {
+            if (radio.value === storedView) {
+                radio.checked = true;
+            }
+        });
+    }
+
+    // Save selected value
+    ViewRadios.forEach(radio => {
+        radio.addEventListener("change", function () {
+            localStorage.setItem("selectedView", this.value);
+        });
+    });
+    console.log('storedValue', storedView);
+
+    // Restore saved value
+    if (storedSort) {
+        SortRadios.forEach(radio => {
+            if (radio.value === storedSort) {
+                radio.checked = true;
+            }
+        });
+    }
+
+    // Save selected value
+    SortRadios.forEach(radio => {
+        radio.addEventListener("change", function () {
+            localStorage.setItem("selectedSort", this.value);
+        });
+    });
+    console.log('storedSort', storedSort);
+}
+
+function view() {
+    if (localStorage.getItem("selectedView") === 'list') {
+        
+        
+        document.querySelectorAll('.products .product').forEach(function(element) {
+            element.classList.add('list-view');
+            element.classList.remove('grid-view');
+        });
+
+       
+    } else {
+        
+        document.querySelectorAll('.products .product').forEach(function(element) {
+            element.classList.add('grid-view');
+            element.classList.remove('list-view');
+        });
+        
+        
+    }
+}
+
+
+function sort (){
+
+}
+
 
 function getStockAndExpirationInfo(stock, unit, expirationDateStr) {
     const today = new Date();
@@ -1201,6 +1628,7 @@ function getStockAndExpirationInfo(stock, unit, expirationDateStr) {
     } else if (daysToExpire <= 0) {
         text += ` | Expired`;
         color = 'red'; // Override color if expired
+        
     }
 
     return { text, color };
@@ -1250,6 +1678,7 @@ function viewDetails(button) {
     const detail = document.getElementById('detail');
     const id = product.getAttribute('data-id');
     const det_pdName = document.getElementById('pdName');
+    const det_catagory = document.getElementById('pdcatagory');
     const det_stock = document.getElementById('pdstock');
     const det_price = document.getElementById('price');
     const det_exDate = document.getElementById('exDate');
@@ -1258,6 +1687,7 @@ function viewDetails(button) {
 
     detail.style.display='block';
     det_pdName.textContent = product.querySelector('h2').textContent;
+    det_catagory.textContent = product.getAttribute('data-catagory');
     det_stock.textContent = `${product.getAttribute('data-stock')} ${product.getAttribute('data-unit')}`;
     det_price.textContent = `ETB ${product.getAttribute('data-price')}  ${product.getAttribute('data-priceper')}`;
     det_barcode.textContent = product.getAttribute('data-barcode');
@@ -1276,6 +1706,7 @@ function viewDetails(button) {
     const productData = {
         productid: `${product.getAttribute('data-id')}`,
         productName: `${product.querySelector('h2').textContent}`,
+        catagory: `${product.getAttribute('data-catagory')}`,
         quantity: `${product.getAttribute('data-stock')}`,
         unit: `${product.getAttribute('data-unit')}`,
         price: `${product.getAttribute('data-price')}`,
@@ -1316,6 +1747,7 @@ function AddProduct(){
             formData.append('priceper', document.getElementById('priceper').value);
             formData.append('expirationDate-input', document.getElementById('expirationDate-input').value);
             formData.append('barcode', document.getElementById('barcode').value);
+            formData.append('catagory', document.getElementById('catagory').value);
             
             // Add the image file
             const imageFile = document.getElementById('image-input').files[0];
@@ -1337,6 +1769,7 @@ function AddProduct(){
             console.log('Success:', data);
             document.getElementById('message').textContent = 'Product added successfully!';
             document.getElementById('product-form').reset();
+            
             
         } catch (error) {
             console.error('Error:', error);
@@ -1380,6 +1813,7 @@ function editProduct(data){
 
     document.getElementById('productID').value = data['productid'];
     document.getElementById('edit-product-name-input').placeholder = data.productName;
+    document.getElementById('edit-catagory').placeholder = data.catagory;
     document.getElementById('edit-quantity-input').placeholder = data.quantity;
     document.getElementById('edit-Unit').placeholder = data.unit;
     document.getElementById('edit-price-input').placeholder = data.price;
@@ -1562,8 +1996,14 @@ function searchProducts() {
     const products = document.querySelectorAll('.product');
 
     products.forEach(product => {
+        let dis
+        if (localStorage.getItem("selectedView")==='list') {
+            dis = 'grid';
+        } else {
+            dis = 'block';
+        }
         const productName = product.querySelector('h2').textContent.toLowerCase();
-        product.style.display = !searchTerm || productName.includes(searchTerm) ? 'block' : 'none';
+        product.style.display = !searchTerm || productName.includes(searchTerm) ? dis : 'none';
     });
 }
 
@@ -1608,7 +2048,7 @@ function observeProductList() {
         for (let mutation of mutationsList) {
             if (mutation.type === 'childList') {
                 // Re-run the stock and expiration check whenever a new product is added
-                checkStockAndExpiration();
+                // checkStockAndExpiration();
             }
         }
     });

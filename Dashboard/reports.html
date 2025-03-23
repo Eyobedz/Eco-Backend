@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report</title>
+    <style>
+        body{
+            display: flex;
+        }
+        .title{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 10px;
+        }
+
+        .table-wrapper{
+            
+            max-height: 300px;
+            width: 100%;
+            overflow-y: auto;
+        }
+        table{
+            width: 100%;
+            height: 90%;
+            text-align: center;
+         }
+
+        table, th, td{
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+
+        thead{
+            background-color: rgb(14, 48, 141);
+        }
+
+        tr td{
+            justify-content: end;
+
+        }
+
+        h3{
+            margin: 0;
+            padding: 0;
+        }
+
+        .totals{
+            display: flex;
+            flex-direction: column;
+            width: 200px;
+            justify-content: space-between;
+            justify-self: flex-end;
+            margin: 0px;
+            padding: 0;
+        }
+
+        .totals a{
+            display: flex;
+            width: 100%;
+            margin: 0px;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0;
+            height: 30px;
+
+        }
+
+    </style>
+</head>
+<body>
+    <div class="mainContent">
+        <h1>Reports</h1>
+        <button>Daily Report</button>
+        <button>Weekly Report</button>
+        <button>Monthly Report</button>
+        <button>Annual Report</button>
+        <button>Inventory Report</button>
+
+        <div>
+            <!-- <iframe width="100%" height="100%" style="border: none; background-color: aqua;"></iframe> -->
+
+            <h1>Daily Report</h1>
+            <a class="title"><h3>Sold Items</h3>Date</a>
+            <div class='table-wrapper'>
+                <table style="background-color: rgb(91, 213, 235);">
+                    <thead>
+                        <tr>
+                            <th>No.</th>
+                            <th>Barcode</th>
+                            <th>Product Name</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                            <th>Sub Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>123456789</td>
+                            <td>Product 1</td>
+                            <td>2</td>
+                            <td>100</td>
+                            <td>200</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>987654321</td>
+                            <td>Product 2</td>
+                            <td>1</td>
+                            <td>50</td>
+                            <td>50</td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td>123456789</td>
+                            <td>Product 1</td>
+                            <td>2</td>
+                            <td>100</td>
+                            <td>200</td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td>987654321</td>
+                            <td>Product 2</td>
+                            <td>1</td>
+                            <td>50</td>
+                            <td>50</td>
+                        </tr>
+                        <tr>
+                            <td>1</td>
+                            <td>123456789</td>
+                            <td>Product 1</td>
+                            <td>2</td>
+                            <td>100</td>
+                            <td>200</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>987654321</td>
+                            <td>Product 2</td>
+                            <td>1</td>
+                            <td>50</td>
+                            <td>50</td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td>123456789</td>
+                            <td>Product 1</td>
+                            <td>2</td>
+                            <td>100</td>
+                            <td>200</td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td>987654321</td>
+                            <td>Product 2</td>
+                            <td>1</td>
+                            <td>50</td>
+                            <td>50</td>
+                        </tr><tr>
+                            <td>1</td>
+                            <td>123456789</td>
+                            <td>Product 1</td>
+                            <td>2</td>
+                            <td>100</td>
+                            <td>200</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>987654321</td>
+                            <td>Product 2</td>
+                            <td>1</td>
+                            <td>50</td>
+                            <td>50</td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td>123456789</td>
+                            <td>Product 1</td>
+                            <td>2</td>
+                            <td>100</td>
+                            <td>200</td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td>987654321</td>
+                            <td>Product 2</td>
+                            <td>1</td>
+                            <td>50</td>
+                            <td>50</td>
+                        </tr><tr>
+                            <td>1</td>
+                            <td>123456789</td>
+                            <td>Product 1</td>
+                            <td>2</td>
+                            <td>100</td>
+                            <td>200</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>987654321</td>
+                            <td>Product 2</td>
+                            <td>1</td>
+                            <td>50</td>
+                            <td>50</td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td>123456789</td>
+                            <td>Product 1</td>
+                            <td>2</td>
+                            <td>100</td>
+                            <td>200</td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td>987654321</td>
+                            <td>Product 2</td>
+                            <td>1</td>
+                            <td>50</td>
+                            <td>50</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="totals">
+                <a><h5>Sub-Total</h5>0.00</a>
+                <a><h5>Total Tax</h5>0.00</a>
+                <a><h5>Grand Total</h5>0.00</a>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

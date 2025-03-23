@@ -6,6 +6,8 @@
     <title>Admin Organic Invenntory</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <link rel="stylesheet" href="cart.css">
+    <link rel="stylesheet" href="/Elements/toastNotification.css">
+
 </head>
 <body>
    
@@ -55,8 +57,72 @@
                     <button id="clearButton" class="clear-btn">
                         <i class="fa fa-xmark"></i>
                     </button>
+                    <button id="filterButton" class="filter-btn" onclick="fetchFilterData()" popovertarget="filterMenu">
+                        <i class="fa fa-filter icon"></i>
+                    </button>
                 </div>
                 <button id="search" onclick="searchProducts()">Search</button>
+            </div>
+
+
+            <div popover id="filterMenu" anchor="filter-btn" class="filterMenu">
+                <div class="filter">
+                    <section class="header">
+                        <p>Search Filters</p>
+                        
+                    </section>
+            
+                    <section class="filter-options">
+                        <div class="stock-options">
+                            <p>Stock</p>
+                            <ul>
+                                <li><label><input type="checkbox" class="filter-checkbox" value="instock">In Stock</label></li>
+                                <li><label><input type="checkbox" class="filter-checkbox" value="outstock">Out of Stock</label></li>
+                                <li><label><input type="checkbox" class="filter-checkbox" value="lowstock">Low Stock</label></li>
+                            </ul>
+                        </div>
+                        <div class="expire-options">
+                            <p>Expire Date</p>
+                            <ul>
+                                <li><label><input type="checkbox" class="filter-checkbox" value="expired">Expired</label></li>
+                                <li><label><input type="checkbox" class="filter-checkbox" value="expiring">Near Expiration</label></li>
+                            </ul>
+                        </div>
+                        <div class="unit-options">
+                            <p>Unit</p>
+                            <ul>
+                                <!-- Unit will be added here -->
+                            </ul>
+                        </div>
+                        <div class="category-options">
+                            <p>Category</p>
+                            <ul>
+                                <!-- Catagory will be added here --> 
+                            </ul>
+                        </div>
+                        <div class="view-options">
+                            <p>View</p>
+                            <ul>
+                                <li><label><input type="radio" name="view" value="grid" checked>Grid</label></li>
+                                <li><label><input type="radio" name="view" value="list">List</label></li>
+                            </ul>
+                        </div>
+                        <div class="sort-options">
+                            <p>Sort By</p>
+                            <ul>
+                                <li><label><input type="radio" name="sort" value="AZ">A-Z</label></li>
+                                <li><label><input type="radio" name="sort" value="stock">Stock</label></li>
+                                <li><label><input type="radio" name="sort" value="exdate">Expiration Date</label></li>
+                            </ul>
+                        </div>
+            
+                    </section>
+                    <section class="footer">
+                        <button class="clear-btn btn" onclick="clearFilter()">Clear</button>
+                        <button class="apply-btn btn" onclick="filterProducts()">Apply</button>
+                    </section>
+                </div>
+                
             </div>
 
             <!-- for small screen -->
@@ -74,18 +140,26 @@
                     <li><a href="/admincursor.html"><i id='navbtns' class="fas fa-house" title="Home"></i></a></li>
                     <li><a href="coming.html"><i id='navbtns' title="cart" class="fas fa-cart-shopping"></i></a></li>
                     <li><a href="coming.html"></a><i id='navbtns' class="fas fa-bell" title="Notification"></i></li>
-                    <li><a href="#"></a><button id="accBtn" title="account" ><i class="fas fa-user-secret" ; style="scale: 150%;"></i></button>
+                    <li class="navicon"><button id="accBtn" popovertarget="dropdownMenu"><i id="navbtns" title="Account" class="fas fa-user-secret"></i></button>
+
                         
                     </li>
                 </ul>
             </nav>
 
+            <div popover id="dropdownMenu" anchor="accBtn" class="dropdown">
+                <a href="#">Profile</a>
+                <a href="/Dashboard/test5.2.html">Dashboard</a>
+                <a href="#">Settings</a>
+                <a href="/login.html">Logout</a>
+                
+            </div>
 
         </header>
 
     
     <div style="display: flex; width: 65%;">
-        <p style="position: absolute; z-index: -1; text-align: center; top: 50%; width: 65%; margin: 10px; font-size: 34px;">
+        <p id="no-result" style="position: absolute; z-index: -1; text-align: center; top: 50%; width: 65%; margin: 10px; font-size: 34px;">
              No Product Found!!!
         </p>
             <section class="products" id="main-content">
@@ -95,9 +169,10 @@
             <div id="cart">
                 
                 <h2 >Cart</h2>
+                <input type="date" id="cart-date">
                 <div id="cart-items" class="cart-items">
                     <div class="table-wrapper">
-                        <table>
+                        <table id="carttable">
                             <thead style="padding: 10px;">
                                 <tr>
                                     <th class="tbcheck">
@@ -148,6 +223,8 @@
     <!-- <div class="overlay" id="confirmoverlay"></div> -->
     <div class="overlay" id="sideoverlay"></div>
 
+    <script src="/Elements/toastNotification.js"></script>
+    <script defer src="/test/test7.3.js"></script>
     
     <script src="cart.js"></script>
 </body>

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://site-assets.fontawesome.com/releases/v6.7.2/css/all.css">
+
+    <title>Filter</title>
+    <style>
+        .filter {
+            display: flex;
+            flex-direction: column;
+            width: 70%;
+
+        }
+
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            /* padding: 1rem; */
+            border-bottom: 1px solid #ddd;
+        }
+
+        .header p {
+            font-size: 1.5rem;
+        }
+
+        .exit-btn {
+            background-color: transparent;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .filter-options {
+            display: flex;
+            /* flex-direction: row; */
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 1rem;
+        }
+        .filter-options div {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .filter-options p {
+            padding: 0;
+            margin: 0;
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            border-bottom: 0.5px dashed #000000;
+        }
+
+        .filter-options ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .filter-options li {
+            /* text-align: center; */
+            font-size: 1rem;
+            padding: 0.5rem ;
+            cursor: pointer;
+        }
+
+        .footer {
+            display: flex;
+            justify-content: end;
+            padding: 1rem;
+            border-top: 1px solid #ddd;
+        }
+
+        .btn {
+            width: 10%;
+            border: none;
+            background-color:transparent;
+            color: #555;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        .clear-btn:hover {
+            color: red;
+        }
+
+        .apply-btn:hover {
+            color: green;
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="filter">
+        <section class="header">
+            <p>Search Filters</p>
+            <button class="exit-btn">
+                <i class="fa-solid fa-xmark-large"></i>
+            </button>
+        </section>
+
+        <section class="filter-options">
+            <div class="stock-options">
+                <p>Stock</p>
+                <ul>
+                    <li><input type="checkbox" value="">In Stock</li>
+                    <li><input type="checkbox" value="">Out of Stock</li>
+                    <li><input type="checkbox" value="">Low Stock</li>
+                </ul>
+            </div>
+            <div class="expire-options">
+                <p>Expire Date</p>
+                <ul>
+                    <li><input type="checkbox" value="">Expired</li>
+                    <li><input type="checkbox" value="">Near Expiration</li>
+                </ul>
+            </div>
+            <div class="unit-options">
+                <p>Unit</p>
+                <ul>
+                    <!-- Unit will be added here -->
+                </ul>
+            </div>
+            <div class="category-options">
+                <p>Category</p>
+                <ul>
+                    <!-- Catagory will be added here --> 
+                </ul>
+            </div>
+            <div class="view-options">
+                <p>View</p>
+                <ul>
+                    <li><input type="radio" name="view" value="grid" checked>Grid</li>
+                    <li><input type="radio" name="view" value="list">List</li>
+                </ul>
+            </div>
+            <div class="sort-options">
+                <p>Sort By</p>
+                <ul>
+                    <li><input type="radio" name="sort" value="">A-Z</li>
+                    <li><input type="radio" name="sort" value="">Stock</li>
+                    <li><input type="radio" name="sort" value="">Expiration Date</li>
+                </ul>
+            </div>
+
+        </section>
+        <section class="footer">
+            <button class="clear-btn btn">Clear</button>
+            <button class="apply-btn btn" onclick="fetchAndUpdateData()">Apply</button>
+        </section>
+    </div>
+
+
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            fetchFilterData();
+        });
+        function fetchFilterData() {
+            fetch('http://localhost:5000/api/get-filter', { method: 'GET' })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(data => {
+                catagory = [];
+                unit = [];
+                data.forEach(row => {
+                    if (!catagory.includes(row.catagory)){
+                        catagory.push(row.catagory);
+
+                        document.querySelector('.category-options ul').innerHTML += `<li><input type="checkbox" value="${row.catagory}">${row.catagory}</li>`;
+                    }
+
+                    if (!unit.includes(row.unit)){
+                        unit.push(row.unit);
+
+                        document.querySelector('.unit-options ul').innerHTML += `<li><input type="checkbox" value="${row.unit}">${row.unit}</li>`;
+                    }
+                });
+                // alert('Data fetched successfully');
+                console.log(catagory, unit);
+                })
+            .catch(error => {
+                console.error('Error fetching data:', error.message || error);
+                // alert('Failed to load data. Please try again later.');
+                // notifier.error('Failed to load data. Please try again later.');
+
+            })
+
+        //    .finally(() => {
+        //         // Hide loader after fetching data (success or error)
+        //         GearboxLoader.hide();
+        //          //loader.style.display = 'none';
+        //     });
+        }
+    </script>
+</body>
+</html>

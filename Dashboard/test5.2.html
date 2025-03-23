@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Page Loading</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Sidebar Styling */
+        .sidenav {
+            height: 100vh;
+            width: 18%;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background-color: #0b1e35;
+            padding-left: 10px;
+            transition: 0.5s;
+
+        }
+
+        .collapsed {
+            width: 5%;
+            overflow: hidden;
+            transition: 0.5s;
+        
+        }
+
+        .navList.active{
+            border-radius: 10px 0px 0px 10px;
+            background-color: #ffffff;
+            cursor: pointer;
+        }
+
+        .navList.active i, .navList.active a {
+            color: #0b1e35;
+        }
+
+        .sidenav span {
+            margin: 10px 0 10px 10px;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            /* margin: 10px 0 10px 25px;*/
+        } 
+        
+
+        .logo{
+            display: flex;
+
+            color: white;
+            text-align: center;
+            margin-top: 20px;
+            margin-bottom: 20px;
+
+            font-size: 16px;
+            align-items: center;
+           height: 45px;
+            width: 220px;
+        }
+
+        .logolink {
+            margin: 0;
+            padding: 0;
+        }
+        .logo img{
+            height: 40px;
+            width: 40px;
+            margin-left: 12px;
+            margin-right: 20px;
+        }
+
+        .logo p{
+            /* text-align: center; */
+            /* font-size: 18px; */
+            
+            font-family: cursive;
+        }
+
+
+        .toggle {
+            display: flex;
+            position: relative;
+            width: 100%;
+            justify-content: right;
+            background-color: transparent;
+            color: white;
+            border: none;
+            padding: 10px;
+            padding-bottom: 0;
+            margin-left: 5px;
+            cursor: pointer;
+            
+        }
+
+        .navList a {
+            padding: 10px 15px;
+            /* margin-left: 20px; */
+            display: block;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .sidenav  i {
+            margin-right: 15px;
+            margin-left: 8px;
+        }
+
+        .sidenav span:hover {
+            border-radius: 10px 0px 0px 10px;
+            background-color: #ffffff;
+            cursor: pointer;
+        }
+
+        span:hover i, span:hover a {
+            color: #0b1e35;
+        }
+
+        .icon {
+            color: white;
+            /* font-size: 20px; */
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin: 0;
+            margin-left: 240px;
+            float: right;
+            /* padding: 20px; */
+            width: 80%;
+            height: 100%;
+            transition: 0.5s;
+        }
+        .main-expand{
+            width: 94%;
+            margin-left: 5%;
+            transition: 0.5s;
+
+        }
+        
+        iframe {
+            width: 100%;
+            height: 98vh;
+            border: none;
+        }
+
+    </style>
+    
+</head>
+<body>
+
+    <!-- ============ Sidebar Navigation ================= -->
+    <div class="sidenav">
+        <button class="toggle" onclick="toggleSidebar()"><i class="material-icons" >menu</i></button>
+        <div id="logo" class="logo" >
+            <a href="/admincursor.html" class="logolink"><img src="/Elements/meh.png" alt="logo"></a>
+
+            <p> Organic Inventory Management</p>
+        </div>
+        <span class="navList active" onclick="loadPage('dashboard.html')">
+            <i class="material-icons icon">dashboard</i>
+            <a >Dashboard</a>
+        </span>
+        
+        <span class="navList" onclick="loadPage('charts.html')">
+            <i class="material-symbols-outlined icon ">monitoring</i> 
+            <a>Charts</a>
+        </span>
+
+        <span class="navList" onclick="loadPage('sales.html')">
+            <i class="material-symbols-outlined icon">table</i> 
+            <a>Sales</a>
+        </span>
+
+        <span class="navList" onclick="loadPage('reports.html')">
+            <i class="material-icons icon">assignment</i> 
+            <a> Report</a>
+        </span>
+
+        <span class="navList" onclick="loadPage('accounts.html')">
+            <i class="material-icons icon">person</i>
+            <a>Accounts</a>
+        </span>
+
+        <span class="navList" onclick="loadPage('history.html')">
+            <i class="material-icons icon">history</i>
+            <a>History</a>
+        </span>
+
+        <span class="navList" onclick="loadPage('history.html')">
+            <i class="material-icons icon">help_outline</i>
+            <a>Help</a>
+        </span>
+
+        
+
+        <span class="navList" onclick="window.location.href='/login.html'">
+            <i class="material-icons icon">logout</i>
+            <a>Log Out</a>
+        </span>
+    </div>
+
+
+
+
+    <!-- ========== Main Content Area ================= -->
+    <div class="main-content" id="content">
+        <h2>Welcome</h2>
+        <p>Select a menu option to load content dynamically.</p>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", activeTab, loadPage('dashboard.html'));
+        function loadPage(page) {
+            document.getElementById('content').innerHTML = `<iframe src="${page}" width="100%" height="100%" frameborder="0"></iframe>`;
+        }
+
+       
+
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidenav');
+            const mainContent = document.querySelector('.main-content');
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('main-expand');
+        }
+
+        // Function to handle the active tab highlighting
+        function activeTab() {
+            document.querySelectorAll('.navList').forEach(item => {
+                item.addEventListener('click', function() {
+                    document.querySelectorAll('.navList').forEach(nav => nav.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        }
+    </script>
+
+</body>
+</html>
