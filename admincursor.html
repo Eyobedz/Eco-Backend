@@ -1336,7 +1336,7 @@ function fetchAndUpdateData() {
     GearboxLoader.show();
 
 
-    fetch('https://ofs-webapp.onrender.com/api/get-data', { method: 'GET' })
+    fetch('https://eco-backend-berk.onrender.com/api/get-data', { method: 'GET' })
         .then(response => {
             if (!response.ok) {
                 throw new Error('Network response was not ok ' + response.statusText);
