@@ -13,17 +13,17 @@ load_dotenv()
 
 app = Flask(__name__)
 # Configure CORS to allow POST requests
-# CORS(app, resources={
-#     r"/api/*": {
-#         # "origins": "http://127.0.0.1:*",
-#         "origins": "*",
-#         "methods": ["GET", "POST", "PUT", "DELETE"],
-#         "allow_headers": ["Content-Type"]
-#     }
-# })
+# Allow specific origins
+allowed_origins = [
+    "http://organic.pro.et",
+    "https://organic.pro.et",
+    "http://www.organic.pro.et",
+    "https://www.organic.pro.et",
+    "http://localhost",
+    "http://127.0.0.1"
+]
 
-
-CORS(app)
+CORS(app, resources={r"/api/*": {"origins": allowed_origins}})
 
 # Database connection configuration
 DB_CONFIG = {
