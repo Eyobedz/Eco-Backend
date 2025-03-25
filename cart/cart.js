@@ -90,7 +90,7 @@ function fetchAndUpdateData() {
 
                 // Use lazy loading for images
                 const imgElement = row.image_path
-                    ? `<img src="https://eco-backend-berk.onrender.com:5000${row.image_path}" alt="${row.product_name}" loading="lazy">`
+                    ? `<img src="https://eco-backend-berk.onrender.com/${row.image_path}" alt="${row.product_name}" loading="lazy">`
                     : '';
 
                 // Pre-calculate stock and expiration information
