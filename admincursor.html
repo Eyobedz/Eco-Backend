@@ -1407,7 +1407,7 @@ function fetchAndUpdateData() {
 }
 
 function fetchFilterData() {
-            fetch('http://localhost:5000/api/get-filter', { method: 'GET' })
+            fetch('http://eco-backend-berk.onrender.com/api/get-filter', { method: 'GET' })
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok ' + response.statusText);
@@ -1756,7 +1756,7 @@ function AddProduct(){
             }
             
             // Make sure this URL matches your Flask route exactly
-            const response = await fetch('http://localhost:5000/api/add-product', {  // Updated URL
+            const response = await fetch('http://eco-backend-berk.onrender.com/api/add-product', {  // Updated URL
                 method: 'POST',
                 body: formData
             });
