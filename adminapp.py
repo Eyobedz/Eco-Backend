@@ -19,8 +19,8 @@ allowed_origins = [
     "https://organic.pro.et",
     "http://www.organic.pro.et",
     "https://www.organic.pro.et",
-    "http://localhost",
-    "http://127.0.0.1"
+    "http://localhost:*",
+    "http://127.0.0.1:*"
 ]
 
 CORS(app, resources={r"/api/*": {"origins": allowed_origins}})
