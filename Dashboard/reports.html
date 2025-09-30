@@ -4,10 +4,54 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Report</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="stylesheet" href="https://site-assets.fontawesome.com/releases/v6.7.2/css/all.css">
+    <link rel="stylesheet" href="/Elements/toastNotification.css">
+    
+    <script src="/Elements/table2excel.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script defer src="/Elements/loading2.js"></script>
     <style>
+        :root{
+            --active-color: rgb(249, 239, 239);
+        }
         body{
             display: flex;
+            width: 99%;
         }
+        .mainContent{
+            width: 95%;
+            height: 100hv;
+        }
+
+        .report-container{
+            display: none;
+            background-color: var(--active-color);
+            /* padding-top: 20px; */
+            padding: 10px;
+            margin-top: 0px;
+            border: 1px solid black;
+            height: 85%;
+        }
+
+        .headers{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 10px;
+        }
+
+        .report-data{
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+        }
+        h1{
+            margin-top: 0;
+        }
+
         .title{
             display: flex;
             justify-content: space-between;
@@ -17,7 +61,7 @@
 
         .table-wrapper{
             
-            max-height: 300px;
+            max-height: 340px;
             width: 100%;
             overflow-y: auto;
         }
@@ -33,7 +77,7 @@
         }
 
         thead{
-            background-color: rgb(14, 48, 141);
+            background-color:var(--active-color);
         }
 
         tr td{
@@ -50,16 +94,17 @@
             display: flex;
             flex-direction: column;
             width: 200px;
-            justify-content: space-between;
+            justify-content: flex-start;
             justify-self: flex-end;
             margin: 0px;
-            padding: 0;
+            padding-left: 50px;
+            padding-top: 50px
         }
 
         .totals a{
             display: flex;
             width: 100%;
-            margin: 0px;
+            margin: 10px 10px 10px 0;
             align-items: center;
             justify-content: space-between;
             padding: 0;
@@ -67,171 +112,1045 @@
 
         }
 
+        .active{
+             background-color: var(--active-color);
+            color: rgb(0, 0, 0);
+            /* border-bottom: none; */
+            border-radius: 5px 5px 0 0;
+            margin-bottom: 0;
+            border: 1px solid black;
+            border-bottom: 6px solid var(--active-color);
+            scale: 1.13;
+        }
+        button{
+           
+            margin: 5px;
+            padding: 5px;
+        }
+
+        .filter-btn{
+    background: none;
+    border: none;
+    cursor: pointer;
+    scale: 1.2;
+    /* display: none; */
+    /* font-size: 14px; */
+    color: #888888;
+}
+
+.filter-btn i {
+    color: #888888;
+}
+
+.filterMenu{
+    border: 1px solid #00ff80;
+    border-radius: 10px;
+    filter: drop-shadow(0px 15px 10px rgba(0, 0, 0, 0.5));
+}
+
+.filter {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+
+    }
+
+
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        /* padding: 1rem; */
+        border-bottom: 1px solid #ddd;
+    }
+
+    .header p {
+        font-size: 1.5rem;
+    }
+
+    .exit-btn {
+        background-color: transparent;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+
+    .filter-options {
+        display: flex;
+        /* flex-direction: row; */
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 1rem;
+    }
+    .filter-options div {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        margin: 5px;
+    }
+
+    .filter-options p {
+        padding: 0;
+        margin: 0;
+        font-size: 1.2rem;
+        margin-bottom: 0.5rem;
+        border-bottom: 0.5px dashed #000000;
+    }
+
+    .filter-options ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    .filter-options li {
+        /* text-align: center; */
+        font-size: 1rem;
+        padding: 0.5rem ;
+        cursor: pointer;
+    }
+
+    .filter-checkbox {
+        accent-color: lime;
+    }
+
+    .footer {
+        display: flex;
+        justify-content: end;
+        padding: 1rem;
+        border-top: 1px solid #ddd;
+    }
+
+    .btn {
+        width: 10%;
+        border: none;
+        background-color:transparent;
+        color: #555;
+        font-size: 1.2rem;
+        cursor: pointer;
+    }
+
+    .clear-btn:hover {
+        color: red;
+    }
+
+    .apply-btn:hover {
+        color: green;
+    }
+
     </style>
 </head>
 <body>
     <div class="mainContent">
         <h1>Reports</h1>
-        <button>Daily Report</button>
-        <button>Weekly Report</button>
-        <button>Monthly Report</button>
-        <button>Annual Report</button>
-        <button>Inventory Report</button>
+        <button onclick="test(this)" value="daily-report" class="active">Daily Report</button>
+        <button onclick="test(this)" value="weekly-report">Weekly Report</button>
+        <button onclick="test(this)" value="monthly-report">Monthly Report</button>
+        <button onclick="test(this)" value="annual-report">Annual Report</button>
+        <button onclick="test(this)" value="custom-report">Custom Report</button>
+        <button onclick="test(this)" value="inventory-report">Inventory Report</button>
 
-        <div>
+        <!-- --------------------Daily------------------------ -->
+
+        <div class="report-container" id="daily-report" style="display: block;">
             <!-- <iframe width="100%" height="100%" style="border: none; background-color: aqua;"></iframe> -->
-
-            <h1>Daily Report</h1>
-            <a class="title"><h3>Sold Items</h3>Date</a>
-            <div class='table-wrapper'>
-                <table style="background-color: rgb(91, 213, 235);">
-                    <thead>
-                        <tr>
-                            <th>No.</th>
-                            <th>Barcode</th>
-                            <th>Product Name</th>
-                            <th>Quantity</th>
-                            <th>Price</th>
-                            <th>Sub Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>1</td>
-                            <td>123456789</td>
-                            <td>Product 1</td>
-                            <td>2</td>
-                            <td>100</td>
-                            <td>200</td>
-                        </tr>
-                        <tr>
-                            <td>2</td>
-                            <td>987654321</td>
-                            <td>Product 2</td>
-                            <td>1</td>
-                            <td>50</td>
-                            <td>50</td>
-                        </tr>
-                        <tr>
-                            <td>3</td>
-                            <td>123456789</td>
-                            <td>Product 1</td>
-                            <td>2</td>
-                            <td>100</td>
-                            <td>200</td>
-                        </tr>
-                        <tr>
-                            <td>4</td>
-                            <td>987654321</td>
-                            <td>Product 2</td>
-                            <td>1</td>
-                            <td>50</td>
-                            <td>50</td>
-                        </tr>
-                        <tr>
-                            <td>1</td>
-                            <td>123456789</td>
-                            <td>Product 1</td>
-                            <td>2</td>
-                            <td>100</td>
-                            <td>200</td>
-                        </tr>
-                        <tr>
-                            <td>2</td>
-                            <td>987654321</td>
-                            <td>Product 2</td>
-                            <td>1</td>
-                            <td>50</td>
-                            <td>50</td>
-                        </tr>
-                        <tr>
-                            <td>3</td>
-                            <td>123456789</td>
-                            <td>Product 1</td>
-                            <td>2</td>
-                            <td>100</td>
-                            <td>200</td>
-                        </tr>
-                        <tr>
-                            <td>4</td>
-                            <td>987654321</td>
-                            <td>Product 2</td>
-                            <td>1</td>
-                            <td>50</td>
-                            <td>50</td>
-                        </tr><tr>
-                            <td>1</td>
-                            <td>123456789</td>
-                            <td>Product 1</td>
-                            <td>2</td>
-                            <td>100</td>
-                            <td>200</td>
-                        </tr>
-                        <tr>
-                            <td>2</td>
-                            <td>987654321</td>
-                            <td>Product 2</td>
-                            <td>1</td>
-                            <td>50</td>
-                            <td>50</td>
-                        </tr>
-                        <tr>
-                            <td>3</td>
-                            <td>123456789</td>
-                            <td>Product 1</td>
-                            <td>2</td>
-                            <td>100</td>
-                            <td>200</td>
-                        </tr>
-                        <tr>
-                            <td>4</td>
-                            <td>987654321</td>
-                            <td>Product 2</td>
-                            <td>1</td>
-                            <td>50</td>
-                            <td>50</td>
-                        </tr><tr>
-                            <td>1</td>
-                            <td>123456789</td>
-                            <td>Product 1</td>
-                            <td>2</td>
-                            <td>100</td>
-                            <td>200</td>
-                        </tr>
-                        <tr>
-                            <td>2</td>
-                            <td>987654321</td>
-                            <td>Product 2</td>
-                            <td>1</td>
-                            <td>50</td>
-                            <td>50</td>
-                        </tr>
-                        <tr>
-                            <td>3</td>
-                            <td>123456789</td>
-                            <td>Product 1</td>
-                            <td>2</td>
-                            <td>100</td>
-                            <td>200</td>
-                        </tr>
-                        <tr>
-                            <td>4</td>
-                            <td>987654321</td>
-                            <td>Product 2</td>
-                            <td>1</td>
-                            <td>50</td>
-                            <td>50</td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div class="headers">
+                <h1>Daily Report</h1>
+                <div>
+                    <button title="Download as a PDF">Print</button>
+                    <button title="Download as a Excel" onclick="downloadExcel('daily')">Download</button>
+                </div>
+                
             </div>
-            <div class="totals">
-                <a><h5>Sub-Total</h5>0.00</a>
-                <a><h5>Total Tax</h5>0.00</a>
-                <a><h5>Grand Total</h5>0.00</a>
+            <div class="report-data" id="daily-report-data">
+                <div style="width: 100%; height: auto;">
+                    <a class="title">
+                        <h3>Sold Items</h3>
+                        <h8>Date: <input type="date" id="date-picker" onchange="date(this)"></h8>
+                    </a>
+                    <div class='table-wrapper'>
+                    <table style="background-color: rgb(91, 213, 235);">
+                        <thead>
+                            <tr>
+                                <th>No.</th>
+                                <th>Barcode</th>
+                                <th>Product Name</th>
+                                <th>Quantity</th>
+                                <th>Price</th>
+                                <th>Sub Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="6">Select a Day</td></tr>  
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+                <div class="totals">
+                    <a><h5>Sub-Total</h5><h4 id="dailySubtotalValue">0.00</h4></a>
+                    <a><h5>Total Tax</h5><h4 id="dailyTaxValue">0.00</h4></a>
+                    <a><h5>Grand Total</h5><h4 id="dailyTotalValue">0.00</h4></a>
+                </div>
+            </div>
+        </div>
+
+        <!-- --------------------Weekly------------------------ -->
+
+        <div class="report-container" id="weekly-report">
+            <!-- <iframe width="100%" height="100%" style="border: none; background-color: aqua;"></iframe> -->
+            <div class="headers">
+                <h1>Weekly Report</h1>
+                <div>
+                    <input type="week" id="week-picker" onchange="week(this)">
+                    <button title="Download as a PDF">Print</button>
+                    <button title="Download as a Excel" onclick="downloadExcel('weekly')">Download</button>
+                </div>
+                
+            </div>
+            <div class="report-data" id="weekly-report-data">
+                <div style="width: 100%;">
+                    <a class="title">
+                        <h3>Sold Items</h3>
+                        
+                        <h8 id="date-range"></h8>
+
+                    </a>
+                    <div class='table-wrapper'>
+                    <table style="background-color: rgb(91, 213, 235);">
+                        <thead>
+                            <tr>
+                                <th>No.</th>
+                                <th>Barcode</th>
+                                <th>Product Name</th>
+                                <th>Quantity</th>
+                                <th>Price</th>
+                                <th>Sub Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="6">Select a Week</td></tr> 
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+                <div class="totals">
+                    <a><h5>Sub-Total</h5><h4 id="weeklySubtotalValue">0.00</h4></a>
+                    <a><h5>Total Tax</h5><h4 id="weeklyTaxValue">0.00</h4></a>
+                    <a><h5>Grand Total</h5><h4 id="weeklyTotalValue">0.00</h4></a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- --------------------Monthly----------------------- -->
+
+        <div class="report-container" id="monthly-report">
+            <!-- <iframe width="100%" height="100%" style="border: none; background-color: aqua;"></iframe> -->
+            <div class="headers">
+                <h1>Monthly Report</h1>
+                <div>
+                    <button title="Download as a PDF">Print</button>
+                    <button title="Download as a Excel" onclick="downloadExcel('monthly')">Download</button>
+                </div>
+                
+            </div>
+            <div class="report-data" id="monthly-report-data">
+                <div style="width: 100%;">
+                    <a class="title">
+                        <h3>Sold Items</h3>
+                        <h8>Month: <input type="month" id="month" onchange="month(this)"></h8>
+                    </a>
+                    <div class='table-wrapper'>
+                    <table style="background-color: rgb(91, 213, 235);">
+                        <thead>
+                            <tr>
+                                <th>No.</th>
+                                <th>Barcode</th>
+                                <th>Product Name</th>
+                                <th>Quantity</th>
+                                <th>Price</th>
+                                <th>Sub Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="6">Select a Month</td></tr>  
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+                <div class="totals">
+                    <a><h5>Sub-Total</h5><h4 id="monthlySubtotalValue">0.00</h4></a>
+                    <a><h5>Total Tax</h5><h4 id="monthlyTaxValue">0.00</h4></a>
+                    <a><h5>Grand Total</h5><h4 id="monthlyTotalValue">0.00</h4></a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ----------------------Annual---------------------- -->
+
+        <div class="report-container" id="annual-report">
+            <!-- <iframe width="100%" height="100%" style="border: none; background-color: aqua;"></iframe> -->
+            <div class="headers">
+                <h1>Annual Report</h1>
+                <div>
+                    <button title="Download as a PDF">Print</button>
+                    <button title="Download as a Excel" onclick="downloadExcel('annual')">Download</button>
+                </div>
+                
+            </div>
+            <div class="report-data" id="annual-report-data">
+                <div style="width: 100%;">
+                    <a class="title">
+                        <h3>Sold Items</h3>
+                        
+                        <input name="years" list="year-picker" id="years" placeholder="Select a year" onchange="year(this)" >
+                            <datalist id="year-picker">
+                                
+                            </datalist>
+
+
+                    </a>
+                    <div class='table-wrapper'>
+                    <table style="background-color: rgb(91, 213, 235);">
+                        <thead>
+                            <tr>
+                                <th>No.</th>
+                                <th>Barcode</th>
+                                <th>Product Name</th>
+                                <th>Quantity</th>
+                                <th>Price</th>
+                                <th>Sub Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="6">Select a Year</td></tr>
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+                <div class="totals">
+                    <a><h5>Sub-Total</h5><h4 id="annualSubtotalValue">0.00</h4></a>
+                    <a><h5>Total Tax</h5><h4 id="annualTaxValue">0.00</h4></a>
+                    <a><h5>Grand Total</h5><h4 id="annualTotalValue">0.00</h4></a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ----------------------Custom---------------------- -->
+
+        <div class="report-container" id="custom-report">
+            <!-- <iframe width="100%" height="100%" style="border: none; background-color: aqua;"></iframe> -->
+            <div class="headers">
+                <h1>Custom Report</h1>
+                <div>
+                    <button title="Download as a PDF">Print</button>
+                    <button title="Download as a Excel" onclick="downloadExcel('custom')">Download</button>
+                </div>
+                
+            </div>
+            <div class="report-data" id="custom-report-data">
+                <div style="width: 100%;">
+                    <a class="title">
+                        <h3>Sold Items</h3>
+                        <h8>
+                            Select Range <input id="dateRangePicker" placeholder="Choose a date range">
+                        </h8>
+                    </a>
+                    <div class='table-wrapper'>
+                    <table style="background-color: rgb(91, 213, 235);">
+                        <thead>
+                            <tr>
+                                <th>No.</th>
+                                <th>Barcode</th>
+                                <th>Product Name</th>
+                                <th>Quantity</th>
+                                <th>Price</th>
+                                <th>Sub Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="6">Select a Range</td></tr>
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+                <div class="totals">
+                    <a><h5>Sub-Total</h5><h4 id="customSubtotalValue">0.00</h4></a>
+                    <a><h5>Total Tax</h5><h4 id="customTaxValue">0.00</h4></a>
+                    <a><h5>Grand Total</h5><h4 id="customTotalValue">0.00</h4></a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ----------------------Inventory---------------------- -->
+
+        <div class="report-container" id="inventory-report">
+            <!-- <iframe width="100%" height="100%" style="border: none; background-color: aqua;"></iframe> -->
+            <div class="headers">
+                <h1>Inventory Report</h1>
+                <div>
+                    <button title="Download as a PDF">Print</button>
+                    <button title="Download as a Excel" onclick="downloadExcel('inventory')">Download</button>
+                </div>
+                
+            </div>
+
+            <div popover id="filterMenu" anchor="filter-btn" class="filterMenu">
+                <div class="filter">
+                    <section class="header">
+                        <p>Search Filters</p>
+                        
+                    </section>
+            
+                    <section class="filter-options">
+                        <div class="sort-options">
+                            <p>Sort By</p>
+                            <ul>
+                                <li><label><input type="radio" name="sort" value="AZ">A-Z</label></li>
+                                <li><label><input type="radio" name="sort" value="ZA">Z-A</label></li>
+                            </ul>
+                        </div>
+            
+                        <div class="stock-options">
+                            <p>Stock</p>
+                            <ul>
+                                <li><label><input type="checkbox" class="filter-checkbox" value="instock">In Stock</label></li>
+                                <li><label><input type="checkbox" class="filter-checkbox" value="lowstock">Low Stock</label></li>
+                                <li><label><input type="checkbox" class="filter-checkbox" value="outstock">Out of Stock</label></li>
+                            </ul>
+                        </div>
+
+                        <div class="unit-options">
+                            <p>Unit</p>
+                            <ul>
+                                <!-- Unit will be added here -->
+                            </ul>
+                        </div>
+
+                        <div class="per-options">
+                            <p>Per</p>
+                            <ul>
+                                <!-- Unit will be added here -->
+                            </ul>
+                        </div>
+
+                        <div class="category-options">
+                            <p>Category</p>
+                            <ul>
+                                <!-- Catagory will be added here --> 
+                            </ul>
+                        </div>
+                        
+                        <div class="expire-options">
+                            <p>Expire Date</p>
+                            <ul>
+                                <li><label><input type="checkbox" class="filter-checkbox" value="unexpired">Unxpired</label></li>
+                                <li><label><input type="checkbox" class="filter-checkbox" value="expired">Expired</label></li>
+                                <li><label><input type="checkbox" class="filter-checkbox" value="expiring">Near Expiration</label></li>
+                            </ul>
+                        </div>
+                        
+                        
+                    </section>
+                    <section class="footer">
+                        <button class="clear-btn btn" onclick="clearFilter()">Clear</button>
+                        <button class="apply-btn btn" onclick="filterProducts()">Apply</button>
+                    </section>
+                </div>
+                
+            </div>
+
+            <div class="report-data" id="inventory-report-data">
+                <div style="width: 100%;">
+                    <a class="title">
+                        <h3>Sold Items</h3>
+                        <button popovertarget="filterMenu">Filter   
+                            <i class="fa fa-filter icon"></i>
+                        </button>
+                    </a>
+                    <div class='table-wrapper'>
+                    <table style="background-color: rgb(91, 213, 235);">
+                        <thead>
+                            <tr>
+                                <th>No.</th>
+                                <th>Barcode</th>
+                                <th>Product Name</th>
+                                <th>Stock</th>
+                                <th>Unit</th>
+                                <th>Price</th>
+                                <th>Per</th>
+                                <th>Catagory</th>
+                                <th>Ex Date</th>
+                                <th>Sub Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+                <div class="totals">
+                    <a><h5>Sub-Total</h5><h4 id="inventorySubtotalValue">0.00</h4></a>
+                    <a><h5>Total Tax</h5><h4 id="inventoryTaxValue">0.00</h4></a>
+                    <a><h5>Grand Total</h5><h4 id="inventoryTotalValue">0.00</h4></a>
+                </div>
             </div>
         </div>
 
     </div>
 </body>
+
+<script src="/Elements/toastNotification.js"></script>
+<script src="/mode.js"></script> <!--remove this for production/ final product -->
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        yearPopulate();
+        fetchFilterData();
+    });
+
+    const notifier = new ToastNotification();
+
+    let inventoryData = [];
+    let fileData = [];
+
+    function fetchFilterData() {
+            fetch(`${window.link}/api/get-filter`, { method: 'GET' })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(data => {
+                document.querySelector('.category-options ul').innerHTML = ``;
+                document.querySelector('.unit-options ul').innerHTML = ``;
+                document.querySelector('.per-options ul').innerHTML = ``;
+
+
+                catagory = [];
+                unit = [];
+                per = [];
+                data.forEach(row => {
+                    if (!catagory.includes(row.catagory)){
+                        catagory.push(row.catagory);
+
+                        document.querySelector('.category-options ul').innerHTML += `<li><label><input type="checkbox" class="filter-checkbox" value="${row.catagory}">${row.catagory}</label></li>`;
+                    }
+
+                    if (!unit.includes(row.unit)){
+                        unit.push(row.unit);
+
+                        document.querySelector('.unit-options ul').innerHTML += `<li><label><input type="checkbox" class="filter-checkbox" value="${row.unit}">${row.unit}</label></li>`;
+                    }
+
+                    if (!per.includes(row.per)){
+                        per.push(row.per);
+
+                        document.querySelector('.per-options ul').innerHTML += `<li><label><input type="checkbox" class="filter-checkbox" value="${row.per}">${row.per}</label></li>`;
+                    }
+                });
+                // alert('Data fetched successfully');
+                // console.log(catagory, unit);
+                })
+            .catch(error => {
+                console.error('Error fetching data:', error.message || error);
+                // alert('Failed to load data. Please try again later.');
+                // notifier.error('Failed to load data. Please try again later.');
+
+            })
+
+      
+
+    }
+
+    function filterProducts(){
+        let products = JSON.parse(inventoryData);  // Convert JSON string to array
+        let filteredProduct = [];
+        let sortedProduct = [];
+
+        const selectedStock = Array.from(document.querySelectorAll('.stock-options input[type="checkbox"]:checked'))
+            .map(option => option.value);
+    
+        const selectedExpiration = Array.from(document.querySelectorAll('.expire-options input[type="checkbox"]:checked'))
+            .map(option => option.value);
+
+        const selectedUnits = Array.from(document.querySelectorAll('.unit-options input[type="checkbox"]:checked'))
+            .map(option => option.value);
+        
+        const selectedPer = Array.from(document.querySelectorAll('.per-options input[type="checkbox"]:checked'))
+            .map(option => option.value);
+
+        const selectedCatagory = Array.from(document.querySelectorAll('.category-options input[type="checkbox"]:checked'))
+            .map(option => option.value);
+
+
+        products.forEach(product => {
+            let isVisible = true;
+
+            // Stock Filter
+            const stock = Number(product.stock);
+            if (selectedStock.length > 0) {
+                if (selectedStock.includes('instock') && stock > 0) {
+                    // Keep it visible
+                } else if (selectedStock.includes('outstock') && stock === 0) {
+                    // Keep it visible
+                } else if (selectedStock.includes('lowstock') && stock > 0 && stock < 10) {
+                    // Keep it visible
+                } else {
+                    isVisible = false;
+                }
+            }
+
+            // Expiration Filter
+            const expirationDate = new Date(product.exdate);
+            const today = new Date();
+            const daysToExpire = Math.ceil((expirationDate - today) / (1000 * 3600 * 24));
+            if (selectedExpiration.length > 0) {
+                if (selectedExpiration.includes('expired') && daysToExpire <= 0) {
+                    // Keep it visible
+                } else if (selectedExpiration.includes('expiring') && daysToExpire <= 7 && daysToExpire > 0) {
+                    // Keep it visible
+                }else if (selectedExpiration.includes('unexpired') && daysToExpire >= 7 && daysToExpire > 0) {
+                    // Keep it visible
+                }else {
+                    isVisible = false;
+                }
+            }
+
+            // Unit Filter
+            const productUnit = product.unit;
+            if (selectedUnits.length > 0 && !selectedUnits.includes(productUnit)) {
+                isVisible = false;
+            }
+
+            // Unit Filter
+            const productPer = product.per;
+            if (selectedPer.length > 0 && !selectedPer.includes(productPer)) {
+                isVisible = false;
+            }
+
+            // categor Filter
+            const productCatagory = product.catagory;
+            if (selectedCatagory.length > 0 && !selectedCatagory.includes(productCatagory)) {
+                isVisible = false;
+                // console.log('made it here');
+            }
+
+
+             // Apply final visibility
+            
+            if (isVisible){
+                filteredProduct.push(product)
+            }
+
+            sortedProduct = structuredClone(filteredProduct);
+
+            // sort
+            if (document.querySelector('.filter-options input[name="sort"]:checked')) {
+                const sortValue = document.querySelector('.filter-options input[name="sort"]:checked').value;
+                if (sortValue === 'AZ') {
+                    sortedProduct.sort((a, b) => a.product_name.localeCompare(b.product_name));
+                } else if (sortValue === 'ZA') {
+                    sortedProduct.sort((a, b) => b.product_name.localeCompare(a.product_name));
+                }else {
+                    sortedProduct = filteredProduct; // No sorting applied
+                }
+            }
+
+            fileData = JSON.stringify(sortedProduct); // Convert sorted data to JSON string
+           
+        });
+        
+       //Populate the table 
+        const reportTable = document.querySelector(`#inventory-report-data table tbody`);
+                reportTable.innerHTML = ''; // Clear existing rows
+                let no = 0;
+                let Gtotal = 0;
+                const options = { year: 'numeric', month: 'short', day: '2-digit' };
+                sortedProduct.forEach(info => {
+                    exDate = new Date(info.exdate).toLocaleDateString('en-GB', options);
+                    
+                    no++;
+                    const row = document.createElement('tr');
+                    const subTotal = info.stock*info.price
+                    row.innerHTML = `
+                        <td>${no}</td>
+                        <td>${info.barcode}</td>
+                        <td>${info.product_name}</td>
+                        <td>${info.stock}</td>
+                        <td>${info.unit}</td>
+                        <td>${info.price.toLocaleString()}</td>
+                        <td>${info.per}</td>
+                        <td>${info.catagory}</td>
+                        <td>${exDate}</td>
+                        <td>${subTotal.toLocaleString()}</td>
+                    `;
+                    Gtotal += subTotal;
+                    reportTable.appendChild(row);
+                });
+                inventorySubtotal = document.getElementById(`inventorySubtotalValue`)
+                inventorySubtotal.textContent = `${Gtotal.toLocaleString('en-US', {minimumFractionDigits: 2,maximumFractionDigits: 2})}`;
+                inventoryTax = document.getElementById(`inventoryTaxValue`)
+                inventoryTax.textContent = `${Gtotal.toLocaleString('en-US', {minimumFractionDigits: 2,maximumFractionDigits: 2})}`;
+                inventoryGrandTotal = document.getElementById(`inventoryTotalValue`)
+                inventoryGrandTotal.textContent = `${Gtotal.toLocaleString('en-US', {minimumFractionDigits: 2,maximumFractionDigits: 2})}`;
+        
+        document.getElementById('filterMenu').hidePopover();
+        
+
+        // // Print sorted data
+        // products.forEach(item => {
+        //     console.log(item.product_name);
+        // });
+            
+    }
+
+
+    function clearFilter() {
+        document.querySelectorAll('.filter-options input[type="checkbox"]').forEach(input => input.checked = false);
+        document.querySelectorAll('.filter-options input[type="radio"]').forEach(input => input.checked = false);
+    }
+
+    function test(button){
+        const buttons = document.querySelectorAll('button');
+        const reportContainers = document.querySelectorAll('.report-container');
+        buttons.forEach(button => {
+            button.classList.remove('active');
+        });
+        button.classList.add('active');
+        reportContainers.forEach(container => {
+            container.style.display = 'none';
+        });
+        document.getElementById(button.value).style.display = 'block';
+        if(button.value=="inventory-report"){
+            inventory();
+        }
+
+
+    }
+
+    
+
+    function date(inputDate) {
+        const selectedDate = inputDate.value;
+        if (selectedDate) {
+            const date = new Date(selectedDate);
+            const options = { year: 'numeric', month: 'numeric', day: 'numeric' };
+            const formattedDate = date.toLocaleDateString('en-GB', options);
+            console.log('Selected date:', formattedDate);
+            getData('date', formattedDate);
+        } else {
+            console.log('No date selected');
+        }
+    };
+
+    function week(inputWeek){
+        const selectedDate = inputWeek.value;
+        if (selectedDate) {
+            
+            const options = { year: 'numeric', month: 'short', day: 'numeric' };
+            const [yearStr, weekStr] = selectedDate.split("-W");
+            const year = parseInt(yearStr);
+            const week = parseInt(weekStr);
+
+            const monday = getStartDateOfISOWeek(week, year);
+            const sunday = new Date(monday);
+            sunday.setDate(  monday.getDate() + 6);
+
+            const startDate = monday.toLocaleDateString('en-GB', options)
+            const endDate = sunday.toLocaleDateString('en-GB', options)
+
+            document.getElementById('date-range').textContent =
+            `Start Date: ${startDate}  -  End Date: ${endDate}`;
+            console.log(startDate, endDate)
+
+            // Helper to get Monday of ISO week
+            function getStartDateOfISOWeek(week, year) {
+                const simple = new Date(Date.UTC(year, 0, 1 + (week - 1) * 7));
+                const dayOfWeek = simple.getUTCDay();
+                const isoDay = dayOfWeek === 0 ? 7 : dayOfWeek; // Sunday -> 7
+                simple.setUTCDate(simple.getUTCDate() - isoDay + 1);
+                return new Date(simple);
+
+            }
+            selectedWeek = [monday,sunday];
+
+            getData('week', selectedWeek);
+
+
+        } else {
+            console.log('No date selected');
+        }
+    };
+
+    function month(inputMonth){
+        const selectedMonth = inputMonth.value;
+        if (selectedMonth) {
+            const date = new Date(selectedMonth);
+            const options = { year: 'numeric', month: 'numeric' };
+            const formattedDate = date.toLocaleDateString('en-GB', options);
+
+            console.log('Selected month:', formattedDate);
+            getData('month', selectedMonth);
+        } else {
+            console.log('No month selected');
+        }
+    };
+
+   function getMonthBounds(year, month) {
+        // JavaScript months are 0-indexed (0 = January, 11 = December)
+        const firstDay = new Date(year, month - 1, 1);
+        const lastDay = new Date(year, month, 0); // day 0 of next month = last day of this month
+        return { firstDay, lastDay };
+    };
+
+    function yearPopulate(){
+        const select = document.getElementById("year-picker");
+        const startYear = 2015;
+        const endYear =  new Date().getFullYear();
+        // const currentYear =
+        // alert(endYear);
+        for (let year = endYear; year >= startYear; year--) {
+            const option = document.createElement("option");
+            option.value = year;
+            option.textContent = year;
+            if (year === endYear) option.selected = true;
+            select.appendChild(option);
+        }
+    };
+
+    function year(inputYear){
+        const selectedYear = inputYear.value;
+        if (selectedYear) {
+            console.log('Selected year:', selectedYear);
+            getData('year', selectedYear);
+        } else {
+            console.log('No year selected');
+        }
+    };
+
+    function getYearBounds(year) {
+        const firstDay = new Date(year, 0, 1);   // January 1st
+        const lastDay = new Date(year, 11, 31);  // December 31st
+        return { firstDay, lastDay };
+    };
+
+
+   
+
+    flatpickr("#dateRangePicker", {
+        mode: "range",
+
+        dateFormat: "d-m-Y",
+        onChange: function(selectedDates) {
+        if (selectedDates.length === 2) {
+            const startDate = selectedDates[0];
+            const endDate = selectedDates[1];
+            selectedRange = [startDate,endDate]
+            getData('custom',selectedRange)
+        }
+        }
+    });
+
+   
+
+
+
+
+
+    function getData(type, value) {
+        // This function would typically make an API call to fetch data based on the provided date range.
+        if (type === 'date') {
+            ufstartDate = value;
+            ufendDate = value;
+            type = 'daily';
+ 
+        } else if (type === 'week') {
+            const options = { year: 'numeric', month: 'numeric', day: 'numeric' };
+            ufstartDate = value[0].toLocaleDateString('en-GB', options);
+            ufendDate = value[1].toLocaleDateString('en-GB', options);
+            type = 'weekly'
+ 
+        } else if (type === 'month') {
+            const date = new Date(value);
+            const monthBounds = getMonthBounds(date.getFullYear(), date.getMonth()+1);
+            ufstartDate = monthBounds.firstDay.toLocaleDateString('en-GB', { year: 'numeric', month: 'numeric', day: 'numeric' });
+            ufendDate = monthBounds.lastDay.toLocaleDateString('en-GB', { year: 'numeric', month: 'numeric', day: 'numeric' });
+            type = 'monthly';
+
+        } else if (type === 'year') {
+            const yearBounds = getYearBounds(value);
+            ufstartDate = yearBounds.firstDay.toLocaleDateString('en-GB', { year: 'numeric', month: 'numeric', day: 'numeric' });
+            ufendDate = yearBounds.lastDay.toLocaleDateString('en-GB', { year: 'numeric', month: 'numeric', day: 'numeric' });
+            type = 'annual'
+ 
+        } else if (type === 'custom') {
+            const options = { year: 'numeric', month: 'numeric', day: 'numeric' };
+            ufstartDate = value[0].toLocaleDateString('en-GB', options);
+            ufendDate = value[1].toLocaleDateString('en-GB', options);
+            // console.log(`Fetching data from ${startDate} to ${endDate}`);
+        }
+
+        const startDate = ufstartDate.replace(/\//g, '-')
+        const endDate = ufendDate.replace(/\//g, '-')
+       
+        waveloader.show();
+        fetch(`${window.link}/api/get-report?startDate=${startDate}&endDate=${endDate}&type=${type}`)
+            .then(response => response.json())
+            .then(data => {
+                // Process the data and update the report 
+                // Update the report table with the fetched data
+                // updateReportTable(data);
+                const reportTable = document.querySelector(`#${type}-report-data table tbody`);
+                reportTable.innerHTML = ''; // Clear existing rows
+                let no = 0;
+                let Gtotal = 0;
+                fileData = JSON.stringify(data); // Store data for download
+                data.forEach(info => {
+                    no++;
+                    const row = document.createElement('tr');
+                    const subTotal = info.quantity*info.price
+                    row.innerHTML = `
+                        <td>${no}</td>
+                        <td>${info.barcode}</td>
+                        <td>${info.product_name}</td>
+                        <td>${info.quantity}</td>
+                        <td>${info.price.toLocaleString()}</td>
+                        <td>${subTotal.toLocaleString()}</td>
+                    `;
+                    Gtotal += subTotal;
+                    reportTable.appendChild(row);
+                });
+                subtotal = Gtotal * 0.85;
+                customSubtotal = document.getElementById(`${type}SubtotalValue`)
+                customSubtotal.textContent = `${subtotal.toLocaleString('en-US', {minimumFractionDigits: 2,maximumFractionDigits: 2})}`;
+                tax = Gtotal * 0.15;
+                customTax = document.getElementById(`${type}TaxValue`)
+                customTax.textContent = `${tax.toLocaleString('en-US', {minimumFractionDigits: 2,maximumFractionDigits: 2})}`;
+                customTax = document.getElementById(`${type}TotalValue`)
+                customTax.textContent = `${Gtotal.toLocaleString('en-US', {minimumFractionDigits: 2,maximumFractionDigits: 2})}`;
+                if (Gtotal == 0) {
+                    reportTable.innerHTML = '<tr><td colspan="6">No Sales Found</td></tr>';
+                };
+                
+                
+                
+                // console.log(`${type}Subtotal...................${subtotal.toFixed(2)}`)
+                
+            // .catch(error => {
+            //     console.error('Error fetching report data:', error);
+            // // });
+
+            })
+            .catch(error => {
+                console.error('Error fetching report data:', error);
+                const reportTable = document.querySelector('.report-data table tbody');
+                // reportTable.innerHTML = '<tr><td colspan="6">Error fetching data</td></tr>';
+                
+                notifier.error('Failed to load data. Please try again later.');
+                
+                
+                
+            })
+            .finally(() => {
+                waveloader.hide();
+            });
+    }
+    
+    function inventory(){
+     waveloader.show();
+     fetch(`${window.link}/api/get-inventory`)
+            .then(response => response.json())
+            .then(data => {
+                // Process the data and update the report 
+                inventoryData = JSON.stringify(data);
+                // Update the report table with the fetched data
+                // updateReportTable(data);
+                const reportTable = document.querySelector(`#inventory-report-data table tbody`);
+                reportTable.innerHTML = ''; // Clear existing rows
+                let no = 0;
+                let Gtotal = 0;
+                const options = { year: 'numeric', month: 'short', day: '2-digit' };
+                data.forEach(info => {
+                    exDate = new Date(info.exdate).toLocaleDateString('en-GB', options);
+                    
+                    no++;
+                    const row = document.createElement('tr');
+                    const subTotal = info.stock*info.price
+                    row.innerHTML = `
+                        <td>${no}</td>
+                        <td>${info.barcode}</td>
+                        <td>${info.product_name}</td>
+                        <td>${info.stock}</td>
+                        <td>${info.unit}</td>
+                        <td>${info.price.toLocaleString()}</td>
+                        <td>${info.per}</td>
+                        <td>${info.catagory}</td>
+                        <td>${exDate}</td>
+                        <td>${subTotal}</td>
+                    `;
+                    Gtotal += subTotal;
+                    reportTable.appendChild(row);
+                });
+                inventorySubtotal = document.getElementById(`inventorySubtotalValue`)
+                inventorySubtotal.textContent = `${Gtotal.toLocaleString('en-US', {minimumFractionDigits: 2,maximumFractionDigits: 2})}`;
+                inventoryTax = document.getElementById(`inventoryTaxValue`)
+                inventoryTax.textContent = `${Gtotal.toLocaleString('en-US', {minimumFractionDigits: 2,maximumFractionDigits: 2})}`;
+                inventoryGrandTotal = document.getElementById(`inventoryTotalValue`)
+                inventoryGrandTotal.textContent = `${Gtotal.toLocaleString('en-US', {minimumFractionDigits: 2,maximumFractionDigits: 2})}`;
+            })
+            .catch(error => {
+                console.error('Error fetching inventory data:', error);
+                const reportTable = document.querySelector('.report-data table tbody');
+                // reportTable.innerHTML = '<tr><td colspan="6">Error fetching data</td></tr>';
+                
+                notifier.error('Failed to load data. Please try again later.');
+                
+                
+                
+            })
+            .finally(() => {
+                waveloader.hide();
+            });   
+    }
+
+    // function downloadReport(type) {
+    //     if (fileData.length === 0) {
+    //         notifier.error('No data available to download.');
+    //         return;
+    //     }
+
+    //     const blob = new Blob([fileData], { type: 'application/json' });
+    //     const url = URL.createObjectURL(blob);
+    //     const a = document.createElement('a');
+    //     a.href = url;
+    //     a.download = `${type}-report.json`;
+    //     document.body.appendChild(a);
+    //     a.click();
+    //     document.body.removeChild(a);
+    //     URL.revokeObjectURL(url);
+    // }
+
+
+   
+    // function downloadExcel(type) {
+    //     var table2excel = new Table2Excel();
+    //     table2excel.export(document.querySelector(`#${type}-report-data table`),`${type} Report`);
+       
+    // }
+
+    function downloadExcel(type){
+        fetch(`${window.link}/download-excel`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ products: fileData })
+        });
+    }
+
+
+
+   
+</script>
 </html>

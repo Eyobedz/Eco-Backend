@@ -1,0 +1,19 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<input id="dateRangePicker">
+
+<script>
+  flatpickr("#dateRangePicker", {
+    mode: "range",
+
+    // dateFormat: "d-m-Y",
+    onChange: function(selectedDates) {
+      if (selectedDates.length === 2) {
+        const start = selectedDates[0];
+        const end = selectedDates[1];
+        console.log("Start:", start, "End:", end);
+      }
+    }
+  });
+</script>

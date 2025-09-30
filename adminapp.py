@@ -1,12 +1,18 @@
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, jsonify, request, send_from_directory, send_file
 import pymysql
 from flask_cors import CORS
 import os
 from werkzeug.utils import secure_filename
+from datetime import datetime
 import time
 from dotenv import load_dotenv
 import hashlib
 import gunicorn
+import cloudinary
+import cloudinary.uploader
+
+from openpyxl import load_workbook
+import io
 
 # Load environment variables
 load_dotenv()
@@ -30,6 +36,21 @@ DB_CONFIG = {
     "password": os.getenv("DB_PASSWORD"),
     "database": os.getenv("DB_NAME"),
 }
+
+# Configuration       
+cloudinary.config( 
+    cloud_name = os.getenv("CL_CLOUD_NAME"),
+    api_key = os.getenv("CL_API_KEY"), 
+    api_secret = os.getenv("CL_API_SECRET"), # Click 'View API Keys' above to copy your API secret
+    secure=True
+)
+
+# DB_CONFIG = {
+#     "host": "localhost",
+#     "user": "root",
+#     "password": "Eyobed579@papa",
+#     "database": "organicdb",
+# }
 
 # Configure upload folder
 UPLOAD_FOLDER = 'uploads'
@@ -72,6 +93,12 @@ def login():
         return jsonify({"error": str(e)}), 500
 
 
+
+@app.route('/get-profile', methods=['GET'])
+def get_profile():
+    pass
+
+
 @app.route('/api/get-data', methods=['GET'])
 def get_data():
     try:
@@ -100,25 +127,27 @@ def get_data():
         return jsonify({"error": "An error occurred while fetching data"}), 500
 
 
-
 @app.route('/api/add-product', methods=['POST'])
 def add_product():
     try:
-        # Check if image file was uploaded
-        if 'image-input' not in request.files:
-            return jsonify({"error": "No image file provided"}), 400
+        # # Check if image file was uploaded
+        # if 'image-input' not in request.files:
+        #     return jsonify({"error": "No image file provided"}), 400
         
-        file = request.files['image-input']
-        if file.filename == '':
-            return jsonify({"error": "No selected file"}), 400
+        # file = request.files['image-input']
+        # if file.filename == '':
+        #     return jsonify({"error": "No selected file"}), 400
         
-        if not file or not allowed_file(file.filename):
-            return jsonify({"error": "Invalid file type"}), 400
+        # if not file or not allowed_file(file.filename):
+        #     return jsonify({"error": "Invalid file type"}), 400
         
         # Save the image file
-        filename = secure_filename(file.filename)
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(file_path)
+        
+        # filename = secure_filename(file.filename)
+        # file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        # file.save(file_path)
+        
+        # upload_result = cloudinary.uploader.upload(file)
         
         # Get form data with validation
         product_name = request.form.get('product-name-input')
@@ -129,7 +158,11 @@ def add_product():
         per = request.form.get('priceper')
         exdate = request.form.get('expirationDate-input')
         barcode = request.form.get('barcode')
-        image_path = f"/uploads/{filename}"
+        image_path = request.form.get('image-url')
+        # image_path = f"/uploads/{filename}"
+        # image_path = upload_result['secure_url']
+        
+
         
         # Validate required fields
         if not all([product_name, stock, unit, price]):
@@ -163,9 +196,9 @@ def add_product():
         print(f"Error: {e}")
         return jsonify({"error": str(e)}), 500
 
-@app.route('/uploads/<filename>')
-def uploaded_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+# @app.route('/uploads/<filename>')
+# def uploaded_file(filename):
+#     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 
 
@@ -196,12 +229,15 @@ def update_product():
         
         else:
             # Save the image file
-            filename = secure_filename(file.filename)
-            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(file_path)
+            # filename = secure_filename(file.filename)
+            # file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            # file.save(file_path)
 
-            image_path = f"/uploads/{filename}"
-            print(image_path)
+            upload_result = cloudinary.uploader.upload(file)
+            image_path = upload_result['secure_url']
+
+            # image_path = f"/uploads/{filename}"
+            # print(image_path)
             fields.update({"image_path": image_path})
     
         
@@ -226,8 +262,8 @@ def update_product():
             SET {set_clause} 
             WHERE product_id = %s
         """
-        print(query, values)
-        print(values)
+        # print(query, values)
+        # print(values) 
     
         # Database update logic
         with pymysql.connect(**DB_CONFIG) as connection:
@@ -240,8 +276,6 @@ def update_product():
     except Exception as e:
         print(f"Error: {e}")  # Log the error for debugging
         return jsonify({"success": False, "error": "An error occurred while updating the product"}), 500
-
-
 
 
 @app.route('/api/delete-product', methods=['DELETE'])
@@ -315,7 +349,8 @@ def add_to_cart():
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({"error": str(e)}), 500
-    
+
+
 @app.route('/api/get-history', methods=['GET'])
 def get_history():
     try:
@@ -347,20 +382,20 @@ def get_history():
         print(f"Error: {e}")
         return jsonify({"error": "An error occurred while fetching data"}), 500
 
-    
 
 @app.route('/api/get-filter', methods=['GET'])
 def get_filter():
     try:
         with pymysql.connect(**DB_CONFIG) as connection:
             with connection.cursor() as cursor:
-                cursor.execute("SELECT catagory, unit FROM product_list")
+                cursor.execute("SELECT catagory, unit, per FROM product_list")
                 rows = cursor.fetchall()
                 #print(rows)
         result = [{
             'catagory': row[0],
-            'unit': row[1]} for row in rows]
-        #print(result)
+            'unit': row[1],
+            'per': row[2]} for row in rows]
+        # print(result)
         return jsonify(result)
 
     except Exception as e:
@@ -375,19 +410,158 @@ def getUser():
             with connection.cursor() as cursor:
                 cursor.execute("SELECT * FROM users")
                 rows = cursor.fetchall()
-                #print(rows)
+        # print(rows)
         result = [{
             'id': row[0],
             'full_name': row[1],
             'username': row[2],
             'password': row[3],
-            'role': row[4]} for row in rows]
+            'role': row[4],
+            'pp_url': row[5]} for row in rows]
+        # print(result)
+        return jsonify(result)
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"error": "An error occurred while fetching data"}), 500
+
+
+@app.route('/api/get-report', methods=['GET'])
+def get_report():
+    start = request.args.get('startDate')
+    end = request.args.get('endDate')
+    type = request.args.get('type')
+
+    start_date= datetime.strptime(start, '%d-%m-%Y').date()
+    end_date = datetime.strptime(end, '%d-%m-%Y').date()
+    print(start_date, end_date, type)
+
+    if not start or not end:
+        return jsonify({"error": "Start and end dates are required"}), 400
+    
+    # return jsonify({"message": "Date is recived", "content": f'{start_date},{end_date}'}), 200
+
+
+
+    try:
+        with pymysql.connect(**DB_CONFIG) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute('''SELECT 
+                                    carts.id AS cart_id, 
+                                    product_list.product_name AS product_name, 
+                                    product_list.image_path, 
+                                    product_list.barcode,
+                                    carts.quantity, 
+                                    carts.price, 
+                                    carts.date
+                                    
+                                FROM carts
+                                JOIN product_list ON carts.product_id = product_list.product_id 
+                                WHERE carts.date BETWEEN %s AND %s;
+                                ''',(start_date, end_date))
+                rows = cursor.fetchall()
+                #print(rows)
+        # filter= []
+        # for product in rows:
+        #     pdate= str(product[5])  # Assuming the date is in the 6th column
+        #     product_date = datetime.strptime(pdate, '%Y-%m-%d').date()
+        #     if (start_date <= product_date <= end_date):
+        #         # rows.remove(product)
+        #        filter.append(product)
+
+       
+        # filtered = filter.reverse()
+        
+        result = [{
+            'id': row[0],
+            'product_name': row[1],
+            'barcode': row[3],
+            'quantity': row[4],
+            'price': row[5],
+            'date': row[6]} for row in rows]
         #print(result)
         return jsonify(result)
 
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({"error": "An error occurred while fetching data"}), 500
+
+
+@app.route('/api/get-inventory', methods=['GET'])
+def get_inventory():
+    try:
+        with pymysql.connect(**DB_CONFIG) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT * FROM product_list")
+                rows = cursor.fetchall()
+                # print(rows)
+       
+       
+        result = [{
+            
+            'product_name': row[1],
+            'stock': row[2],
+            'unit': row[3],
+            'price': row[4],
+            'per': row[5],
+            'exdate': row[6],
+            'barcode': row[7],
+            
+            'catagory': row[9]} for row in rows]
+        #print(result)
+        return jsonify(result)
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"error": "An error occurred while fetching data"}), 500
+
+
+@app.route('/download-excel', methods=['POST'])
+def download_excel():
+    products = request.json.get('products')  # receive JSON array of objects
+
+    # Load your Excel template
+    template_path = 'templates/template.xlsx'
+    wb = load_workbook(template_path)
+    ws = wb.active
+
+    # Define the column order you want in Excel
+    headers = ["Barcode", "Category", "Product Name", "Price", "Stock", "Unit", "Per", "Expiry Date"]
+    
+    # Optional: write headers if your template doesn't have them
+    for col, header in enumerate(headers, 1):
+        ws.cell(row=1, column=col, value=header)
+
+    # Start writing data from row 2
+    for row_num, product in enumerate(products, start=2):
+        ws.cell(row=row_num, column=1, value=product['barcode'])
+        ws.cell(row=row_num, column=2, value=product['catagory'])
+        ws.cell(row=row_num, column=3, value=product['product_name'])
+        ws.cell(row=row_num, column=4, value=float(product['price']))
+        ws.cell(row=row_num, column=5, value=product['stock'])
+        ws.cell(row=row_num, column=6, value=product['unit'])
+        ws.cell(row=row_num, column=7, value=product['per'])
+        
+        # Format expiry date
+        try:
+            date_obj = datetime.strptime(product['exdate'], "%a, %d %b %Y %H:%M:%S %Z")
+            ws.cell(row=row_num, column=8, value=date_obj.strftime("%d %b %Y"))
+        except:
+            ws.cell(row=row_num, column=8, value=product['exdate'])  # fallback
+
+    # Send the workbook as a downloadable file
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    return send_file(
+        output,
+        as_attachment=True,
+        download_name="product_inventory.xlsx",
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
+
 
 if __name__ == '__main__':
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)

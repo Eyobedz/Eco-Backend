@@ -7,7 +7,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <link rel="stylesheet" href="https://site-assets.fontawesome.com/releases/v6.7.2/css/all.css">
     <link rel="stylesheet" href="Elements/toastNotification.css">
-    <script defer src="test/test7.3.js"></script>
+    <script defer src="Elements/loading1.js"></script>
+    <script defer src="Elements/loading2.js"></script>
+
    <style>
         /* home page */
 
@@ -392,13 +394,13 @@ footer {
     bottom: 0;
 }
 
-/* view detail */
+/* ---------------------------view detail------------------------------- */
 #detail {
     display: flex;
     
     width: 90%; /* Adjust width for mobile */
     width: auto;
-    max-width: 500px; /* Limit max width */
+    max-width: 600px; /* Limit max width */
     height: auto;
     position: fixed;
     top: 25%;
@@ -1009,7 +1011,7 @@ footer {
             <nav>
                 <ul>
                     <li class="navicon"><a href="admincursor.html"><i id='navbtns' title="Home" class="fas fa-house" ></i></a></li>
-                    <li class="navicon"><a href="cart/cart.html"><i id='navbtns' title="cart" class="fas fa-cart-shopping"></i></a></li>
+                    <li class="navicon"><a href="cart/"><i id='navbtns' title="cart" class="fas fa-cart-shopping"></i></a></li>
                     <li class="navicon"><a href="coming.html"><i id='navbtns' title="Notification" class="fas fa-bell" ></i></a></li>
                     <li class="navicon"><button id="accBtn" popovertarget="dropdownMenu"><i id="navbtns" title="Account" class="fas fa-user-secret"></i></button>
                         
@@ -1018,9 +1020,9 @@ footer {
             </nav>
             <div popover id="dropdownMenu" anchor="accBtn" class="dropdown">
                 <a href="#">Profile</a>
-                <a href="Dashboard/test5.2.html">Dashboard</a>
+                <a href="Dashboard/">Dashboard</a>
                 <a href="#">Settings</a>
-                <a href="login.html">Logout</a>
+                <a href="login.html">Log out</a>
                 
             </div>
 
@@ -1096,10 +1098,10 @@ footer {
                         <Label for="priceper">/</Label>
                             <select id="priceper" placeholder="Price per" >
                                     <option value="" disable selected hidden>Per Unit</option>
-                                    <option value="/ Pis">Pis</option>
-                                    <option value="/ Kg">Kg</option>
-                                    <option value="/ Liter">Liter</option>
-                                    <option value="/ 100g">100g</option>
+                                    <option value="Pis">Pis</option>
+                                    <option value="Kg">Kg</option>
+                                    <option value="Liter">Liter</option>
+                                    <option value="100g">100g</option>
                             </select>
                     </td></tr>   
                         
@@ -1225,10 +1227,10 @@ footer {
                         <Label for="edit-priceper">/</Label>
                             <select name="per" id="edit-priceper" placeholder="Price per" >
                                     <option id="edit-per" value="" disable selected hidden>Per Unit</option>
-                                    <option value="/ Pis">Pis</option>
-                                    <option value="/ Kg">Kg</option>
-                                    <option value="/ Liter">Liter</option>
-                                    <option value="/ 100g">100g</option>
+                                    <option value="Pis">Pis</option>
+                                    <option value="Kg">Kg</option>
+                                    <option value="Liter">Liter</option>
+                                    <option value="100g">100g</option>
                             </select>
                     </td></tr>   
                         
@@ -1272,13 +1274,26 @@ footer {
     <div class="overlay" id="sideoverlay"></div>
 
     <script src="Elements/toastNotification.js"></script>
+    <script src="mode.js"></script>
+
     <script>
+// const mode = 'dev';
+//     let link;
+//     if(mode==='dev'){
+//         window.link = 'http://localhost:5000';
+//     }
+//     else{
+//         window.link = 'https://eco-backend-berk.onrender.com';
+//     }
+
+
 
 document.addEventListener("DOMContentLoaded", () => {
     AddProduct();
     sidebar();
     fetchAndUpdateData();
     storedValue();
+    fetchFilterData();
 });
 
 const notifier = new ToastNotification();
@@ -1336,7 +1351,7 @@ function fetchAndUpdateData() {
     GearboxLoader.show();
 
 
-    fetch('https://eco-backend-berk.onrender.com/api/get-data', { method: 'GET' })
+    fetch(`${window.link}/api/get-data`, { method: 'GET' })
         .then(response => {
             if (!response.ok) {
                 throw new Error('Network response was not ok ' + response.statusText);
@@ -1368,7 +1383,7 @@ function fetchAndUpdateData() {
 
                 // Use lazy loading for images
                 const imgElement = row.image_path
-                    ? `<img src="https://eco-backend-berk.onrender.com/${row.image_path}" alt="${row.product_name}" loading="lazy">`
+                    ? `<img src="${row.image_path}" alt="${row.product_name}" loading="lazy">`
                     : '';
 
                 // Pre-calculate stock and expiration information
@@ -1377,7 +1392,7 @@ function fetchAndUpdateData() {
                 rowDiv.innerHTML = `
                     ${imgElement}
                     <h2 style="color: blue">${row.product_name}</h2>
-                    <p style="color: lime">ETB ${row.price} ${row.per}</p>
+                    <p style="color: lime">ETB ${row.price} / ${row.per}</p>
                     <button class="view-details-button" >View Details</button>
                     <p class="stock-info" style="color: ${stockInfoContent.color}">${stockInfoContent.text}</p>
                 `;
@@ -1388,6 +1403,7 @@ function fetchAndUpdateData() {
             container.appendChild(fragment); // Append the DocumentFragment to the DOM in one operation
 
             view();
+            console.log(`${link}/api/get-data`)
 
         })
         .catch(error => {
@@ -1407,7 +1423,7 @@ function fetchAndUpdateData() {
 }
 
 function fetchFilterData() {
-            fetch('http://localhost:5000/api/get-filter', { method: 'GET' })
+            fetch(`${window.link}/api/get-filter`, { method: 'GET' })
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok ' + response.statusText);
@@ -1689,7 +1705,7 @@ function viewDetails(button) {
     det_pdName.textContent = product.querySelector('h2').textContent;
     det_catagory.textContent = product.getAttribute('data-catagory');
     det_stock.textContent = `${product.getAttribute('data-stock')} ${product.getAttribute('data-unit')}`;
-    det_price.textContent = `ETB ${product.getAttribute('data-price')}  ${product.getAttribute('data-priceper')}`;
+    det_price.textContent = `ETB ${product.getAttribute('data-price')} / ${product.getAttribute('data-priceper')}`;
     det_barcode.textContent = product.getAttribute('data-barcode');
     det_exDate.textContent = product.getAttribute('data-expiration');
     det_img.src = product.querySelector('img').src;
@@ -1738,6 +1754,7 @@ function AddProduct(){
         
         try {
             const formData = new FormData();
+            const fileData = new FormData();
             
             // Add all form fields to FormData
             formData.append('product-name-input', document.getElementById('product-name-input').value);
@@ -1752,31 +1769,52 @@ function AddProduct(){
             // Add the image file
             const imageFile = document.getElementById('image-input').files[0];
             if (imageFile) {
-                formData.append('image-input', imageFile);
+                fileData.append('imageInput', imageFile);
+                const previewUrl = URL.createObjectURL(imageFile);
+                console.log("Preview URL:", previewUrl);
+            }
+            waveloader.show();
+            // Make sure this URL matches your Flask route exactly
+            const imgResponse = await fetch(`https://eyobed-image-server.koyeb.app/api/upload?token=supersecret123`, {  // Updated URL
+             
+                method: 'POST',
+                body: fileData
+            });
+            const imgData = await imgResponse.json();
+            console.log('Success:', imgData);
+
+            if(!imgResponse.ok){
+                throw new Error(`HTTP img error! status: ${imgResponse.status}`);   
             }
             
-            // Make sure this URL matches your Flask route exactly
-            const response = await fetch('http://localhost:5000/api/add-product', {  // Updated URL
-                method: 'POST',
-                body: formData
-            });
+            formData.append('image-url', imgData.url);
+               
+            const response = await fetch(`${window.link}/api/add-product`, {  // Updated URL
+            method: 'POST',
+            body: formData
+                });
             
+                
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             
+            
+            console.log("made it to 1804")
             const data = await response.json();
             console.log('Success:', data);
-            document.getElementById('message').textContent = 'Product added successfully!';
+            notifier.success('Product added successfully!');
             document.getElementById('product-form').reset();
             
             
         } catch (error) {
             console.error('Error:', error);
-            document.getElementById('message').textContent = 'Error adding product. Please try again.';
+            notifier.error('Failed to add product. Please try again later.');
+        } finally{
+            waveloader.hide();
         }
      //fetchAndUpdateData();
-    setTimeout(fetchAndUpdateData(),2500);
+        setTimeout(fetchAndUpdateData(),2500);
    
     });
 
@@ -1832,15 +1870,17 @@ function editProduct(data){
             }
         console.log(formData.get('id'));
 
-        
-        fetch('http://localhost:5000/api/update-product', { // Replace with your API endpoint
+        waveloader.show();
+        fetch(`${window.link}/api/update-product`, { // Replace with your API endpoint
             method: 'POST',
             body: formData,
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('Product updated successfully!');
+                // alert('Product updated successfully!');
+                notifier.success('Product Updated Successfully!');
+                
                 editform.style.display = 'none';
                 editModal.style.display = 'none';
                 overlay.style.display = 'none';
@@ -1848,18 +1888,22 @@ function editProduct(data){
                 editFormElement.reset();
                 
                 
-                setTimeout(fetchAndUpdateData,2500);
+                // setTimeout(fetchAndUpdateData,2500);
                 
                 
                 
                 // Optionally, close the edit form or refresh the product list
             } else {
-                alert('Error updating product: ' + data.error);
+                notifier.error('Failed to update product. Please try again later.');
+            
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('An error occurred while updating the product.');
+            notifier.error('Failed to update product. Please try again later.');
+        })
+        .finally(() => {
+            waveloader.hide();
         });
         
     };
@@ -1932,7 +1976,7 @@ function deleteProduct(product) {
     newConfirmYes.addEventListener("click", async function() {
         try {
             const id = product.getAttribute('data-id');
-            const response = await fetch('http://localhost:5000/api/delete-product', {
+            const response = await fetch(`${window.link}/api/delete-product`, {
                 method: 'DELETE',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({id: id})

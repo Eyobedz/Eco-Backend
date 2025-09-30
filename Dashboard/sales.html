@@ -87,13 +87,16 @@
     <section id="mainContent"></section>
 
     <script src="/Elements/toastNotification.js"></script>
+    <script src="/mode.js"></script>
 
     <script>
         
-        document.addEventListener("DOMContentLoaded", () => {
+ 
+
+    document.addEventListener("DOMContentLoaded", () => {
     
-    fetchAndUpdateData();
-});
+        fetchAndUpdateData();
+    });
 
 const notifier = new ToastNotification();
 
@@ -102,7 +105,7 @@ function fetchAndUpdateData() {
     const container = document.getElementById('mainContent');
     const fragment = document.createDocumentFragment(); // Create a DocumentFragment for batching
 
-    fetch('http://localhost:5000/api/get-history', { method: 'GET' })
+    fetch(`${window.link}/api/get-history`, { method: 'GET' })
         .then(response => {
             if (!response.ok) {
                 throw new Error('Network response was not ok ' + response.statusText);
@@ -121,7 +124,7 @@ function fetchAndUpdateData() {
 
                 // Use lazy loading for images
                 const imgElement = row.image_path
-                    ? `<img src="http://localhost:5000${row.image_path}" alt="${row.product_name}" loading="lazy">`
+                    ? `<img src="+${row.image_path}" alt="${row.product_name}" loading="lazy">`
                     : '';
 
                 // Pre-calculate stock and expiration information

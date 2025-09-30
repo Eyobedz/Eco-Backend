@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Page Loading</title>
+    <title>Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
@@ -216,30 +216,71 @@
     </div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", activeTab, loadPage('dashboard.html'));
+        document.addEventListener("DOMContentLoaded", function () {
+            activeTab();
+    
+            // Restore last page
+            const lastPage = localStorage.getItem("activePage");
+            if (lastPage) {
+                loadPage(lastPage);
+                setActiveByPage(lastPage);
+            } else {
+                loadPage('dashboard.html');
+                setActiveByPage('dashboard.html');
+            }
+    
+            // Restore sidebar state
+            const sidebarState = localStorage.getItem("sidebarState");
+            if (sidebarState === "collapsed") {
+                document.querySelector('.sidenav').classList.add('collapsed');
+                document.querySelector('.main-content').classList.add('main-expand');
+            }
+        });
+    
         function loadPage(page) {
-            document.getElementById('content').innerHTML = `<iframe src="${page}" width="100%" height="100%" frameborder="0"></iframe>`;
+            document.getElementById('content').innerHTML =
+                `<iframe src="${page}" width="100%" height="100%" frameborder="0"></iframe>`;
+    
+            // Save page to localStorage
+            localStorage.setItem("activePage", page);
         }
-
-       
-
+    
         function toggleSidebar() {
             const sidebar = document.querySelector('.sidenav');
             const mainContent = document.querySelector('.main-content');
+    
             sidebar.classList.toggle('collapsed');
             mainContent.classList.toggle('main-expand');
+    
+            // Save state to localStorage
+            if (sidebar.classList.contains('collapsed')) {
+                localStorage.setItem("sidebarState", "collapsed");
+            } else {
+                localStorage.setItem("sidebarState", "expanded");
+            }
         }
-
-        // Function to handle the active tab highlighting
+    
         function activeTab() {
             document.querySelectorAll('.navList').forEach(item => {
-                item.addEventListener('click', function() {
+                item.addEventListener('click', function () {
                     document.querySelectorAll('.navList').forEach(nav => nav.classList.remove('active'));
                     this.classList.add('active');
                 });
             });
         }
+    
+        function setActiveByPage(page) {
+            document.querySelectorAll('.navList').forEach(item => {
+                const onclickAttr = item.getAttribute("onclick");
+                if (onclickAttr && onclickAttr.includes(page)) {
+                    document.querySelectorAll('.navList').forEach(nav => nav.classList.remove('active'));
+                    item.classList.add('active');
+                }
+            });
+        }
     </script>
+    
+    
 
 </body>
 </html>

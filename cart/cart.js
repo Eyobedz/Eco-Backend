@@ -1,6 +1,7 @@
 
 document.addEventListener("DOMContentLoaded", () => {
-   
+    
+    
     sidebar();
     fetchAndUpdateData();
     storedValue();
@@ -61,7 +62,9 @@ function fetchAndUpdateData() {
     GearboxLoader.show();
   
     
-    fetch('http://localhost:5000/api/get-data', { method: 'GET' })
+    // fetch('https://eco-backend-berk.onrender.com/api/get-data', { method: 'GET' })
+    fetch(`${window.link}/api/get-data`, { method: 'GET' })
+
         .then(response => {
             if (!response.ok) {
                 throw new Error('Network response was not ok ' + response.statusText);
@@ -90,7 +93,7 @@ function fetchAndUpdateData() {
 
                 // Use lazy loading for images
                 const imgElement = row.image_path
-                    ? `<img src="http://localhost:5000${row.image_path}" alt="${row.product_name}" loading="lazy">`
+                    ? `<img src="${row.image_path}" alt="${row.product_name}" loading="lazy">`
                     : '';
 
                 // Pre-calculate stock and expiration information
@@ -130,7 +133,7 @@ function fetchAndUpdateData() {
 
 
 function fetchFilterData() {
-    fetch('http://localhost:5000/api/get-filter', { method: 'GET' })
+    fetch(`${window.link}/api/get-filter`, { method: 'GET' })
     .then(response => {
         if (!response.ok) {
             throw new Error('Network response was not ok ' + response.statusText);
@@ -444,7 +447,7 @@ async function checkout () {
         }
         else {
             // Make sure this URL matches your Flask route exactly
-            const response = await fetch('http://localhost:5000/api/add-to-cart', {  // Updated URL
+            const response = await fetch(`${window.link}/api/add-to-cart`, {  // Updated URL
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'  // Ensure the server knows you're sending JSON

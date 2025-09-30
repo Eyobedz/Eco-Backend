@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User Profile</title>
+<link rel="stylesheet" href="https://site-assets.fontawesome.com/releases/v6.7.2/css/all.css">
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #f4f6f9;
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        color: #333;
+    }
+
+    .profile-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        width: 380px;
+        padding: 2rem;
+        text-align: center;
+    }
+
+    .profile-card img {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-bottom: 1rem;
+        border: 3px solid #007bff;
+    }
+
+    .profile-card h2 {
+        margin: 0.5rem 0;
+        font-size: 1.5rem;
+    }
+
+    .profile-card p {
+        margin: 0.2rem 0 1rem 0;
+        color: #666;
+    }
+
+    .stats {
+        display: flex;
+        justify-content: space-between;
+        margin: 1.5rem 0;
+    }
+
+    .stat {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 12px;
+        flex: 1;
+        margin: 0 0.3rem;
+    }
+
+    .stat h3 {
+        margin: 0;
+        font-size: 1.2rem;
+        color: #007bff;
+    }
+
+    .stat span {
+        font-size: 0.85rem;
+        color: #555;
+    }
+
+    .actions {
+        margin-top: 1.5rem;
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .actions button {
+        padding: 0.7rem 1.2rem;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: bold;
+    }
+
+    .btn-edit {
+        background: #007bff;
+        color: white;
+    }
+
+    .btn-logout {
+        background: #dc3545;
+        color: white;
+    }
+
+    .btn-change {
+        background: #28a745;
+        color: white;
+    }
+
+    .btn-edit:hover { background: #0056b3; }
+    .btn-logout:hover { background: #a71d2a; }
+    .btn-change:hover { background: #1e7e34; }
+
+    @media(max-width: 420px){
+        .profile-card { width: 95%; padding: 1.5rem; }
+        .stats { flex-direction: column; gap: 0.5rem; }
+    }
+</style>
+</head>
+<body>
+
+<div class="profile-card" id="profile-card">
+    <img id="profile-pic" src="/uploads/SPARKE.gif" alt="Profile Picture">
+    <h2 id="fullname">Loading...</h2>
+    <p id="username">Username: Loading...</p>
+    <p id="user_type">Role: Loading...</p>
+
+    <div class="stats">
+        <div class="stat">
+            <h3 id="total-products">0</h3>
+            <span>Products</span>
+        </div>
+        <div class="stat">
+            <h3 id="last-login">--</h3>
+            <span>Last Login</span>
+        </div>
+    </div>
+
+    <div class="actions">
+        <button class="btn-edit" onclick="editProfile()"><i class="fas fa-user-edit"></i> Edit Profile</button>
+        <button class="btn-change" onclick="changePassword()"><i class="fas fa-key"></i> Change Password</button>
+        <button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    fetchProfileData();
+});
+
+function fetchProfileData() {
+    fetch("/api/get-profile", { credentials: "include" })
+    .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch profile");
+        return res.json();
+    })
+    .then(data => {
+        const pp = data.pp_url !== 'none' ? data.pp_url : '/uploads/SPARKE.gif';
+        document.getElementById("profile-pic").src = pp;
+        document.getElementById("fullname").textContent = data.full_name;
+        document.getElementById("username").textContent = `Username: ${data.username}`;
+        document.getElementById("user_type").textContent = `Role: ${data.user_type}`;
+        document.getElementById("total-products").textContent = data.total_products || 0;
+        document.getElementById("last-login").textContent = data.last_login || "--";
+    })
+    .catch(err => console.error(err));
+}
+
+function editProfile() {
+    window.location.href = "/edit-profile"; // Or open a modal
+}
+
+function changePassword() {
+    window.location.href = "/change-password"; // Or open a modal
+}
+
+function logout() {
+    fetch("/api/logout", { method: "POST", credentials: "include" })
+        .then(() => window.location.href = "/");
+}
+</script>
+
+</body>
+</html>

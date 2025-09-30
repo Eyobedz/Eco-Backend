@@ -91,17 +91,20 @@
         <p>Action</p>
         
     </div>
-    <p style="position: absolute; z-index: -1; text-align: center; top: 50%; width: 99%; margin: 10px; font-size: 34px;">
-        No Product Found!!!
-   </p>
-    <section id="mainContent"></section>
+    <section id="mainContent">
+        <p style="position: absolute; z-index: -1; text-align: center; top: 50%; width: 99%; margin: 10px; font-size: 34px;">
+            No Accounts Found!!!
+       </p>
+
+    </section>
     <section class="addAccount">
         <button onclick="alert('account added successfully')">Add Account</button>
     </section>
     <script src="/Elements/toastNotification.js"></script>
+    <script src="/mode.js"></script>
 
     <script>
-        
+   
         document.addEventListener("DOMContentLoaded", () => {
     
             getUsers();
@@ -114,7 +117,7 @@ function getUsers() {
     const container = document.getElementById('mainContent');
     const fragment = document.createDocumentFragment(); // Create a DocumentFragment for batching
 
-    fetch('http://localhost:5000/api/get-user', { method: 'GET' })
+    fetch(`${window.link}/api/get-user`, { method: 'GET' })
         .then(response => {
             if (!response.ok) {
                 throw new Error('Network response was not ok ' + response.statusText);
@@ -132,22 +135,23 @@ function getUsers() {
                
 
                 // Use lazy loading for images
-                const imgElement = row.full_name
-                    
+                // const imgElement = row.pp_url
+                const imgElement = `/uploads/SPARKE.gif`
+                
 
                rowDiv.innerHTML = `
-                    ${imgElement}
+                    <img src=${imgElement}>
                     <p calss ="name">${row.full_name}</p>
                     <p>${row.username}</p>
                     <p>${row.role}</p>
-                    <a>View</a>    
+                    <button>View</button>    
                 `;
 
                 fragment.appendChild(rowDiv); // Append to the DocumentFragment
             });
 
             container.appendChild(fragment); // Append the DocumentFragment to the DOM in one operation
-           
+            console.log(`${window.link}/api/get-user`);
        
         })
         .catch(error => {
