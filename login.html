@@ -120,7 +120,8 @@ input:focus{
 <body >
     <div class="container" id="signin" >
         <h1 class="form-title">Log In</h1>
-        <form id="signin-form" method="post" enctype="multipart/form-data">
+        
+        <form id="signin-form"  method="POST" action="/api/login">
         
             <div class="input-group">
                 <i class="fas fa-user-secret"></i>
@@ -131,11 +132,10 @@ input:focus{
             <div class="input-group">
                 <i class="fas fa-lock"></i>
                 <input type="password" name="password" id="password" placeholder="Password" required>
-                
+                <i class="fas fa-eye" id="eye" onclick="showPassword()"></i>
             </div><br>
             <input type="submit" class="btn" value="Sign In" name="signin">
         </form>
-
         <div id="message" class="message"></div>
 
       
@@ -144,59 +144,76 @@ input:focus{
 
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      validateForm();
+    //   validateForm();
     });
 
-    function validateForm() {
-      const username = document.getElementById("username").value;
-      const password = document.getElementById("password").value;
-      const message = document.getElementById("message");
+   
+    function showPassword() {
+        const eye = document.getElementById("eye");
+        const password = document.getElementById("password");
+
+        if (password.type === "password") {
+            password.type = "text";
+            eye.classList.remove("fa-eye");
+            eye.classList.add("fa-eye-slash");
+        } else {
+            password.type = "password";
+            eye.classList.remove("fa-eye-slash");
+            eye.classList.add("fa-eye");
+        }
+        
+
+    }
+    // function validateForm() {
+    //   const username = document.getElementById("username").value;
+    //   const password = document.getElementById("password").value;
+    //   const message = document.getElementById("message");
      
-      document.getElementById("signin-form").addEventListener("submit", async (e) => {
-        e.preventDefault();
+    //   document.getElementById("signin-form").addEventListener("submit", async (e) => {
+    //     e.preventDefault();
        
-          const formData = new FormData();
-          formData.append("username", username);
-          formData.append("password", password);
+    //       const formData = new FormData();
+    //       formData.append("username", username);
+    //       formData.append("password", password);
 
-          fetch('http://127.0.0.1:5000/api/login', {  
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'  // Ensure correct content type
-            },
-            body: JSON.stringify({ 
-                username: document.getElementById('username').value, 
-                password: document.getElementById('password').value 
-            })
-            })
-            .then(response => response.json())
-            .then(data => {
-              console.log(data);
-              if (data.user_type === "admin") {
-                window.location.href = "admincursor.html";
-              } else if (data.user_type === "user") {
-                window.location.href = "indexs.html";
-              } else {
-                message.innerHTML = "Invalid Username or Password";
-              }
-              message.innerHTML = data.message;
+    //       fetch('http://127.0.0.1:5000/api/login', {  
+    //         method: 'POST',
+    //         headers: {
+    //             'Content-Type': 'application/json'  // Ensure correct content type
+    //         },
+    //         body: JSON.stringify({ 
+    //             username: document.getElementById('username').value, 
+    //             password: document.getElementById('password').value 
+    //         })
+    //         })
+    //         .then(response => response.json())
+    //         .then(data => {
+    //           console.log(data);
+    //           if (data.user_type === "admin") {
+    //             window.location.href = "/Home";
+    //           } else if (data.user_type === "user") {
+    //             window.location.href = "indexs.html";
+    //           } else {
+    //             message.innerHTML = "Invalid Username or Password";
+    //           }
+    //           message.innerHTML = data.message;
 
-            })
-            .catch (error => {
-              console.error('Error:', error);
-              message.innerHTML = "Error Logging In Try again";
-            })
-            .finally(() => {
-              message.innerHTML = "";
-              document.getElementById("signin-form").reset();
+    //         })
+    //         .catch (error => {
+    //           console.error('Error:', error);
+    //           message.innerHTML = "Error Logging In Try again";
+    //         })
+    //         .finally(() => {
+    //           message.innerHTML = "";
+    //           document.getElementById("signin-form").reset();
              
               
-            });
+    //         });
 
        
     
-    });
-    }
+    // });
+    // }
 
   </script>
       

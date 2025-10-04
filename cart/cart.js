@@ -63,7 +63,7 @@ function fetchAndUpdateData() {
   
     
     // fetch('https://eco-backend-berk.onrender.com/api/get-data', { method: 'GET' })
-    fetch(`${window.link}/api/get-data`, { method: 'GET' })
+    fetch(`/api/get-data`, { method: 'GET' , credentials: "include"})
 
         .then(response => {
             if (!response.ok) {
@@ -133,7 +133,7 @@ function fetchAndUpdateData() {
 
 
 function fetchFilterData() {
-    fetch(`${window.link}/api/get-filter`, { method: 'GET' })
+    fetch(`/api/get-filter`, { method: 'GET' , credentials: "include"})
     .then(response => {
         if (!response.ok) {
             throw new Error('Network response was not ok ' + response.statusText);
@@ -447,8 +447,9 @@ async function checkout () {
         }
         else {
             // Make sure this URL matches your Flask route exactly
-            const response = await fetch(`${window.link}/api/add-to-cart`, {  // Updated URL
+            const response = await fetch(`/api/add-to-cart`, {  // Updated URL
                 method: 'POST',
+                credentials: "include",
                 headers: {
                     'Content-Type': 'application/json'  // Ensure the server knows you're sending JSON
                 },

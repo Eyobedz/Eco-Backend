@@ -14,5 +14,6 @@
             "database": "organicdb",
             "username": "root"
         }
-    ]
+    ],
+    "files.autoSave": "afterDelay"
 }

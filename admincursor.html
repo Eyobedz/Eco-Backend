@@ -1010,8 +1010,8 @@ footer {
 
             <nav>
                 <ul>
-                    <li class="navicon"><a href="admincursor.html"><i id='navbtns' title="Home" class="fas fa-house" ></i></a></li>
-                    <li class="navicon"><a href="cart/"><i id='navbtns' title="cart" class="fas fa-cart-shopping"></i></a></li>
+                    <li class="navicon"><a href="/Home"><i id='navbtns' title="Home" class="fas fa-house" ></i></a></li>
+                    <li class="navicon"><a href="/Cart"><i id='navbtns' title="cart" class="fas fa-cart-shopping"></i></a></li>
                     <li class="navicon"><a href="coming.html"><i id='navbtns' title="Notification" class="fas fa-bell" ></i></a></li>
                     <li class="navicon"><button id="accBtn" popovertarget="dropdownMenu"><i id="navbtns" title="Account" class="fas fa-user-secret"></i></button>
                         
@@ -1019,10 +1019,10 @@ footer {
                 </ul>
             </nav>
             <div popover id="dropdownMenu" anchor="accBtn" class="dropdown">
-                <a href="#">Profile</a>
-                <a href="Dashboard/">Dashboard</a>
+                <a href="/Profile">Profile</a>
+                <a href="/Dashboard">Dashboard</a>
                 <a href="#">Settings</a>
-                <a href="login.html">Log out</a>
+                <a href="/logout">Log out</a>
                 
             </div>
 
@@ -1351,7 +1351,7 @@ function fetchAndUpdateData() {
     GearboxLoader.show();
 
 
-    fetch(`${window.link}/api/get-data`, { method: 'GET' })
+    fetch(`/api/get-data`, { method: 'GET', credentials: "include" })
         .then(response => {
             if (!response.ok) {
                 throw new Error('Network response was not ok ' + response.statusText);
@@ -1423,7 +1423,7 @@ function fetchAndUpdateData() {
 }
 
 function fetchFilterData() {
-            fetch(`${window.link}/api/get-filter`, { method: 'GET' })
+            fetch(`/api/get-filter`, { method: 'GET', credentials: "include" })
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok ' + response.statusText);
@@ -1789,9 +1789,10 @@ function AddProduct(){
             
             formData.append('image-url', imgData.url);
                
-            const response = await fetch(`${window.link}/api/add-product`, {  // Updated URL
+            const response = await fetch(`/api/add-product`, {  // Updated URL
             method: 'POST',
-            body: formData
+            body: formData,
+            credentials: "include"
                 });
             
                 
@@ -1871,8 +1872,9 @@ function editProduct(data){
         console.log(formData.get('id'));
 
         waveloader.show();
-        fetch(`${window.link}/api/update-product`, { // Replace with your API endpoint
+        fetch(`/api/update-product`, { // Replace with your API endpoint
             method: 'POST',
+            credentials: "include",
             body: formData,
         })
         .then(response => response.json())
@@ -1976,10 +1978,11 @@ function deleteProduct(product) {
     newConfirmYes.addEventListener("click", async function() {
         try {
             const id = product.getAttribute('data-id');
-            const response = await fetch(`${window.link}/api/delete-product`, {
+            const response = await fetch(`/api/delete-product`, {
                 method: 'DELETE',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({id: id})
+                body: JSON.stringify({id: id}),
+                credentials: "include"
             });
 
             if (!response.ok) {

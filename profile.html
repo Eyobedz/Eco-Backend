@@ -4,7 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>User Profile</title>
-<link rel="stylesheet" href="https://site-assets.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="stylesheet" href="https://site-assets.fontawesome.com/releases/v6.7.2/css/all.css">
+    <link rel="stylesheet" href="Elements/toastNotification.css">
+    <script defer src="Elements/loading1.js"></script>
+    <script defer src="Elements/loading2.js"></script>
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -107,6 +111,93 @@
     .btn-logout:hover { background: #a71d2a; }
     .btn-change:hover { background: #1e7e34; }
 
+    /* Base popover styling */
+    [popover] {
+  display: none; /* default hidden */
+}
+
+[popover]:popover-open {
+  display: flex; /* only visible when opened */
+  padding: 20px;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.15);
+  width: 320px;
+  max-width: 90%;
+  font-family: Arial, sans-serif;
+  flex-direction: column;
+  gap: 12px;
+  animation: fadeIn 0.25s ease;
+}
+
+
+/* Headings inside popovers */
+[popover] h1 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #333;
+  text-align: center;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 8px;
+}
+
+/* Input styling */
+[popover] input {
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+[popover] input:focus {
+  border-color: #0077ff;
+  box-shadow: 0 0 0 2px rgba(0, 119, 255, 0.1);
+}
+
+/* Optional buttons for popover actions */
+.popover-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.popover-actions button {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.popover-actions .save {
+  background: #0077ff;
+  color: #fff;
+}
+
+.popover-actions .cancel {
+  background: #eee;
+  color: #333;
+}
+
+.popover-actions .save:hover {
+  background: #005fcc;
+}
+
+.popover-actions .cancel:hover {
+  background: #ddd;
+}
+
+/* Smooth fade animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+
     @media(max-width: 420px){
         .profile-card { width: 95%; padding: 1.5rem; }
         .stats { flex-direction: column; gap: 0.5rem; }
@@ -121,7 +212,7 @@
     <p id="username">Username: Loading...</p>
     <p id="user_type">Role: Loading...</p>
 
-    <div class="stats">
+    <!-- <div class="stats">
         <div class="stat">
             <h3 id="total-products">0</h3>
             <span>Products</span>
@@ -130,19 +221,52 @@
             <h3 id="last-login">--</h3>
             <span>Last Login</span>
         </div>
-    </div>
+    </div> -->
 
     <div class="actions">
-        <button class="btn-edit" onclick="editProfile()"><i class="fas fa-user-edit"></i> Edit Profile</button>
-        <button class="btn-change" onclick="changePassword()"><i class="fas fa-key"></i> Change Password</button>
+        <button class="btn-edit" popovertarget="editprofile" popovertargetaction="toggle"><i class="fas fa-user-edit"></i> Edit Profile</button>
+        <button class="btn-change" popovertarget="changepassword" popovertargetaction="toggle"><i class="fas fa-key"></i> Change Password</button>
         <button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
     </div>
 </div>
 
+<!-- Edit Profile Popover -->
+<div popover="manual" id="editprofile">
+    <h1>Edit Profile</h1>
+    <input type="text" placeholder="Profile Picture">
+    <input type="text" placeholder="Full Name">
+    <input type="text" placeholder="Username">
+    <div class="popover-actions">
+        <button class="cancel" popovertarget="editprofile" popovertargetaction="hide">Cancel</button>
+        <button type="submit" class="save">Save</button>
+    </div>
+</div>
+
+<!-- Change Password Popover -->
+<form popover="manual" id="changepassword">
+    <h1>Change Password</h1>
+    <input type="hidden" id="user_id" value="">
+    <input type="password" id="old_password" placeholder="Old Password">
+    <input type="password" id="new_password" placeholder="New Password">
+    <input type="password" id="confirm_password" placeholder="Confirm Password">
+    <p id="message"></p>
+    <div class="popover-actions">
+        <button class="cancel" popovertarget="changepassword" popovertargetaction="hide">Cancel</button>
+        <button type="submit" class="save">Update</button>
+    </div>
+</form>
+
+
+<script src="Elements/toastNotification.js"></script>
+
 <script>
+const notifier = new ToastNotification();
 document.addEventListener("DOMContentLoaded", () => {
     fetchProfileData();
+    changePassword();
 });
+
+
 
 function fetchProfileData() {
     fetch("/api/get-profile", { credentials: "include" })
@@ -156,8 +280,10 @@ function fetchProfileData() {
         document.getElementById("fullname").textContent = data.full_name;
         document.getElementById("username").textContent = `Username: ${data.username}`;
         document.getElementById("user_type").textContent = `Role: ${data.user_type}`;
-        document.getElementById("total-products").textContent = data.total_products || 0;
-        document.getElementById("last-login").textContent = data.last_login || "--";
+        
+        document.getElementById("user_id").value = data.user_id;
+        // document.getElementById("total-products").textContent = data.total_products || 0;
+        // document.getElementById("last-login").textContent = data.last_login || "--";
     })
     .catch(err => console.error(err));
 }
@@ -166,9 +292,55 @@ function editProfile() {
     window.location.href = "/edit-profile"; // Or open a modal
 }
 
+
 function changePassword() {
-    window.location.href = "/change-password"; // Or open a modal
+    document.getElementById("changepassword").addEventListener("submit", function(e) {
+        e.preventDefault();
+
+        waveloader.show();
+
+        const formData = new FormData();
+        formData.append('user_id', document.getElementById('user_id').value);
+        formData.append('old_password', document.getElementById('old_password').value);
+        formData.append('new_password', document.getElementById('new_password').value);
+        formData.append('confirm_password', document.getElementById('confirm_password').value);
+
+        fetch('/api/change-password', {
+            method: 'POST',
+            body: formData,
+            credentials: "include"
+        })
+        .then(async res => {
+            const data = await res.json();  // ✅ always parse response JSON
+
+            if (!res.ok) {
+                // backend sends "error" and "message"
+                notifier.error(data.message || data.error || "Failed to change password");
+                document.getElementById("message").textContent = data.message || data.error;
+                throw new Error(data.message || data.error);
+            }
+
+            return data;
+        })
+        .then(data => {
+            // ✅ backend only returns "message"
+            document.getElementById('old_password').value = '';
+            document.getElementById('new_password').value = '';
+            document.getElementById('confirm_password').value = '';
+            document.getElementById("changepassword").hidePopover();
+            notifier.success(data.message || 'Password Changed Successfully');
+        })
+        .catch(err => {
+            console.error(err);
+            // already shown notifier.error above
+        })
+        .finally(() => {
+            waveloader.hide();
+        });
+    });
 }
+
+
 
 function logout() {
     fetch("/api/logout", { method: "POST", credentials: "include" })

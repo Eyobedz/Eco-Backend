@@ -616,7 +616,7 @@
     let fileData = [];
 
     function fetchFilterData() {
-            fetch(`${window.link}/api/get-filter`, { method: 'GET' })
+            fetch(`/api/get-filter`, { method: 'GET', credentials: "include" })
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok ' + response.statusText);
@@ -997,7 +997,7 @@
         const endDate = ufendDate.replace(/\//g, '-')
        
         waveloader.show();
-        fetch(`${window.link}/api/get-report?startDate=${startDate}&endDate=${endDate}&type=${type}`)
+        fetch(`/api/get-report?startDate=${startDate}&endDate=${endDate}&type=${type}`, {credentials: "include"})
             .then(response => response.json())
             .then(data => {
                 // Process the data and update the report 
@@ -1061,7 +1061,7 @@
     
     function inventory(){
      waveloader.show();
-     fetch(`${window.link}/api/get-inventory`)
+     fetch(`/api/get-inventory`,{credentials: "include"})
             .then(response => response.json())
             .then(data => {
                 // Process the data and update the report 
@@ -1142,8 +1142,9 @@
     // }
 
     function downloadExcel(type){
-        fetch(`${window.link}/download-excel`, {
+        fetch(`/download-excel`, {
             method: 'POST',
+            credentials: "include",
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ products: fileData })
         });

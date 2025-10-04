@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, send_from_directory, send_file
+from flask import Flask, jsonify, request, send_from_directory, send_file, session, redirect, url_for
 import pymysql
 from flask_cors import CORS
 import os
@@ -8,6 +8,7 @@ import time
 from dotenv import load_dotenv
 import hashlib
 import gunicorn
+from functools import wraps
 import cloudinary
 import cloudinary.uploader
 
@@ -18,8 +19,10 @@ import io
 load_dotenv()
 
 app = Flask(__name__)
+app.secret_key = "super-secret-key"
+
 # Configure CORS to allow POST requests
-CORS(app, resources={
+CORS(app, supports_credentials=True, resources={
     r"/api/*": {
         "origins": "http://127.0.0.1:*",
         # "origins": "*",
@@ -64,42 +67,191 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'username' not in session:
+            # If it's an API / AJAX call → return JSON
+            if request.accept_mimetypes.accept_json and not request.accept_mimetypes.accept_html:
+                return jsonify({"error": "Unauthorized, please log in"}), 401
+
+            # Otherwise → redirect to login page
+            return redirect(url_for("start"))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+
+
 @app.route('/api/login', methods=['POST'])
 def login():
     try:
-        data = request.json
-        username = data['username']
-        password = data['password']
+        username = request.form.get('username')
+        password = request.form.get('password')
         hashed_password = hashlib.md5(password.encode()).hexdigest()
-        print(username, password, hashed_password)
 
         with pymysql.connect(**DB_CONFIG) as connection:
             with connection.cursor() as cursor:
                 sql = """SELECT * FROM users WHERE username = %s AND password = %s"""
                 cursor.execute(sql, (username, hashed_password))
                 user = cursor.fetchone()
-                usertype = user[4]
-                print(usertype)
-        
+
         if user:
-            return jsonify({
-                "message": "Login successful",
-                'user_type': usertype
-                }), 200
+            user_id = user[0]
+            full_name = user[1]
+            username = user[2]
+            user_type = user[4]
+            url = user[5]
+
+            # Create session
+            session.permanent = True
+            session['id'] = user_id
+            session['username'] = username
+            session['full_name'] = full_name
+            session['user_type'] = user_type
+            session['pp_url'] = url
+
+            # Redirect based on user type
+            if user_type == "admin":
+                return redirect(url_for('Home'))  # make sure you have /Home route
+            else:
+                return redirect(url_for('user_dashboard'))  # normal user page
+
         else:
-            return jsonify({"message": "Invalid username or password"}), 401
+            # If invalid login → redirect back to login page
+            return redirect(url_for('login_page'))
+
     except Exception as e:
         print(f"Error: {e}")
-        return jsonify({"error": str(e)}), 500
+        return "Internal Server Error", 500
 
 
 
-@app.route('/get-profile', methods=['GET'])
+@app.route('/logout')
+@login_required
+def logout():
+    # Clear all session data
+    session.clear()
+    return redirect(url_for('start'))
+
+@app.route('/<path:path>')
+# @login_required
+def serve_file(path):
+    return send_from_directory('.', path)
+
+# @app.route('/<path:path>')
+# # @login_required
+# def serve_dashboard(path):
+#     return send_from_directory('Dashboard', path)
+
+######################## Navigation ######################################
+
+@app.route('/', methods=['GET'])
+def start():
+    return send_from_directory('.','login.html' )
+
+@app.route('/Home', methods=['GET'])
+@login_required
+def Home():
+    return send_from_directory('.', 'admincursor.html')
+
+@app.route('/Cart', methods=['GET'])
+@login_required
+def Cart():
+    return send_from_directory('/Cart', 'index.html')
+
+@app.route('/Profile', methods=['GET'])
+@login_required
+def Profile():
+    return send_from_directory('.', 'profile.html')
+
+@app.route('/Dashboard', methods=['GET'])
+@login_required
+def Dashboard():
+    return send_from_directory('Dashboard', 'index.html')
+
+@app.route('/dashboard', methods=['GET'])
+# @login_required
+def dashboard():
+    return send_from_directory('Dashboard', 'dashboard.html')
+
+@app.route('/accounts', methods=['GET'])
+# @login_required
+def accounts():
+    return send_from_directory('Dashboard', 'accounts.html')
+
+@app.route('/reports', methods=['GET'])
+# @login_required
+def reports():
+    return send_from_directory('Dashboard', 'reports.html')
+
+@app.route('/sales', methods=['GET'])
+# @login_required
+def sales():
+    return send_from_directory('Dashboard', 'sales.html')
+
+@app.route('/history', methods=['GET'])
+# @login_required
+def history():
+    return send_from_directory('Dashboard', 'history.html')
+
+@app.route('/charts', methods=['GET'])
+# @login_required
+def charts():
+    return send_from_directory('Dashboard', 'charts.html')
+    
+
+@app.route('/help', methods=['GET'])
+# @login_required
+def help():
+    return send_from_directory('Dashboard', 'help.html')
+
+
+
+@app.route('/api/get-profile', methods=['GET'])
+@login_required
 def get_profile():
-    pass
+    return jsonify({
+        'user_id': session['id'],
+        'username':session['username'],
+        'full_name' : session['full_name'],
+         'user_type' :  session['user_type'],
+         'pp_url': session['pp_url']
+    })
+
+@app.route('/api/change-password', methods=['POST'])
+# @login_required
+def change_password():
+    user_id = request.form.get('user_id')
+    old_password = request.form.get('old_password')
+    new_password = request.form.get('new_password')
+    confirm_password = request.form.get('confirm_password')
+    
+    # print(user_id, old_password, new_password, confirm_password)
+    if not all([user_id, old_password, new_password, confirm_password]):
+        return jsonify({"error": "Missing required fields",
+                        "message": "Missing required fields"}), 400
+    
+    if new_password != confirm_password:
+        return jsonify({"error": "New password and confirm password do not match",
+                        "message": "New password and confirm password do not match"}), 400
+    
+    # with pymysql.connect(**DB_CONFIG) as connection:
+    #     with connection.cursor() as cursor:
+    #         cursor.execute("UPDATE users SET password = %s WHERE id = %s", (new_password, user_id))
+    #     connection.commit()
+    
+    return jsonify({"message": "Password changed successfully"}), 200
+    
+    # except Exception as e:
+    # except Exception as e:
+    #     print(f"Error: {e}")
+    #     return jsonify({"error": "An error occurred while changing the password"}), 500
+    
 
 
 @app.route('/api/get-data', methods=['GET'])
+@login_required
 def get_data():
     try:
         #time.sleep(10)
@@ -128,6 +280,7 @@ def get_data():
 
 
 @app.route('/api/add-product', methods=['POST'])
+@login_required
 def add_product():
     try:
         # # Check if image file was uploaded
@@ -204,6 +357,7 @@ def add_product():
 
 
 @app.route('/api/update-product', methods=['POST'])
+@login_required
 def update_product():
     try:
         data = request.form  # Use request.form for FormData
@@ -279,6 +433,7 @@ def update_product():
 
 
 @app.route('/api/delete-product', methods=['DELETE'])
+@login_required
 def delete_product():
     data = request.json
     try:
@@ -294,6 +449,7 @@ def delete_product():
 
 
 @app.route('/api/add-to-cart', methods=['POST'])
+@login_required
 def add_to_cart():
     try:
        
@@ -352,6 +508,7 @@ def add_to_cart():
 
 
 @app.route('/api/get-history', methods=['GET'])
+@login_required
 def get_history():
     try:
         with pymysql.connect(**DB_CONFIG) as connection:
@@ -384,6 +541,7 @@ def get_history():
 
 
 @app.route('/api/get-filter', methods=['GET'])
+@login_required
 def get_filter():
     try:
         with pymysql.connect(**DB_CONFIG) as connection:
@@ -404,6 +562,7 @@ def get_filter():
 
 
 @app.route('/api/get-user', methods=['GET'])
+@login_required
 def getUser():
     try:
         with pymysql.connect(**DB_CONFIG) as connection:
@@ -427,6 +586,7 @@ def getUser():
 
 
 @app.route('/api/get-report', methods=['GET'])
+@login_required
 def get_report():
     start = request.args.get('startDate')
     end = request.args.get('endDate')
@@ -488,6 +648,7 @@ def get_report():
 
 
 @app.route('/api/get-inventory', methods=['GET'])
+@login_required
 def get_inventory():
     try:
         with pymysql.connect(**DB_CONFIG) as connection:
