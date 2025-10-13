@@ -1,13 +1,41 @@
 
 document.addEventListener("DOMContentLoaded", () => {
     
-    
+    fetchProfileData();
     sidebar();
     fetchAndUpdateData();
     storedValue();
+    activeTab()
 });
 
 const notifier = new ToastNotification();
+
+function fetchProfileData() {
+    fetch("/api/get-profile", { credentials: "include" })
+    .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch profile");
+        return res.json();
+    })
+    .then(data => {
+        const accountBtns = document.querySelectorAll(".account-btn");
+        const usernameDisplay = document.getElementById("userNameText");
+        // Use default image or the one from the database
+        const pp = data.pp_url && data.pp_url !== 'none' ? data.pp_url : '/uploads/SPARKE.gif';
+            
+        accountBtns.forEach(btn => {
+             btn.innerHTML = `<img id="acc-pp" src="${pp}" alt="Profile Picture">`;
+
+            const img = btn.querySelector("img");
+            img.onerror = () => {
+                btn.textContent = data.username.charAt(0).toUpperCase();
+            };
+        });
+        // Update username display
+        usernameDisplay.textContent = data.username;
+    })
+    .catch(err => console.error(err));
+}
+
 
 function sidebar() {
     // Get the elements

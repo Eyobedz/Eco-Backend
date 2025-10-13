@@ -124,7 +124,7 @@ function fetchAndUpdateData() {
 
                 // Use lazy loading for images
                 const imgElement = row.image_path
-                    ? `<img src="+${row.image_path}" alt="${row.product_name}" loading="lazy">`
+                    ? `<img src="${row.image_path}" alt="${row.product_name}" loading="lazy">`
                     : '';
 
                 // Pre-calculate stock and expiration information

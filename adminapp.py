@@ -1,3 +1,4 @@
+import json
 from flask import Flask, jsonify, request, send_from_directory, send_file, session, redirect, url_for
 import pymysql
 from flask_cors import CORS
@@ -11,6 +12,9 @@ import gunicorn
 from functools import wraps
 import cloudinary
 import cloudinary.uploader
+import cloudinary.api
+from cloudinary.exceptions import NotFound
+
 
 from openpyxl import load_workbook
 import io
@@ -19,7 +23,7 @@ import io
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = "super-secret-key"
+app.secret_key = os.getenv("SECRET_KEY")
 
 # Configure CORS to allow POST requests
 CORS(app, supports_credentials=True, resources={
@@ -59,7 +63,7 @@ cloudinary.config(
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['MAX_CONTENT_LENGTH'] = 30 * 1024 * 1024  # 30MB max file size
+app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10MB max file size
 
 # Ensure the upload directory exists
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -85,25 +89,36 @@ def login_required(f):
 
 @app.route('/api/login', methods=['POST'])
 def login():
+    connection = pymysql.connect(**DB_CONFIG)
     try:
         username = request.form.get('username')
         password = request.form.get('password')
         hashed_password = hashlib.md5(password.encode()).hexdigest()
 
-        with pymysql.connect(**DB_CONFIG) as connection:
-            with connection.cursor() as cursor:
-                sql = """SELECT * FROM users WHERE username = %s AND password = %s"""
-                cursor.execute(sql, (username, hashed_password))
-                user = cursor.fetchone()
+        # with pymysql.connect(**DB_CONFIG) as connection:
+        with connection.cursor() as cursor:
+            sql = "SELECT * FROM users WHERE username = %s"
+            cursor.execute(sql, (username,))
+            user = cursor.fetchone()
 
-        if user:
-            user_id = user[0]
-            full_name = user[1]
-            username = user[2]
-            user_type = user[4]
-            url = user[5]
+        if not user:
+            return jsonify({"success": False, "message": "User not found."})
 
-            # Create session
+        stored_password = user[3]
+        if hashed_password != stored_password:
+            return jsonify({"success": False, "message": "Incorrect password."})
+
+        # If login is successful
+        user_id = user[0]
+        full_name = user[1]
+        user_type = user[4]
+        url = user[5]
+        status = user[6]
+
+        if status =='Disabled':
+            return jsonify({"success": False, "message": "Your account has been Disabled. Please Contact the admin."})
+        
+        else:
             session.permanent = True
             session['id'] = user_id
             session['username'] = username
@@ -111,20 +126,19 @@ def login():
             session['user_type'] = user_type
             session['pp_url'] = url
 
-            # Redirect based on user type
             if user_type == "admin":
-                return redirect(url_for('Home'))  # make sure you have /Home route
+                redirect_url = url_for('Home')
             else:
-                return redirect(url_for('user_dashboard'))  # normal user page
+                redirect_url = url_for('Home')
 
-        else:
-            # If invalid login → redirect back to login page
-            return redirect(url_for('login_page'))
+            return jsonify({"success": True, "redirect": redirect_url})
 
     except Exception as e:
         print(f"Error: {e}")
-        return "Internal Server Error", 500
+        return jsonify({"success": False, "message": "Internal server error"}), 500
 
+    finally:
+        connection.close()
 
 
 @app.route('/logout')
@@ -158,7 +172,7 @@ def Home():
 @app.route('/Cart', methods=['GET'])
 @login_required
 def Cart():
-    return send_from_directory('/Cart', 'index.html')
+    return send_from_directory('Cart', 'index.html')
 
 @app.route('/Profile', methods=['GET'])
 @login_required
@@ -220,7 +234,7 @@ def get_profile():
     })
 
 @app.route('/api/change-password', methods=['POST'])
-# @login_required
+@login_required
 def change_password():
     user_id = request.form.get('user_id')
     old_password = request.form.get('old_password')
@@ -231,35 +245,167 @@ def change_password():
     if not all([user_id, old_password, new_password, confirm_password]):
         return jsonify({"error": "Missing required fields",
                         "message": "Missing required fields"}), 400
-    
-    if new_password != confirm_password:
+
+    hashed_old_password = hashlib.md5(old_password.encode()).hexdigest()
+    hashed_new_password = hashlib.md5(new_password.encode()).hexdigest()
+    hashed_confirm_password = hashlib.md5(confirm_password.encode()).hexdigest()
+
+   
+    if hashed_new_password != hashed_confirm_password:
         return jsonify({"error": "New password and confirm password do not match",
                         "message": "New password and confirm password do not match"}), 400
     
+    connection = pymysql.connect(**DB_CONFIG)
+    try:
+        # with pymysql.connect(**DB_CONFIG) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
+                user = cursor.fetchone()
+                if user:
+                    if user[3] != hashed_old_password:
+                        return jsonify({"error": "Old password is incorrect",
+                                        "message": "Old password is incorrect"}), 400
+                    else:
+                        cursor.execute("UPDATE users SET password = %s WHERE id = %s", (hashed_new_password, user_id))
+                        connection.commit()
+                        return jsonify({"message": "Password changed successfully"}), 200
+                else:
+                    return jsonify({"error": "User not found",
+                                    "message": "User not found"}), 400
+    finally:
+        connection.close()   
     # with pymysql.connect(**DB_CONFIG) as connection:
     #     with connection.cursor() as cursor:
     #         cursor.execute("UPDATE users SET password = %s WHERE id = %s", (new_password, user_id))
     #     connection.commit()
     
-    return jsonify({"message": "Password changed successfully"}), 200
+    # return jsonify({"message": "Password changed successfully"}), 200
     
     # except Exception as e:
     # except Exception as e:
     #     print(f"Error: {e}")
     #     return jsonify({"error": "An error occurred while changing the password"}), 500
     
+@app.route('/api/update-profile', methods=['POST'])
+@login_required
+def update_profile():
+    user_id = request.form.get('id')
+    userName = request.form.get('username')
+    fullName = request.form.get('full_name')
 
+    fields = {}
+    image_path = None
+
+    # --------------------------
+    # 1️⃣ Check for uploaded file
+    # --------------------------
+    if 'fileInput' in request.files:
+        file = request.files['fileInput']
+
+        if file and file.filename != '' and allowed_file(file.filename):
+           
+            image_path = upload_or_get_cloudinary_url(file, "profiles")
+
+            # update image path in fields for DB
+            fields.update({"profile_picture_url": image_path})
+
+        else:
+            return jsonify({"error": "Invalid or missing file"}), 400
+
+    # --------------------------------
+    # 2️⃣ Validate other form fields
+    # --------------------------------
+    if not user_id:
+        return jsonify({"success": False, "error": "Missing required field: user_id"}), 400
+    else:
+        for key, value in request.form.items():
+            if value == "" or key == "id":
+                continue
+            else:
+                fields.update({key: value})
+
+    if not fields:
+        return jsonify({"error": "No valid fields to update"}), 400
+
+    # --------------------------------
+    # 3️⃣ Build SQL update statement
+    # --------------------------------
+    set_clause = ", ".join([f"{key} = %s" for key in fields.keys()])
+    values = list(fields.values())
+    values.append(user_id)
+
+    query = f"UPDATE users SET {set_clause} WHERE id = %s"
+
+    # --------------------------------
+    # 4️⃣ Execute SQL update
+    # --------------------------------
+    connection = pymysql.connect(**DB_CONFIG)
+    try:    
+        # with pymysql.connect(**DB_CONFIG) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(query, values)
+            connection.commit()
+    finally:
+        connection.close()    
+    # --------------------------------
+    # 5️⃣ Update session variables
+    # --------------------------------
+    session['username'] = userName
+    session['full_name'] = fullName
+    if image_path:
+        session['pp_url'] = image_path
+
+    return jsonify({"success": True, "message": "Profile Updated Successfully"}), 200
+
+
+
+
+def upload_or_get_cloudinary_url(file, folder):
+    """
+    Uploads a file to Cloudinary if not already present in the given folder.
+    Returns the file's secure URL.
+
+    Parameters:
+        file (FileStorage): The uploaded file (e.g., from request.files['file']).
+        folder (str): Cloudinary folder to upload into (default: "shared_uploads").
+
+    Returns:
+        str: The secure URL of the image on Cloudinary.
+    """
+    # ✅ Extract filename without extension
+    filename = os.path.splitext(file.filename)[0]
+    public_id = f"{folder}/{filename}"  # Used to check duplicates properly
+
+    try:
+        # ✅ Check if already uploaded (must match full folder path)
+        existing = cloudinary.api.resource(public_id)
+        print(f"✅ Image already exists: {existing['secure_url']}")
+        return existing['secure_url']
+
+    except NotFound:
+        # 🔄 Upload new image into the correct folder
+        print(f"🔄 Uploading new image to folder '{folder}'...")
+        upload_result = cloudinary.uploader.upload(
+            file,
+            folder=folder,            # ✅ ensures it shows up in that folder
+            public_id=filename,       # ✅ prevents duplicate subfolder naming
+            overwrite=False,          # ❌ don’t overwrite existing files
+            unique_filename=False     # ❌ don’t add random characters
+        )
+        print(f"✅ Uploaded new image: {upload_result['secure_url']}")
+        return upload_result['secure_url']
 
 @app.route('/api/get-data', methods=['GET'])
 @login_required
 def get_data():
+    connection = pymysql.connect(**DB_CONFIG)
     try:
         #time.sleep(10)
-        with pymysql.connect(**DB_CONFIG) as connection:
-            with connection.cursor() as cursor:
-                cursor.execute("SELECT * FROM product_list")
-                rows = cursor.fetchall()
-                #print(rows)
+        # with pymysql.connect(**DB_CONFIG) as connection:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM product_list")
+            rows = cursor.fetchall()
+            #print(rows)
         result = [{
             'id': row[0],
             'product_name': row[1],
@@ -278,21 +424,23 @@ def get_data():
         print(f"Error: {e}")
         return jsonify({"error": "An error occurred while fetching data"}), 500
 
+    finally:
+        connection.close()
 
 @app.route('/api/add-product', methods=['POST'])
 @login_required
 def add_product():
     try:
-        # # Check if image file was uploaded
-        # if 'image-input' not in request.files:
-        #     return jsonify({"error": "No image file provided"}), 400
+        # Check if image file was uploaded
+        if 'image-input' not in request.files:
+            return jsonify({"error": "No image file provided"}), 400
         
-        # file = request.files['image-input']
-        # if file.filename == '':
-        #     return jsonify({"error": "No selected file"}), 400
+        file = request.files['image-input']
+        if file.filename == '':
+            return jsonify({"error": "No selected file"}), 400
         
-        # if not file or not allowed_file(file.filename):
-        #     return jsonify({"error": "Invalid file type"}), 400
+        if not file or not allowed_file(file.filename):
+            return jsonify({"error": "Invalid file type"}), 400
         
         # Save the image file
         
@@ -300,7 +448,7 @@ def add_product():
         # file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         # file.save(file_path)
         
-        # upload_result = cloudinary.uploader.upload(file)
+        image_path = upload_or_get_cloudinary_url(file, "uploads")
         
         # Get form data with validation
         product_name = request.form.get('product-name-input')
@@ -311,7 +459,7 @@ def add_product():
         per = request.form.get('priceper')
         exdate = request.form.get('expirationDate-input')
         barcode = request.form.get('barcode')
-        image_path = request.form.get('image-url')
+        # image_path = request.form.get('image-url')
         # image_path = f"/uploads/{filename}"
         # image_path = upload_result['secure_url']
         
@@ -320,16 +468,19 @@ def add_product():
         # Validate required fields
         if not all([product_name, stock, unit, price]):
             return jsonify({"error": "Missing required fields"}), 400
-        
-        # Database insertion
-        with pymysql.connect(**DB_CONFIG) as connection:
-            with connection.cursor() as cursor:
-                sql = """INSERT INTO product_list 
-                        (product_name, stock, unit, price, per, exdate, barcode, image_path, catagory) 
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"""
-                cursor.execute(sql, (product_name, stock, unit, price, per, exdate, barcode, image_path, catagory))
-            connection.commit()
-        
+        connection = pymysql.connect(**DB_CONFIG)
+        try:    
+            # Database insertion
+            # with pymysql.connect(**DB_CONFIG) as connection:
+                with connection.cursor() as cursor:
+                    sql = """INSERT INTO product_list 
+                            (product_name, stock, unit, price, per, exdate, barcode, image_path, catagory) 
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+                    cursor.execute(sql, (product_name, stock, unit, price, per, exdate, barcode, image_path, catagory))
+                connection.commit()
+        finally:
+            connection.close()
+            
         return jsonify({
             "message": "Product added successfully",
             "product": {
@@ -387,8 +538,7 @@ def update_product():
             # file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             # file.save(file_path)
 
-            upload_result = cloudinary.uploader.upload(file)
-            image_path = upload_result['secure_url']
+            image_path = upload_or_get_cloudinary_url(file, "uploads")
 
             # image_path = f"/uploads/{filename}"
             # print(image_path)
@@ -418,12 +568,15 @@ def update_product():
         """
         # print(query, values)
         # print(values) 
-    
-        # Database update logic
-        with pymysql.connect(**DB_CONFIG) as connection:
+        connection = pymysql.connect(**DB_CONFIG)
+        try:
+            # Database update logic
+            # with pymysql.connect(**DB_CONFIG) as connection:
             with connection.cursor() as cursor:
                 cursor.execute(query, values)
             connection.commit()
+        finally:
+            connection.close()
 
         return jsonify({"success": True, "message": "Product updated successfully"}), 200
 
@@ -436,21 +589,24 @@ def update_product():
 @login_required
 def delete_product():
     data = request.json
+    connection = pymysql.connect(**DB_CONFIG)
     try:
-        with pymysql.connect(**DB_CONFIG) as connection:
-            with connection.cursor() as cursor:
-                cursor.execute("DELETE FROM product_list WHERE product_id = %s", (data['id'],))
-            connection.commit()
+        # with pymysql.connect(**DB_CONFIG) as connection:
+        with connection.cursor() as cursor:
+            cursor.execute("DELETE FROM product_list WHERE product_id = %s", (data['id'],))
+        connection.commit()
             
         return jsonify({"message": "Product deleted successfully"}), 200
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({"error": "An error occurred while deleting the product"}), 500
-
+    finally:
+        connection.close()
 
 @app.route('/api/add-to-cart', methods=['POST'])
 @login_required
 def add_to_cart():
+    connection = pymysql.connect(**DB_CONFIG)
     try:
        
         for product in request.json:
@@ -461,22 +617,22 @@ def add_to_cart():
         
             print(product_id, quantity, price, date)
 
-            with pymysql.connect(**DB_CONFIG) as connection:
-                with connection.cursor() as cursor:
-                    sql = """INSERT INTO carts 
-                            (product_id, quantity, price, date) 
-                            VALUES (%s, %s, %s, %s)"""
-                    cursor.execute(sql, (product_id, quantity, price, date))
-                connection.commit()
+            # with pymysql.connect(**DB_CONFIG) as connection:
+            with connection.cursor() as cursor:
+                sql = """INSERT INTO carts 
+                        (product_id, quantity, price, date) 
+                        VALUES (%s, %s, %s, %s)"""
+                cursor.execute(sql, (product_id, quantity, price, date))
+            connection.commit()
 
-            with pymysql.connect(**DB_CONFIG) as connection:
-                with connection.cursor() as cursor:
-                    sql2 = """UPDATE product_list
-                            SET stock = stock - %s
-                            WHERE product_id = %s;
-                            """
-                    cursor.execute(sql2, (quantity, product_id))
-                connection.commit()
+            # with pymysql.connect(**DB_CONFIG) as connection:
+            with connection.cursor() as cursor:
+                sql2 = """UPDATE product_list
+                        SET stock = stock - %s
+                        WHERE product_id = %s;
+                        """
+                cursor.execute(sql2, (quantity, product_id))
+            connection.commit()
 
 
         # Get form data with validation
@@ -506,49 +662,59 @@ def add_to_cart():
         print(f"Error: {e}")
         return jsonify({"error": str(e)}), 500
 
+    finally:
+        connection.close()
+
 
 @app.route('/api/get-history', methods=['GET'])
 @login_required
 def get_history():
+    connection = pymysql.connect(**DB_CONFIG)
     try:
-        with pymysql.connect(**DB_CONFIG) as connection:
-            with connection.cursor() as cursor:
-                cursor.execute('''SELECT 
-                                    carts.id AS cart_id, 
-                                    product_list.product_name AS product_name, 
-                                    product_list.image_path, 
-                                    carts.quantity, 
-                                    carts.price, 
-                                    carts.date
-                                FROM carts
-                                JOIN product_list ON carts.product_id = product_list.product_id;
-                                ''')
-                rows = cursor.fetchall()
-                #print(rows)
+        # with pymysql.connect(**DB_CONFIG) as connection:
+        with connection.cursor() as cursor:
+            cursor.execute('''SELECT 
+                                carts.id AS cart_id, 
+                                product_list.product_name AS product_name, 
+                                product_list.image_path, 
+                                carts.quantity, 
+                                carts.price, 
+                                carts.date
+                            FROM carts
+                            JOIN product_list ON carts.product_id = product_list.product_id;
+                            ''')
+            rows = cursor.fetchall()
+            #print(rows)
+    
+    
+
         result = [{
-            'id': row[0],
-            'product_name': row[1],
-            'image_path': row[2],
-            'quantity': row[3],
-            'price': row[4],
-            'date': row[5]} for row in rows]
-        #print(result)
+                'id': row[0],
+                'product_name': row[1],
+                'image_path': row[2],
+                'quantity': row[3],
+                'price': row[4],
+                'date': row[5]} for row in rows]
+            #print(result)
         return jsonify(result)
 
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({"error": "An error occurred while fetching data"}), 500
 
+    finally:
+        connection.close()
 
 @app.route('/api/get-filter', methods=['GET'])
 @login_required
 def get_filter():
+    connection = pymysql.connect(**DB_CONFIG)
     try:
-        with pymysql.connect(**DB_CONFIG) as connection:
-            with connection.cursor() as cursor:
-                cursor.execute("SELECT catagory, unit, per FROM product_list")
-                rows = cursor.fetchall()
-                #print(rows)
+        # with pymysql.connect(**DB_CONFIG) as connection:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT catagory, unit, per FROM product_list")
+            rows = cursor.fetchall()
+            #print(rows)
         result = [{
             'catagory': row[0],
             'unit': row[1],
@@ -560,15 +726,18 @@ def get_filter():
         print(f"Error: {e}")
         return jsonify({"error": "An error occurred while fetching data"}), 500
 
+    finally:
+        connection.close()
 
 @app.route('/api/get-user', methods=['GET'])
 @login_required
 def getUser():
+    connection = pymysql.connect(**DB_CONFIG)
     try:
-        with pymysql.connect(**DB_CONFIG) as connection:
-            with connection.cursor() as cursor:
-                cursor.execute("SELECT * FROM users")
-                rows = cursor.fetchall()
+        # with pymysql.connect(**DB_CONFIG) as connection:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM users")
+            rows = cursor.fetchall()
         # print(rows)
         result = [{
             'id': row[0],
@@ -576,7 +745,8 @@ def getUser():
             'username': row[2],
             'password': row[3],
             'role': row[4],
-            'pp_url': row[5]} for row in rows]
+            'pp_url': row[5],
+            'status':row[6]} for row in rows]
         # print(result)
         return jsonify(result)
 
@@ -584,6 +754,137 @@ def getUser():
         print(f"Error: {e}")
         return jsonify({"error": "An error occurred while fetching data"}), 500
 
+    finally:
+        connection.close()
+
+@app.route('/api/add-user', methods=['POST'])
+@login_required
+def addUser():
+    full_name = request.form.get('full_name')
+    username = request.form.get('username')
+    user_role = request.form.get('role')
+    
+    password = os.getenv("INITIAL_PASS")
+    hashed_password = hashlib.md5(password.encode()).hexdigest()
+
+    print(full_name, username, user_role)
+
+    print(getUser())
+
+    if not all([full_name, username, user_role]):
+        return jsonify({"error": "Missing required fields",
+                        "message": "Missing required fields"}), 400
+    else:
+        connection = pymysql.connect(**DB_CONFIG)
+        try:    
+            # with pymysql.connect(**DB_CONFIG) as connection:
+            with connection.cursor() as cursor:
+                sql = """   INSERT INTO users
+                            (full_name, username, password, user_type)
+                            VALUES(%s, %s, %s, %s)"""
+                cursor.execute(sql, (full_name, username, hashed_password, user_role))
+                connection.commit()
+                return jsonify({"message": "New User Added successfully"}), 200
+        except pymysql.MySQLError as e:
+        # Database-specific error handling
+            connection.rollback()  # Roll back any partial changes
+            return jsonify({
+                "error": "Database Error",
+                "message": str(e)
+            }), 500
+
+        except Exception as e:
+            # Catch any other unexpected error
+            return jsonify({
+                "error": "Server Error",
+                "message": str(e)
+            }), 500
+        finally:
+            connection.close()
+
+
+@app.route('/api/update-user', methods=['POST'])
+@login_required
+def updateUser():
+    user_id = request.form.get('user_id')
+    status = request.form.get('status')
+    user_role = request.form.get('user_type')
+
+    fields = {}
+
+    if not user_id:
+        return jsonify({"success": False, "error": "Missing required field: user_id"}), 400
+    else:
+        for key, value in request.form.items():
+            if value == "" or key == "user_id":
+                continue
+            else:
+                fields.update({key: value})
+
+    if not fields:
+        return jsonify({"error": "No valid fields to update"}), 400
+
+    # --------------------------------
+    # 3️⃣ Build SQL update statement
+    # --------------------------------
+    set_clause = ", ".join([f"{key} = %s" for key in fields.keys()])
+    values = list(fields.values())
+    values.append(user_id)
+
+    query = f"UPDATE users SET {set_clause} WHERE id = %s"
+
+    # --------------------------------
+    # 4️⃣ Execute SQL update
+    # --------------------------------
+    connection = pymysql.connect(**DB_CONFIG)
+    try:    
+        # with pymysql.connect(**DB_CONFIG) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(query, values)
+            connection.commit()
+
+    finally:
+        connection.close()    
+
+    return jsonify({"message": "User Updated successfully"}), 200
+@app.route('/api/resetPassword', methods=['POST'])
+@login_required
+def resetPassword():
+    userId = request.form.get('user_id')
+    password = os.getenv("INITIAL_PASS")
+    hashed_password = hashlib.md5(password.encode()).hexdigest()
+
+
+    # Check if logged-in user is admin or resetting their own password
+    if session['user_type'] not in ('Admin', 'Owner'):
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    else:
+        connection = pymysql.connect(**DB_CONFIG)
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("UPDATE users SET password = %s WHERE id = %s", (hashed_password, userId))
+                connection.commit()
+                return jsonify({"message": "Password Resetted successfully"}), 200
+        except pymysql.MySQLError as e:
+        # Database-specific error handling
+            connection.rollback()  # Roll back any partial changes
+            return jsonify({
+                "error": "Database Error",
+                "message": str(e)
+            }), 500
+
+        except Exception as e:
+            # Catch any other unexpected error
+            return jsonify({
+                "error": "Server Error",
+                "message": str(e)
+            }), 500
+        finally:
+            connection.close()
+
+        
+       
 
 @app.route('/api/get-report', methods=['GET'])
 @login_required
@@ -602,24 +903,24 @@ def get_report():
     # return jsonify({"message": "Date is recived", "content": f'{start_date},{end_date}'}), 200
 
 
-
+    connection = pymysql.connect(**DB_CONFIG)
     try:
-        with pymysql.connect(**DB_CONFIG) as connection:
-            with connection.cursor() as cursor:
-                cursor.execute('''SELECT 
-                                    carts.id AS cart_id, 
-                                    product_list.product_name AS product_name, 
-                                    product_list.image_path, 
-                                    product_list.barcode,
-                                    carts.quantity, 
-                                    carts.price, 
-                                    carts.date
-                                    
-                                FROM carts
-                                JOIN product_list ON carts.product_id = product_list.product_id 
-                                WHERE carts.date BETWEEN %s AND %s;
-                                ''',(start_date, end_date))
-                rows = cursor.fetchall()
+        # with pymysql.connect(**DB_CONFIG) as connection:
+        with connection.cursor() as cursor:
+            cursor.execute('''SELECT 
+                                carts.id AS cart_id, 
+                                product_list.product_name AS product_name, 
+                                product_list.image_path, 
+                                product_list.barcode,
+                                carts.quantity, 
+                                carts.price, 
+                                carts.date
+                                
+                            FROM carts
+                            JOIN product_list ON carts.product_id = product_list.product_id 
+                            WHERE carts.date BETWEEN %s AND %s;
+                            ''',(start_date, end_date))
+            rows = cursor.fetchall()
                 #print(rows)
         # filter= []
         # for product in rows:
@@ -646,17 +947,20 @@ def get_report():
         print(f"Error: {e}")
         return jsonify({"error": "An error occurred while fetching data"}), 500
 
+    finally:
+        connection.close()
 
 @app.route('/api/get-inventory', methods=['GET'])
 @login_required
 def get_inventory():
+    connection = pymysql.connect(**DB_CONFIG)
     try:
-        with pymysql.connect(**DB_CONFIG) as connection:
-            with connection.cursor() as cursor:
-                cursor.execute("SELECT * FROM product_list")
-                rows = cursor.fetchall()
-                # print(rows)
-       
+        # with pymysql.connect(**DB_CONFIG) as connection:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM product_list")
+            rows = cursor.fetchall()
+            # print(rows)
+    
        
         result = [{
             
@@ -676,6 +980,8 @@ def get_inventory():
         print(f"Error: {e}")
         return jsonify({"error": "An error occurred while fetching data"}), 500
 
+    finally:
+        connection.close()
 
 @app.route('/download-excel', methods=['POST'])
 def download_excel():

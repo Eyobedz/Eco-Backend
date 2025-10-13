@@ -121,7 +121,7 @@ input:focus{
     <div class="container" id="signin" >
         <h1 class="form-title">Log In</h1>
         
-        <form id="signin-form"  method="POST" action="/api/login">
+        <form id="signin-form"  method="POST">
         
             <div class="input-group">
                 <i class="fas fa-user-secret"></i>
@@ -164,6 +164,29 @@ input:focus{
         
 
     }
+
+document.getElementById('signin-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(e.target);
+    const messageBox = document.getElementById('message');
+
+    const response = await fetch('/api/login', {
+        method: 'POST',
+        body: formData
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+        window.location.href = result.redirect;  // Redirect on success
+    } else {
+        messageBox.textContent = result.message;  // Show error message
+        messageBox.style.color = 'red';
+        document.getElementById("signin-form").reset();
+    }
+});
+
     // function validateForm() {
     //   const username = document.getElementById("username").value;
     //   const password = document.getElementById("password").value;

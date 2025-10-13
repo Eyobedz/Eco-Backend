@@ -6,6 +6,9 @@
     <title>Admin Organic Invenntory</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <link rel="stylesheet" href="https://site-assets.fontawesome.com/releases/v6.7.2/css/all.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+    
     <link rel="stylesheet" href="Elements/toastNotification.css">
     <script defer src="Elements/loading1.js"></script>
     <script defer src="Elements/loading2.js"></script>
@@ -270,6 +273,12 @@ nav a {
     display: none;
 }
 
+.home-icon:hover::before {
+  content: "\f01e"; /* Unicode for fa-rotate-right */
+  transition: 0.3s;
+}
+
+
 #hamburger-menu {
     display: none;
 }
@@ -287,11 +296,24 @@ nav a {
 
 #accBtn {
     border-radius: 50%;
-    height: auto;
-    width: 20px; 
+    /* height: auto;
+    width: 20px;  */
+    height: 25px;
+    width: 25px;
     padding: 0;
     margin: 0;
     scale: 1.5 ;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+#acc-pp{
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
 }
 
 .dropdown {
@@ -783,10 +805,12 @@ footer {
     .nav-header a{
         color: rgb(0, 200, 255);
         text-decoration: none;
-        
+        display: flex;
+        align-items: center;
+;
     }
 
-    .account-btn {
+    /* .account-btn {
         border-radius: 50%;
         width: 40px;
         height: 40px;
@@ -795,8 +819,32 @@ footer {
         border: none;
         font-size: 18px;
         cursor: pointer;
-    }
+    } */
 
+    .account-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background-color: none;
+    color: white;
+    font-weight: bold;
+    font-size: 18px;
+    overflow: hidden;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+    .account-btn img {
+    /* width: 100%;  */
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
     
 
     .nav-item {
@@ -897,15 +945,17 @@ footer {
             <p> Organic Invenntory Managment</p>
         </div>
         <div class="nav-header">
-            <a href="account.html"><button  class="account-btn" id="accBtn">A</button> UserName</a>
+            <a href="/Profile" id="username">
+                <button class="account-btn" id="acc-Btn"></button> 
+                <span id="userNameText">UserName</span>
+            </a>
         </div>
-        <a href="#" class="nav-item active"><i class="fas fa-house" id="icon"></i>Home</a>
-        <a href="coming.html" class="nav-item"><i class="fas fa-cart-shopping" id="icon"></i>Cart</a>
-        <a href="coming.html" class="nav-item"><i class="fas fa-bell" id="icon"></i>Notification</a>
-        <a href="coming.html" class="nav-item"><i class="fas fa-user-secret" id="icon"></i>Account</a>
+        <a href="/Home" class="nav-item active"><i class="fas fa-house" id="icon"></i>Home</a>
+        <a href="/Cart" class="nav-item"><i class="fas fa-cart-shopping" id="icon"></i>Cart</a>
+        <a href="/Dashboard" class="nav-item"><i class="fas fa-solid fa-border-all icon" id="icon"></i>Dashboard</a>
         <a href="coming.html" class="nav-item"><i class="fas fa-list-check" id="icon"></i>Order List</a>
         <a href="coming.html" class="nav-item"><i class="fas fa-gear" id="icon"></i>Setting</a>
-        <a href="index.html" class="nav-item" style="color: red; font-weight: bold;"><i id="icon"></i>Log out</a>
+        <a href="/logout" class="nav-item" style="color: red; font-weight: bold;"><i id="icon"></i>Log out</a>
         
     </nav>
 
@@ -1010,10 +1060,10 @@ footer {
 
             <nav>
                 <ul>
-                    <li class="navicon"><a href="/Home"><i id='navbtns' title="Home" class="fas fa-house" ></i></a></li>
+                    <li class="navicon"><a href="/Home"><i id='navbtns' title="Home" class="fas fa-house home-icon" ></i></a></li>
                     <li class="navicon"><a href="/Cart"><i id='navbtns' title="cart" class="fas fa-cart-shopping"></i></a></li>
                     <li class="navicon"><a href="coming.html"><i id='navbtns' title="Notification" class="fas fa-bell" ></i></a></li>
-                    <li class="navicon"><button id="accBtn" popovertarget="dropdownMenu"><i id="navbtns" title="Account" class="fas fa-user-secret"></i></button>
+                    <li class="navicon"><button id="accBtn" class="account-btn" popovertarget="dropdownMenu"><i id="navbtns" title="Account" class="fas fa-user-secret"></i></button>
                         
                     </li>
                 </ul>
@@ -1289,6 +1339,7 @@ footer {
 
 
 document.addEventListener("DOMContentLoaded", () => {
+    fetchProfileData();
     AddProduct();
     sidebar();
     fetchAndUpdateData();
@@ -1298,6 +1349,31 @@ document.addEventListener("DOMContentLoaded", () => {
 
 const notifier = new ToastNotification();
 
+function fetchProfileData() {
+    fetch("/api/get-profile", { credentials: "include" })
+    .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch profile");
+        return res.json();
+    })
+    .then(data => {
+        const accountBtns = document.querySelectorAll(".account-btn");
+        const usernameDisplay = document.getElementById("userNameText");
+        // Use default image or the one from the database
+        const pp = data.pp_url && data.pp_url !== 'none' ? data.pp_url : '/uploads/SPARKE.gif';
+            
+        accountBtns.forEach(btn => {
+             btn.innerHTML = `<img id="acc-pp" src="${pp}" alt="Profile Picture">`;
+
+            const img = btn.querySelector("img");
+            img.onerror = () => {
+                btn.textContent = data.username.charAt(0).toUpperCase();
+            };
+        });
+        // Update username display
+        usernameDisplay.textContent = data.username;
+    })
+    .catch(err => console.error(err));
+}
 
 function sidebar() {
     // Get the elements
@@ -1906,6 +1982,7 @@ function editProduct(data){
         })
         .finally(() => {
             waveloader.hide();
+            fetchAndUpdateData();
         });
         
     };

@@ -5,10 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>User Profile</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-    <link rel="stylesheet" href="https://site-assets.fontawesome.com/releases/v6.7.2/css/all.css">
-    <link rel="stylesheet" href="Elements/toastNotification.css">
-    <script defer src="Elements/loading1.js"></script>
-    <script defer src="Elements/loading2.js"></script>
+<link rel="stylesheet" href="https://site-assets.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="Elements/toastNotification.css">
+<script defer src="Elements/loading1.js"></script>
+<script defer src="Elements/loading2.js"></script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -29,6 +34,19 @@
         width: 380px;
         padding: 2rem;
         text-align: center;
+    }
+
+    #back-btn {
+        position: relative;
+        top: -140px;
+        left: -130px;
+        cursor: pointer;
+    }
+
+    #back-btn i {
+        font-size: 20px;
+        color: #007bff;
+        scale: 1.15;
     }
 
     .profile-card img {
@@ -191,6 +209,149 @@
   background: #ddd;
 }
 
+.message {
+  display: none;
+  color: #dc3545;
+  font-size: 0.85rem;
+  margin-top: 8px;
+}
+
+
+.file-upload {
+    text-align: center;
+  }
+
+  input[type="file"] {
+    display: none;
+  }
+
+  .custom-btn {
+    display: inline-block;
+    padding: 12px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.2s ease;
+  }
+
+  .custom-btn:hover {
+    background-color: #0056b3;
+  }
+
+  .preview {
+    margin-top: 15px;
+  }
+
+  .preview img {
+    max-width: 250px;
+    max-height: 250px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    display: block;
+    margin: 10px auto;
+  }
+
+  .file-name {
+    font-size: 14px;
+    color: #333;
+  }
+
+
+  .file-upload {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .custom-btn {
+    background-color: #007bff;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-bottom: 10px;
+  }
+
+  #fileInput {
+    display: none;
+  }
+
+  .preview {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background-color: #eee;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .file-name {
+    font-size: 0.9em;
+    color: #555;
+    text-align: center;
+    word-break: break-all;
+    padding: 4px;
+  }
+
+  /* Modal */
+  .modal {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0,0,0,0.7);
+    z-index: 999;
+  }
+
+  .modal-content {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 90%;
+    max-height: 90%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  #cropImage {
+    max-width: 100%;
+    max-height: 70vh;
+  }
+
+  .buttons {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+  }
+
+  .buttons button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    background: #007bff;
+    color: white;
+    cursor: pointer;
+  }
+
+  .buttons button.cancel {
+    background: #6c757d;
+  }
+
+
 /* Smooth fade animation */
 @keyframes fadeIn {
   from { opacity: 0; transform: scale(0.95); }
@@ -207,6 +368,7 @@
 <body>
 
 <div class="profile-card" id="profile-card">
+    <a href="/Home" id="back-btn"><i class="fas fa-arrow-left"></i></a>
     <img id="profile-pic" src="/uploads/SPARKE.gif" alt="Profile Picture">
     <h2 id="fullname">Loading...</h2>
     <p id="username">Username: Loading...</p>
@@ -231,16 +393,38 @@
 </div>
 
 <!-- Edit Profile Popover -->
-<div popover="manual" id="editprofile">
+<form popover="manual" id="editprofile">
     <h1>Edit Profile</h1>
-    <input type="text" placeholder="Profile Picture">
-    <input type="text" placeholder="Full Name">
-    <input type="text" placeholder="Username">
-    <div class="popover-actions">
-        <button class="cancel" popovertarget="editprofile" popovertargetaction="hide">Cancel</button>
-        <button type="submit" class="save">Save</button>
+    <input type="hidden" id="userId" value="">
+  
+    <div class="file-upload">
+      <div class="preview" id="preview">
+        <p class="file-name">No file selected</p>
+      </div>
+      <label for="fileInput" class="custom-btn">Choose File</label>
+      <input type="file" id="fileInput" accept="image/*,.pdf,.txt,.doc,.docx">
     </div>
-</div>
+  
+    <input type="text" id="full_name" placeholder="Full Name">
+    <input type="text" id="userName" placeholder="Username">
+    <p class="message" id="Editmessage"></p>
+  
+    <div class="popover-actions">
+      <button type="button" class="cancel" popovertarget="editprofile" popovertargetaction="hide">Cancel</button>
+      <button type="submit" class="save">Save</button>
+    </div>
+  </form>
+
+  <!-- Modal for cropping -->
+<div class="modal" id="modal">
+    <div class="modal-content">
+      <img id="cropImage">
+      <div class="buttons">
+        <button id="cropBtn">Crop</button>
+        <button class="cancel" id="cancelBtn">Cancel</button>
+      </div>
+    </div>
+  </div>
 
 <!-- Change Password Popover -->
 <form popover="manual" id="changepassword">
@@ -249,9 +433,10 @@
     <input type="password" id="old_password" placeholder="Old Password">
     <input type="password" id="new_password" placeholder="New Password">
     <input type="password" id="confirm_password" placeholder="Confirm Password">
-    <p id="message"></p>
+    <span><input type="checkbox" id="showPassword" onchange="show_Password()"> Show Password </span>
+    <p class="message" id="message"></p>
     <div class="popover-actions">
-        <button class="cancel" popovertarget="changepassword" popovertargetaction="hide">Cancel</button>
+        <button type="button" class="cancel" popovertarget="changepassword" popovertargetaction="hide">Cancel</button>
         <button type="submit" class="save">Update</button>
     </div>
 </form>
@@ -264,6 +449,9 @@ const notifier = new ToastNotification();
 document.addEventListener("DOMContentLoaded", () => {
     fetchProfileData();
     changePassword();
+    fileUpload();
+    editProfile();
+    crop();
 });
 
 
@@ -280,18 +468,104 @@ function fetchProfileData() {
         document.getElementById("fullname").textContent = data.full_name;
         document.getElementById("username").textContent = `Username: ${data.username}`;
         document.getElementById("user_type").textContent = `Role: ${data.user_type}`;
-        
         document.getElementById("user_id").value = data.user_id;
-        // document.getElementById("total-products").textContent = data.total_products || 0;
-        // document.getElementById("last-login").textContent = data.last_login || "--";
+
+        document.getElementById("full_name").value = data.full_name;
+        document.getElementById("userName").value = data.username;
+        document.getElementById("userId").value = data.user_id;
+
     })
     .catch(err => console.error(err));
+};
+
+
+function show_Password() {
+  const passwordFields = document.querySelectorAll("#old_password, #new_password, #confirm_password");
+    let show = passwordFields[0].type === "password"; // check first field
+
+    passwordFields.forEach(input => {
+        input.type = show ? "text" : "password";
+    });
+}
+
+function fileUpload(){
+  document.getElementById('editprofile').hidePopover()
+
+  const fileInput = document.getElementById('fileInput');
+  const preview = document.getElementById('preview');
+
+  fileInput.addEventListener('change', () => {
+    preview.innerHTML = ''; // clear old preview
+
+    const file = fileInput.files[0];
+    if (!file) {
+      preview.innerHTML = '<p class="file-name">No file selected</p>';
+      return;
+    }
+
+    if (file.type.startsWith('image/')) {
+      const img = document.createElement('img');
+      img.src = URL.createObjectURL(file);
+      preview.appendChild(img);
+    } else {
+      const p = document.createElement('p');
+      p.className = 'file-name';
+      p.textContent = `📄 ${file.name}`;
+      preview.appendChild(p);
+    }
+  });
 }
 
 function editProfile() {
-    window.location.href = "/edit-profile"; // Or open a modal
-}
+    document.getElementById("editprofile").addEventListener("submit", function(e) {
+        e.preventDefault();
 
+        waveloader.show();
+
+        const formData = new FormData();
+        const fileData = new FormData();
+        formData.append('id', document.getElementById('user_id').value);
+        formData.append('full_name', document.getElementById('full_name').value);
+        formData.append('username', document.getElementById('userName').value);
+
+        const imageFile = document.getElementById('fileInput').files[0];
+        if (imageFile){
+          formData.append('fileInput', imageFile);
+        }
+        fetch('/api/update-profile', {
+            method: 'POST',
+            body: formData,
+            credentials: "include"
+        })
+        .then(async res => {
+            const data = await res.json();
+
+            if (!res.ok) {
+                // backend sends "error" and "message"
+                notifier.error(data.message || data.error || "Failed to Edit Profile");
+
+                document.getElementById("Editmessage").textContent = data.message || data.error;
+                document.getElementById("Editmessage").style.display = "block";
+                throw new Error(data.message || data.error);
+            }else{
+                notifier.success(data.message || 'Profile Updated Successfully');
+                fetchProfileData();
+                document.getElementById('editprofile').hidePopover();
+            }
+
+            return data;
+        })
+        .catch(err => {
+            console.error(err);
+            // already shown notifier.error above
+        })
+
+        .finally(() => {
+            waveloader.hide();
+        });
+    });
+
+}
 
 function changePassword() {
     document.getElementById("changepassword").addEventListener("submit", function(e) {
@@ -316,7 +590,9 @@ function changePassword() {
             if (!res.ok) {
                 // backend sends "error" and "message"
                 notifier.error(data.message || data.error || "Failed to change password");
+
                 document.getElementById("message").textContent = data.message || data.error;
+                document.getElementById("message").style.display = "block";
                 throw new Error(data.message || data.error);
             }
 
@@ -340,6 +616,98 @@ function changePassword() {
     });
 }
 
+function crop() {
+  const fileInput = document.getElementById('fileInput');
+  const preview = document.getElementById('preview');
+  const modal = document.getElementById('modal');
+  const cropImage = document.getElementById('cropImage');
+  const cropBtn = document.getElementById('cropBtn');
+  const cancelBtn = document.getElementById('cancelBtn');
+  const editProfilePopover = document.getElementById('editprofile');
+  let cropper;
+
+  // ✅ Remove any previous listeners before re-adding
+  fileInput.onchange = null;
+  cropBtn.onclick = null;
+  cancelBtn.onclick = null;
+
+  fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      preview.innerHTML = `<p class="file-name">${file.name}</p>`;
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      cropImage.src = reader.result;
+
+      // ✅ Hide the popover immediately
+      if (editProfilePopover.hidePopover) {
+        editProfilePopover.hidePopover();
+      }
+
+      modal.style.display = 'flex';
+
+      if (cropper) cropper.destroy();
+
+      cropper = new Cropper(cropImage, {
+        aspectRatio: 1,
+        viewMode: 1,
+        autoCropArea: 0.9,
+        responsive: true,
+        background: false,
+        movable: true,
+        zoomable: true,
+        scalable: true,
+      });
+    };
+    reader.readAsDataURL(file);
+  });
+
+  cropBtn.addEventListener('click', () => {
+    if (!cropper) return;
+
+    const canvas = cropper.getCroppedCanvas({
+      width: 400,
+      height: 400,
+    });
+
+    const croppedImage = document.createElement('img');
+    croppedImage.src = canvas.toDataURL('image/png');
+    croppedImage.alt = 'Profile Picture';
+    preview.innerHTML = '';
+    preview.appendChild(croppedImage);
+
+    modal.style.display = 'none';
+    cropper.destroy();
+    cropper = null;
+
+    // ✅ Delay showing popover slightly (ensure modal is gone)
+    setTimeout(() => {
+      if (editProfilePopover.showPopover) {
+        editProfilePopover.showPopover();
+      }
+    }, 150);
+  });
+
+  cancelBtn.addEventListener('click', () => {
+    modal.style.display = 'none';
+    if (cropper) {
+      cropper.destroy();
+      cropper = null;
+    }
+
+    // ✅ Also delay popover restore for smoother transition
+    setTimeout(() => {
+      if (editProfilePopover.showPopover) {
+        editProfilePopover.showPopover();
+      }
+    }, 150);
+  });
+}
 
 
 function logout() {

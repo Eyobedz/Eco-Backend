@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://site-assets.fontawesome.com/releases/v6.7.2/css/all.css">
     <link rel="stylesheet" href="/Elements/toastNotification.css">
+    <script defer src="Elements/loading2.js"></script>
     
     <title>Accounts</title>
 
@@ -78,6 +79,213 @@
             cursor: pointer;
         }
 
+        [popover] {
+        display: none; /* default hidden */
+        }
+
+        [popover]:popover-open {
+        display: flex; /* only visible when opened */
+        align-items: center;
+        padding: 20px;
+        border-radius: 12px;
+        background: #fff;
+        box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.15);
+        width: 320px;
+        max-width: 90%;
+        font-family: Arial, sans-serif;
+        flex-direction: column;
+        gap: 12px;
+        animation: fadeIn 0.25s ease;
+        }
+
+
+        /* Headings inside popovers */
+        [popover] h1 {
+        margin: 0;
+        font-size: 1.25rem;
+        color: #333;
+        text-align: center;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 8px;
+        }
+
+        /* Input styling */
+        [popover] input {
+        padding: 10px 12px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        outline: none;
+        transition: border-color 0.2s;
+        }
+
+        [popover] input:focus {
+        border-color: #0077ff;
+        box-shadow: 0 0 0 2px rgba(0, 119, 255, 0.1);
+        }
+
+        /* Optional buttons for popover actions */
+        .popover-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 8px;
+        }
+
+        .popover-actions button {
+        padding: 8px 14px;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: background 0.2s;
+        }
+
+        .popover-actions .save {
+        background: #0077ff;
+        color: #fff;
+        }
+
+        .popover-actions .cancel {
+        background: #eee;
+        color: #333;
+        }
+
+        .popover-actions .save:hover {
+        background: #005fcc;
+        }
+
+        .popover-actions .cancel:hover {
+        background: #ddd;
+        }
+
+        .input-status {
+        display: block;
+        font-size: 0.9em;
+        margin-top: 3px;
+        transition: color 0.3s;
+        }
+        .input-status.error {
+        color: #e74c3c;
+        }
+        .input-status.success {
+        color: #2ecc71;
+        }
+        #add-user button[disabled] {
+        opacity: 0.6;
+        cursor: not-allowed;
+        }
+
+        .profile-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        width: 380px;
+        padding: 2rem;
+        text-align: center;
+        }
+
+
+
+        .profile-card img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 1rem;
+            border: 3px solid #007bff;
+        }
+
+        .profile-card h2 {
+            margin: 0.5rem 0;
+            font-size: 1.5rem;
+        }
+
+        .profile-card p {
+            margin: 0.2rem 0 1rem 0;
+            color: #666;
+        }
+
+        .actions {
+            margin-top: 1.5rem;
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .actions button {
+            padding: 0.7rem 1.2rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .btn-edit {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-P-reset {
+            background: #dc3545;
+            color: white;
+        }
+
+    
+
+        .btn-edit:hover { background: #0056b3; }
+        .btn-P-reset:hover { background: #a71d2a; }
+        
+
+        .switch {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        user-select: none;
+        }
+
+        .switch input {
+        display: none;
+        }
+
+        .slider {
+        position: relative;
+        width: 50px;
+        height: 25px;
+        background-color: #4caf50;
+        border-radius: 25px;
+        transition: background-color 0.3s;
+        }
+
+        .slider::before {
+        content: "";
+        position: absolute;
+        top: 2px;
+        left: 3px;
+        width: 21px;
+        height: 21px;
+        background: white;
+        border-radius: 50%;
+        transition: transform 0.3s;
+        }
+
+        input:checked + .slider {
+        background-color: #bd3333;
+        }
+
+        input:checked + .slider::before {
+        transform: translateX(25px);
+        }
+
+        .label-text { 
+        font-weight: 500;
+        }
+
+
     </style>
 </head>
 <body>
@@ -98,8 +306,68 @@
 
     </section>
     <section class="addAccount">
-        <button onclick="alert('account added successfully')">Add Account</button>
+        <button popovertarget="add-user" popovertargetaction="toggle">Add Account</button>
     </section>
+
+    <form popover="auto" id="add-user">
+        <h1>Add New User</h1>
+        <input type="text" id="new-user-fullname" placeholder="New Full">
+        <span id="fullname-status" class="input-status"></span>
+        
+        <input type="text" id="new-username" placeholder="New Username">
+        <span id="username-status" class="input-status"></span>
+        <div>
+            <lable><input type="radio" name="role" value="admin" class="new-user-role">Admin</lable>
+            <lable><input type="radio" name="role" value="user" class="new-user-role">User</lable>
+            <lable><input type="radio" name="role" value="tester" class="new-user-role">Tester</lable>
+        </div>
+        <p id="Addmessage" style="display:none; color:red;"></p>
+        <div class="popover-actions">
+            <button type="button" class="cancel" popovertarget="add-user" popovertargetaction="hide" onclick="form.reset()">Cancel</button>
+            <button type="submit" class="save">Save</button>
+          </div>
+    </form>
+
+
+    <div popover="auto" class="profile-card" id="view-user">
+        <img id="profile-pic" src="" alt="Profile Picture">
+        <h2 id="fullname">Loading...</h2>
+        <p id="username">Username: Loading...</p>
+        <p id="user_type">Role: Loading...</p>
+        
+        <div class="actions">
+            <button class="btn-edit" onclick="editUser()" popovertarget="edit-user" popovertargetaction="toggle"><i class="fas fa-user-edit"></i> Edit User</button>
+            <button class="btn-P-reset" onclick="resetPassword(this)"><i class="fas fa-key"></i> Reset Password</button>
+            <!-- <button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button> -->
+        </div>
+    </div>
+
+    <form popover="auto" class="profile-card" id="edit-user">
+        <h1>Edit User</h1>
+       
+        <span>Change Role</span>
+        <input type="hidden" id="user_id">
+        <div id="changeRole">
+            <lable><input type="radio" name="role" value="Admin" class="user-role">Admin</lable>
+            <lable><input type="radio" name="role" value="User" class="user-role">User</lable>
+            <lable><input type="radio" name="role" value="Tester" class="user-role">Tester</lable>
+        </div>
+
+        <label id="switch" class="switch">
+            <span class="label-text">Enable</span>
+            <input type="checkbox" id="statusToggle">
+            <span class="slider"></span>
+            <span class="label-text">Disable</span>
+        </label>
+
+        <p id="Addmessage" style="display:none; color:red;"></p>
+        <div class="popover-actions">
+            <button type="button" class="cancel" popovertarget="edit-user" popovertargetaction="hide">Cancel</button>
+            <button type="submit" class="save">Save</button>
+          </div>
+    </form>
+    
+
     <script src="/Elements/toastNotification.js"></script>
     <script src="/mode.js"></script>
 
@@ -108,16 +376,19 @@
         document.addEventListener("DOMContentLoaded", () => {
     
             getUsers();
+            addUsers();
 });
 
 const notifier = new ToastNotification();
-
+let loadedUsers = []; // store fetched users globally
 
 function getUsers() {
     const container = document.getElementById('mainContent');
-    const fragment = document.createDocumentFragment(); // Create a DocumentFragment for batching
+    const fragment = document.createDocumentFragment();
 
-    fetch(`/api/get-user`, { method: 'GET', credentials: "include"})
+    waveloader.show();
+
+    fetch(`/api/get-user`, { method: 'GET', credentials: "include" })
         .then(response => {
             if (!response.ok) {
                 throw new Error('Network response was not ok ' + response.statusText);
@@ -125,43 +396,320 @@ function getUsers() {
             return response.json();
         })
         .then(data => {
+            loadedUsers = data; // ✅ store globally
             container.innerHTML = ''; // Clear existing content
 
             data.forEach(row => {
                 const rowDiv = document.createElement('div');
+                const status = row.status;
+                rowDiv.className = 'product';
 
+                if(status=='Disabled'){
+                    rowDiv.style.backgroundColor = '#fb5555'
+                }
                 
-                rowDiv.className = 'product'; // Apply a class for styling
-               
-
-                // Use lazy loading for images
-                // const imgElement = row.pp_url
-                const imgElement = `/uploads/SPARKE.gif`
+                rowDiv.style
+                const imgElement =
+                    row.pp_url && row.pp_url !== 'none'
+                        ? row.pp_url
+                        : '/uploads/SPARKE.gif';
                 
+                rowDiv.setAttribute('user_id', row.id)
+                rowDiv.setAttribute('img', imgElement);
+                rowDiv.setAttribute('full_name', row.full_name);
+                rowDiv.setAttribute('username', row.username);
+                rowDiv.setAttribute('user_role', row.role);
+                rowDiv.setAttribute('status', row.status);
 
-               rowDiv.innerHTML = `
-                    <img src=${imgElement}>
-                    <p calss ="name">${row.full_name}</p>
+
+                rowDiv.innerHTML = `
+                    <img src="${imgElement}">
+                    <p class="name">${row.full_name}</p>
                     <p>${row.username}</p>
                     <p>${row.role}</p>
-                    <button>View</button>    
+                    <button onclick='viewUser(this)'popovertarget="view-user" popovertargetaction="toggle">View</button>    
                 `;
 
-                fragment.appendChild(rowDiv); // Append to the DocumentFragment
+                fragment.appendChild(rowDiv);
             });
 
-            container.appendChild(fragment); // Append the DocumentFragment to the DOM in one operation
+            container.appendChild(fragment);
+
+            // ✅ Enable live validation after users are loaded
+            setupInstantValidation();
+
             console.log(`${window.link}/api/get-user`);
-       
         })
         .catch(error => {
             console.error('Error fetching data:', error.message || error);
-            // alert('Failed to load data. Please try again later.');
             notifier.error('Failed to load data. Please try again later.', 3000);
-
-        });
+        })
+        .finally(() => waveloader.hide());
 }
-   
+
+function addUsers() {
+    document.getElementById("add-user").addEventListener("submit", function (e) {
+        e.preventDefault();
+        // waveloader.show();
+
+        const fullName = document.getElementById('new-user-fullname').value.trim();
+        const username = document.getElementById('new-username').value.trim();
+        const selectedRole = document.querySelector('input[name="role"]:checked');
+
+        if (![fullName, username, selectedRole].every(Boolean)) {
+            notifier.error("Please fill out all fields and select a role");
+            // waveloader.hide();
+            return;
+        }
+
+        // ✅ Check for duplicates before submitting
+        const duplicateUser = loadedUsers.find(
+            user =>
+                user.username.toLowerCase() === username.toLowerCase() ||
+                user.full_name.toLowerCase() === fullName.toLowerCase()
+        );
+
+        if (duplicateUser) {
+            notifier.error("Username or Full Name already exists!");
+            // waveloader.hide();
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('full_name', fullName);
+        formData.append('username', username);
+        formData.append('role', selectedRole.value);
+
+        fetch('/api/add-user', {
+            method: 'POST',
+            body: formData,
+            credentials: "include"
+        })
+            .then(async res => {
+                const data = await res.json();
+
+                if (!res.ok) {
+                    notifier.error(data.message || data.error || "Failed to Add User");
+                    document.getElementById("Addmessage").textContent = data.message || data.error;
+                    document.getElementById("Addmessage").style.display = "block";
+                    throw new Error(data.message || data.error);
+                } else {
+                    notifier.success(data.message || 'User Added Successfully');
+                    getUsers();
+
+                    const form = document.getElementById('add-user');
+                    form.reset();
+                    form.hidePopover();
+                }
+
+                return data;
+            })
+            .catch(err => console.error(err))
+            // .finally(() => waveloader.hide());
+    });
+}
+
+
+function viewUser(button){
+    var user = button.closest('.product');
+    const viewer = document.getElementById('view-user')
+    document.getElementById('profile-pic').src = user.getAttribute('img');
+    document.getElementById('fullname').textContent = user.getAttribute('full_name');
+    document.getElementById('username').textContent = user.getAttribute('username');
+    document.getElementById('user_type').textContent = user.getAttribute('user_role');
+    
+    viewer.setAttribute('userId', `${user.getAttribute('user_id')}`);
+    viewer.setAttribute('img',user.getAttribute('img'));
+    viewer.setAttribute('full_name',user.getAttribute('full_name'));
+    viewer.setAttribute('username',user.getAttribute('username'));
+    viewer.setAttribute('user_type',user.getAttribute('user_role'));
+    viewer.setAttribute('status',user.getAttribute('status'));
+
+}
+function editUser() {
+    const viewer = document.getElementById('view-user');
+    const form = document.getElementById('edit-user');
+
+    // Pre-fill form values
+    document.getElementById('user_id').value = viewer.getAttribute('userId');
+
+    const status_switch = document.getElementById('statusToggle');
+    const status = viewer.getAttribute('status');
+    status_switch.checked = (status === 'Disabled');
+
+    const roleRadios = document.querySelectorAll('.user-role');
+    const userRole = viewer.getAttribute('user_type');
+    roleRadios.forEach(radio => {
+        radio.checked = (radio.value === userRole);
+    });
+
+    // Define handler so it can be removed after submit
+    const handleSubmit = async function (e) {
+        e.preventDefault();
+
+        const user_id = document.getElementById('user_id').value;
+        const checkedRole = document.querySelector('input[name="role"]:checked');
+        const statusToggle = document.getElementById('statusToggle');
+        const newStatus = statusToggle.checked ? 'Disabled' : 'Enabled';
+
+        const formData = new FormData();
+        if (newStatus !== status) formData.append('status', newStatus);
+        if (checkedRole && checkedRole.value !== userRole) formData.append('user_type', checkedRole.value);
+
+        if ([...formData.entries()].length > 0) {
+            formData.append('user_id', user_id);
+
+            try {
+                const res = await fetch('/api/update-user', {
+                    method: 'POST',
+                    body: formData,
+                    credentials: "include"
+                });
+                const data = await res.json();
+
+                if (!res.ok) {
+                    notifier.error(data.message || data.error || "Failed to Update User");
+                    throw new Error(data.message || data.error);
+                }
+
+                notifier.success(data.message || 'User Updated Successfully');
+
+                // ✅ Update view-user popover instantly
+                const viewer = document.getElementById('view-user');
+                const productRow = document.querySelector(`.product[user_id='${user_id}']`);
+
+                // Update role if changed
+                if (checkedRole && checkedRole.value !== userRole) {
+                    viewer.setAttribute('user_type', checkedRole.value);
+                    document.getElementById('user_type').textContent = `Role: ${checkedRole.value}`;
+                    if (productRow) {
+                        productRow.setAttribute('user_role', checkedRole.value);
+                        productRow.querySelector('p:nth-child(4)').textContent = checkedRole.value;
+                    }
+                }
+
+                // Update status if changed
+                if (newStatus !== status) {
+                    viewer.setAttribute('status', newStatus);
+                    if (productRow) {
+                        productRow.setAttribute('status', newStatus);
+                        productRow.style.backgroundColor = (newStatus === 'Disabled')
+                            ? '#fb5555'
+                            : 'rgba(109, 223, 249, 0.468)';
+                    }
+                }
+
+                // ✅ Update global cache
+                const index = loadedUsers.findIndex(u => u.id == user_id);
+                if (index !== -1) {
+                    if (checkedRole && checkedRole.value !== userRole)
+                        loadedUsers[index].role = checkedRole.value;
+                    if (newStatus !== status)
+                        loadedUsers[index].status = newStatus;
+                }
+
+                // ✅ Reset and close form
+                form.reset();
+                form.hidePopover();
+
+            } catch (err) {
+                console.error(err);
+            } finally {
+                form.removeEventListener('submit', handleSubmit);
+            }
+        } else {
+            notifier.warning('No Change Detected');
+            form.removeEventListener('submit', handleSubmit);
+        }
+    };
+
+    // Prevent duplicate listeners
+    form.removeEventListener('submit', handleSubmit);
+    form.addEventListener('submit', handleSubmit);
+}
+
+
+
+
+
+
+
+
+
+
+function resetPassword(button){
+    var user = button.closest('#view-user');
+    var userId = user.getAttribute('userId');
+    //  console.log(userId) 
+    const formData = new FormData();
+    formData.append('user_id', userId);
+
+    fetch('/api/resetPassword',{
+        method: 'POST',
+        body: formData,
+        credentials: "include"
+    })
+    .then(async res => {
+        const data = await res.json();
+
+        if (!res.ok) {
+            notifier.warning(data.message || data.error || "Failed to Reset Password");
+            // document.getElementById("Addmessage").textContent = data.message || data.error;
+            // document.getElementById("Addmessage").style.display = "block";
+            throw new Error(data.message || data.error);
+        } else {
+            notifier.success(data.message || 'Password Resetted Successfully');
+        }
+            
+
+    })
+    .catch(err => console.error(err))
+
+}
+
+// ✅ Instant Validation Setup
+function setupInstantValidation() {
+    const fullNameInput = document.getElementById('new-user-fullname');
+    const usernameInput = document.getElementById('new-username');
+    const fullNameStatus = document.getElementById('fullname-status');
+    const usernameStatus = document.getElementById('username-status');
+    const submitBtn = document.querySelector('#add-user button[type="submit"]');
+
+    const checkAvailability = (field, value) => {
+        if (!value.trim()) return { available: false, message: '' };
+
+        const found = loadedUsers.some(
+            user => user[field].toLowerCase() === value.trim().toLowerCase()
+        );
+        return found
+            ? { available: false, message: `${field.replace('_', ' ')} already exists ❌` }
+            : { available: true, message: `Available ✅` };
+    };
+
+    const validateFields = () => {
+        const nameCheck = checkAvailability('full_name', fullNameInput.value);
+        const userCheck = checkAvailability('username', usernameInput.value);
+        const bothValid = nameCheck.available && userCheck.available &&
+                          fullNameInput.value.trim() && usernameInput.value.trim();
+
+        submitBtn.disabled = !bothValid; // disable until both are valid
+    };
+
+    fullNameInput.addEventListener('input', () => {
+        const { available, message } = checkAvailability('full_name', fullNameInput.value);
+        fullNameStatus.textContent = message;
+        fullNameStatus.className = available ? 'input-status success' : 'input-status error';
+        validateFields();
+    });
+
+    usernameInput.addEventListener('input', () => {
+        const { available, message } = checkAvailability('username', usernameInput.value);
+        usernameStatus.textContent = message;
+        usernameStatus.className = available ? 'input-status success' : 'input-status error';
+        validateFields();
+    });
+}
+
 
 
 

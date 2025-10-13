@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Organic Invenntory</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-    <link rel="stylesheet" href="cart.css">
+    <link rel="stylesheet" href="/Cart/cart.css">
     <link rel="stylesheet" href="/Elements/toastNotification.css">
 
 </head>
@@ -13,21 +13,24 @@
    
     
 
+
     <nav id="sidebar" class="nav-menu">
         <div id="logo" class="logo">
-            <img src="/Elements/meh.png" alt="logo">
+            <img src="Elements/meh.png" alt="logo">
             <p> Organic Invenntory Managment</p>
         </div>
         <div class="nav-header">
-            <a href="account.html"><button  class="account-btn" id="accBtn">A</button> UserName</a>
+            <a href="/Profile" id="username">
+                <button class="account-btn" id="acc-Btn"></button> 
+                <span id="userNameText">UserName</span>
+            </a>
         </div>
-        <a href="#" class="nav-item active"><i class="fas fa-house" id="icon"></i>Home</a>
-        <a href="coming.html" class="nav-item"><i class="fas fa-cart-shopping" id="icon"></i>Cart</a>
-        <a href="coming.html" class="nav-item"><i class="fas fa-bell" id="icon"></i>Notification</a>
-        <a href="coming.html" class="nav-item"><i class="fas fa-user-secret" id="icon"></i>Account</a>
+        <a href="/Home" class="nav-item"><i class="fas fa-house" id="icon"></i>Home</a>
+        <a href="/Cart" class="nav-item active"><i class="fas fa-cart-shopping" id="icon"></i>Cart</a>
+        <a href="/Dashboard" class="nav-item"><i class="fas fa-solid fa-border-all icon" id="icon"></i>Dashboard</a>
         <a href="coming.html" class="nav-item"><i class="fas fa-list-check" id="icon"></i>Order List</a>
         <a href="coming.html" class="nav-item"><i class="fas fa-gear" id="icon"></i>Setting</a>
-        <a href="index.html" class="nav-item" style="color: red; font-weight: bold;"><i id="icon"></i>Log out</a>
+        <a href="/logout" class="nav-item" style="color: red; font-weight: bold;"><i id="icon"></i>Log out</a>
         
     </nav>
 
@@ -35,15 +38,7 @@
 
 
     <main>
-        <div id="loader" class="center" style="display:none;">
-            <div class="spinner">
-                <div class="dot" id="dot1"></div>
-                <div class="dot" id="dot2"></div>
-                <div class="dot" id="dot3"></div>
-                <div class="dot" id="dot4"></div>
-            </div>
-        </div>
-
+       
         <header>
             <button class="fas fa-bars" id="hamburger-menu"></button>
             <div id="logo" class="logo">
@@ -137,10 +132,10 @@
 
             <nav>
                 <ul>
-                    <li><a href="/admincursor.html"><i id='navbtns' class="fas fa-house" title="Home"></i></a></li>
-                    <li><a href="coming.html"><i id='navbtns' title="cart" class="fas fa-cart-shopping"></i></a></li>
+                    <li><a href="/Home"><i id='navbtns' class="fas fa-house" title="Home"></i></a></li>
+                    <li><a href="/Cart"><i id='navbtns' title="cart" class="fas fa-cart-shopping cart-icon"></i></a></li>
                     <li><a href="coming.html"></a><i id='navbtns' class="fas fa-bell" title="Notification"></i></li>
-                    <li class="navicon"><button id="accBtn" popovertarget="dropdownMenu"><i id="navbtns" title="Account" class="fas fa-user-secret"></i></button>
+                    <li class="navicon"><button id="accBtn" class="account-btn" popovertarget="dropdownMenu"><i id="navbtns" title="Account" class="fas fa-user-secret"></i></button>
 
                         
                     </li>
@@ -148,10 +143,10 @@
             </nav>
 
             <div popover id="dropdownMenu" anchor="accBtn" class="dropdown">
-                <a href="#">Profile</a>
-                <a href="/Dashboard/">Dashboard</a>
+                <a href="/Profile">Profile</a>
+                <a href="/Dashboard">Dashboard</a>
                 <a href="#">Settings</a>
-                <a href="/login.html">Logout</a>
+                <a href="/logout">Logout</a>
                 
             </div>
 
@@ -227,6 +222,6 @@
     <script defer src="/Elements/loading1.js"></script>
     <script src="/mode.js"></script>
     
-    <script src="cart.js"></script>
+    <script src="/Cart/cart.js"></script>
 </body>
 </html>
