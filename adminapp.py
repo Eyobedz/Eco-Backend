@@ -1,11 +1,8 @@
-import json
 from flask import Flask, jsonify, request, send_from_directory, send_file, session, redirect, url_for
 import pymysql
 from flask_cors import CORS
 import os
-from werkzeug.utils import secure_filename
-from datetime import datetime
-import time
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
 import hashlib
 import gunicorn
@@ -24,6 +21,7 @@ load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY")
+app.permanent_session_lifetime = timedelta(hours=1)  #session life time lasts for 1 hour
 
 # Configure CORS to allow POST requests
 CORS(app, supports_credentials=True, resources={
