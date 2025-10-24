@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from dotenv import load_dotenv
 import hashlib
 import gunicorn
+import cryptography
 from functools import wraps
 import cloudinary
 import cloudinary.uploader
