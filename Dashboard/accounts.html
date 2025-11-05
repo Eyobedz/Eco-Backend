@@ -336,8 +336,8 @@
         <p id="user_type">Role: Loading...</p>
         
         <div class="actions">
-            <button class="btn-edit" onclick="editUser()" popovertarget="edit-user" popovertargetaction="toggle"><i class="fas fa-user-edit"></i> Edit User</button>
-            <button class="btn-P-reset" onclick="resetPassword(this)"><i class="fas fa-key"></i> Reset Password</button>
+            <button class="btn-edit" id="editBtn" onclick="editUser()" popovertarget="edit-user" popovertargetaction="toggle"><i class="fas fa-user-edit"></i> Edit User</button>
+            <button class="btn-P-reset" id="resetPBtn" onclick="resetPassword(this)"><i class="fas fa-key"></i> Reset Password</button>
             <!-- <button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button> -->
         </div>
     </div>
@@ -389,25 +389,32 @@ function getUsers() {
 
     fetch(`/api/get-user`, { method: 'GET', credentials: "include" })
         .then(response => {
+
             if (!response.ok) {
                 throw new Error('Network response was not ok ' + response.statusText);
             }
             return response.json();
         })
         .then(data => {
-            loadedUsers = data; // ✅ store globally
+            loadedUsers = data.data; // ✅ store globally
+            current_user = data.current_users;
+            
             container.innerHTML = ''; // Clear existing content
 
-            data.forEach(row => {
+            loadedUsers.forEach(row => {
                 const rowDiv = document.createElement('div');
                 const status = row.status;
                 rowDiv.className = 'product';
-
+                
+                console.log(current_user, row.username)
                 if(status=='Disabled'){
                     rowDiv.style.backgroundColor = '#fb5555'
                 }
-                
-                rowDiv.style
+                if(current_user===row.username){
+                    rowDiv.style.backgroundColor = '#777777'
+                    rowDiv.setAttribute('current_user', true)
+                }
+                // rowDiv.style
                 const imgElement =
                     row.pp_url && row.pp_url !== 'none'
                         ? row.pp_url
@@ -437,7 +444,6 @@ function getUsers() {
             // ✅ Enable live validation after users are loaded
             setupInstantValidation();
 
-            console.log(`${window.link}/api/get-user`);
         })
         .catch(error => {
             console.error('Error fetching data:', error.message || error);
@@ -511,7 +517,8 @@ function addUsers() {
 
 function viewUser(button){
     var user = button.closest('.product');
-    const viewer = document.getElementById('view-user')
+    const viewer = document.getElementById('view-user');
+    const current_user = user.getAttribute('current_user');
     document.getElementById('profile-pic').src = user.getAttribute('img');
     document.getElementById('fullname').textContent = user.getAttribute('full_name');
     document.getElementById('username').textContent = user.getAttribute('username');
@@ -523,6 +530,36 @@ function viewUser(button){
     viewer.setAttribute('username',user.getAttribute('username'));
     viewer.setAttribute('user_type',user.getAttribute('user_role'));
     viewer.setAttribute('status',user.getAttribute('status'));
+
+    const editBtn = document.getElementById('editBtn');
+    const resetBtn = document.getElementById('resetPBtn');
+
+    console.log(current_user)
+    if(current_user){
+        
+        editBtn.style.backgroundColor = '#5f6276';
+        editBtn.style.cursor = 'not-allowed';
+        editBtn.setAttribute('onclick', "notifier.warning('This user can not be edited contact the admin or go to the profile page.')");
+        editBtn.setAttribute('popovertarget', 'none');
+        editBtn.setAttribute('title', 'You cannot Edit this user');
+        resetBtn.style.backgroundColor = '#5f6276';
+        resetBtn.style.cursor = 'not-allowed';
+        resetBtn.setAttribute('onclick', "notifier.warning('This user can not be edited contact the admin or go to the profile page.')");
+        resetBtn.setAttribute('title', 'You cannot Edit this user');
+
+        
+    } else {
+        // ✅ Restore original state
+        editBtn.style.backgroundColor = ''; // or your default color, e.g. '#3B82F6'
+        editBtn.style.cursor = 'pointer';
+        editBtn.setAttribute('onclick', 'editUser()'); // put your actual edit function
+        editBtn.setAttribute('popovertarget', 'edit-user');
+
+        resetBtn.style.backgroundColor = '';
+        resetBtn.style.cursor = 'pointer';
+        resetBtn.setAttribute('onclick', 'resetPassword(this)'); // put your actual reset function
+    }
+
 
 }
 function editUser() {

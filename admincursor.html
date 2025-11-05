@@ -8,7 +8,8 @@
     <link rel="stylesheet" href="https://site-assets.fontawesome.com/releases/v6.7.2/css/all.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
-    
+    <link rel="icon" href="/Elements/meh.png" type="image/png">
+
     <link rel="stylesheet" href="Elements/toastNotification.css">
     <script defer src="Elements/loading1.js"></script>
     <script defer src="Elements/loading2.js"></script>
@@ -1836,26 +1837,10 @@ function AddProduct(){
             
             // Add the image file
             const imageFile = document.getElementById('image-input').files[0];
-            if (imageFile) {
-                fileData.append('imageInput', imageFile);
-                const previewUrl = URL.createObjectURL(imageFile);
-                console.log("Preview URL:", previewUrl);
-            }
+           
             waveloader.show();
-            // Make sure this URL matches your Flask route exactly
-            const imgResponse = await fetch(`https://eyobed-image-server.koyeb.app/api/upload?token=supersecret123`, {  // Updated URL
-             
-                method: 'POST',
-                body: fileData
-            });
-            const imgData = await imgResponse.json();
-            console.log('Success:', imgData);
-
-            if(!imgResponse.ok){
-                throw new Error(`HTTP img error! status: ${imgResponse.status}`);   
-            }
-            
-            formData.append('image-url', imgData.url);
+          
+            formData.append('image-input', imageFile);
                
             const response = await fetch(`/api/add-product`, {  // Updated URL
             method: 'POST',
@@ -2060,6 +2045,7 @@ function deleteProduct(product) {
 
             const data = await response.json();
             console.log('Success:', data);
+            notifier.success('Product Deleted Successfully.')
             
             // Clean up UI
             detail.style.display = 'none';
@@ -2072,7 +2058,7 @@ function deleteProduct(product) {
             
         } catch (error) {
             console.error('Error:', error);
-            alert('Failed to delete product. Please try again.');
+            notifier.error('Failed To Delete Product')
         }
     });
 
@@ -2150,28 +2136,28 @@ searchInput.addEventListener("keypress", function(event) {
 
 
 
-document.addEventListener("DOMContentLoaded", () => {
-    //checkStockAndExpiration();
-    observeProductList();  // Call the function to start observing changes
-});
+// document.addEventListener("DOMContentLoaded", () => {
+//     //checkStockAndExpiration();
+//     observeProductList();  // Call the function to start observing changes
+// });
 
-function observeProductList() {
-    const productContainer = document.getElementById('main-content');  // The container for the products
+// function observeProductList() {
+//     const productContainer = document.getElementById('main-content');  // The container for the products
 
-    const config = { childList: true, subtree: true };  // Watch for added/removed child elements
+//     const config = { childList: true, subtree: true };  // Watch for added/removed child elements
 
-    const observer = new MutationObserver((mutationsList) => {
-        for (let mutation of mutationsList) {
-            if (mutation.type === 'childList') {
-                // Re-run the stock and expiration check whenever a new product is added
-                // checkStockAndExpiration();
-            }
-        }
-    });
+//     const observer = new MutationObserver((mutationsList) => {
+//         for (let mutation of mutationsList) {
+//             if (mutation.type === 'childList') {
+//                 // Re-run the stock and expiration check whenever a new product is added
+//                 // checkStockAndExpiration();
+//             }
+//         }
+//     });
 
-    // Start observing the product container
-    observer.observe(productContainer, config);
-}
+//     // Start observing the product container
+//     observer.observe(productContainer, config);
+// }
 
 function formatDate(dateString) {
     // Current implementation doesn't handle invalid dates

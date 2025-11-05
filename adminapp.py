@@ -1,3 +1,4 @@
+from itertools import product
 from flask import Flask, jsonify, request, send_from_directory, send_file, session, redirect, url_for
 import pymysql
 from flask_cors import CORS
@@ -6,6 +7,7 @@ from datetime import datetime, timedelta
 from dotenv import load_dotenv
 import hashlib
 import gunicorn
+import cryptography
 from functools import wraps
 import cloudinary
 import cloudinary.uploader
@@ -464,7 +466,7 @@ def add_product():
 
         
         # Validate required fields
-        if not all([product_name, stock, unit, price]):
+        if not all([product_name, stock, unit, price, per, exdate]):
             return jsonify({"error": "Missing required fields"}), 400
         connection = pymysql.connect(**DB_CONFIG)
         try:    
@@ -475,9 +477,12 @@ def add_product():
                             (product_name, stock, unit, price, per, exdate, barcode, image_path, catagory) 
                             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"""
                     cursor.execute(sql, (product_name, stock, unit, price, per, exdate, barcode, image_path, catagory))
+                    product_id = cursor.lastrowid
                 connection.commit()
         finally:
             connection.close()
+
+        product_logger(product_id, 'Added')
             
         return jsonify({
             "message": "Product added successfully",
@@ -575,6 +580,8 @@ def update_product():
             connection.commit()
         finally:
             connection.close()
+        
+        product_logger(product_id, 'Updated')
 
         return jsonify({"success": True, "message": "Product updated successfully"}), 200
 
@@ -589,11 +596,13 @@ def delete_product():
     data = request.json
     connection = pymysql.connect(**DB_CONFIG)
     try:
+        product_logger(data['id'], 'Deleted')
         # with pymysql.connect(**DB_CONFIG) as connection:
         with connection.cursor() as cursor:
             cursor.execute("DELETE FROM product_list WHERE product_id = %s", (data['id'],))
         connection.commit()
-            
+
+
         return jsonify({"message": "Product deleted successfully"}), 200
     except Exception as e:
         print(f"Error: {e}")
@@ -667,6 +676,45 @@ def add_to_cart():
 @app.route('/api/get-history', methods=['GET'])
 @login_required
 def get_history():
+    connection = pymysql.connect(**DB_CONFIG)
+    try:
+        # with pymysql.connect(**DB_CONFIG) as connection:
+        with connection.cursor() as cursor:
+            cursor.execute('''SELECT 
+                                product_Id,
+                                product_name,
+                                image_path,
+                                operation,
+                                `user`,
+                                log_time
+                            FROM product_log
+                            ORDER BY product_log.log_time DESC;
+                            ''')
+            rows = cursor.fetchall()
+            #print(rows)
+    
+    
+
+        result = [{
+                'id': row[0],
+                'product_name': row[1],
+                'image_path': row[2],
+                'operation': row[3],
+                'user': row[4],
+                'time': row[5]} for row in rows]
+        # print(result) 
+        return jsonify(result)
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"error": "An error occurred while fetching data"}), 500
+
+    finally:
+        connection.close()
+
+@app.route('/api/get-sales', methods=['GET'])
+@login_required
+def get_sales():
     connection = pymysql.connect(**DB_CONFIG)
     try:
         # with pymysql.connect(**DB_CONFIG) as connection:
@@ -746,7 +794,13 @@ def getUser():
             'pp_url': row[5],
             'status':row[6]} for row in rows]
         # print(result)
-        return jsonify(result)
+
+        response = {
+                    'success': True,
+                    'current_users': session['username'],
+                    'data': result
+                    }
+        return jsonify(response)
 
     except Exception as e:
         print(f"Error: {e}")
@@ -1025,6 +1079,62 @@ def download_excel():
         download_name="product_inventory.xlsx",
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
+
+
+def product_logger(pd_id, operation):
+    user = session['username']
+    time = datetime.now()
+    print(f'{pd_id} was {operation} at {time} by {user}')
+
+    connection = pymysql.connect(**DB_CONFIG)
+    try:
+        with connection.cursor() as cursor:
+            # 🧩 If it's a delete operation, fetch product details before deletion
+            
+            cursor.execute(
+                "SELECT product_name, image_path FROM product_list WHERE product_id = %s", 
+                (pd_id,)
+            )
+            product = cursor.fetchone()
+
+            # Only if product exists (should, before deletion)
+            if product:
+                product_name = product[0]   # if cursor not using DictCursor
+                image_path = product[1]
+            else:
+                product_name = None
+                image_path = None
+
+            # Insert into log including name and image
+            sql = """INSERT INTO product_log
+                        (operation, log_time, user, product_Id, product_name, image_path)
+                        VALUES (%s, %s, %s, %s, %s, %s)"""
+            cursor.execute(sql, (operation, time, user, pd_id, product_name, image_path))
+        
+            
+
+            connection.commit()
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"error": "An error occurred while logging the operation"}), 500
+
+    finally:
+        connection.close()
+
+
+    # '''SELECT 
+    #                             product_log.product_Id AS pd_id,
+    #                             COALESCE(product_list.product_name, product_log.product_name) AS product_name,
+    #                             COALESCE(product_list.image_path, product_log.image_path) AS image_path,
+    #                             product_log.operation,
+    #                             product_log.`user`,
+    #                             product_log.log_time
+    #                         FROM product_log
+    #                         LEFT JOIN product_list 
+    #                             ON product_log.product_Id = product_list.product_id
+    #                         ORDER BY product_log.log_time DESC;
+    #                         '''
 
 
 

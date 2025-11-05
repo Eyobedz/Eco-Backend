@@ -59,6 +59,12 @@
             margin: 10px;
         }
 
+        .download{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
         .table-wrapper{
             
             max-height: 340px;
@@ -256,9 +262,15 @@
             <!-- <iframe width="100%" height="100%" style="border: none; background-color: aqua;"></iframe> -->
             <div class="headers">
                 <h1>Daily Report</h1>
-                <div>
-                    <button title="Download as a PDF">Print</button>
-                    <button title="Download as a Excel" onclick="downloadExcel('daily')">Download</button>
+                <div class="download">
+                    <section>
+                        Download
+                    </section>
+                    <section>
+                        <button title="Download as a PDF">PDF</button>
+                        <button title="Download as a Excel" onclick="downloadExcel('daily')">Excel</button>
+                    </section>
+
                 </div>
                 
             </div>
@@ -300,11 +312,19 @@
             <!-- <iframe width="100%" height="100%" style="border: none; background-color: aqua;"></iframe> -->
             <div class="headers">
                 <h1>Weekly Report</h1>
-                <div>
-                    <input type="week" id="week-picker" onchange="week(this)">
-                    <button title="Download as a PDF">Print</button>
-                    <button title="Download as a Excel" onclick="downloadExcel('weekly')">Download</button>
+            
+                <input type="week" id="week-picker" onchange="week(this)">
+                <div class="download">
+                    <section>
+                        Download
+                    </section>
+                    <section>
+                        <button title="Download as a PDF">PDF</button>
+                        <button title="Download as a Excel" onclick="downloadExcel('daily')">Excel</button>
+                    </section>
+
                 </div>
+            
                 
             </div>
             <div class="report-data" id="weekly-report-data">
@@ -347,9 +367,15 @@
             <!-- <iframe width="100%" height="100%" style="border: none; background-color: aqua;"></iframe> -->
             <div class="headers">
                 <h1>Monthly Report</h1>
-                <div>
-                    <button title="Download as a PDF">Print</button>
-                    <button title="Download as a Excel" onclick="downloadExcel('monthly')">Download</button>
+                <div class="download">
+                    <section>
+                        Download
+                    </section>
+                    <section>
+                        <button title="Download as a PDF">PDF</button>
+                        <button title="Download as a Excel" onclick="downloadExcel('daily')">Excel</button>
+                    </section>
+
                 </div>
                 
             </div>
@@ -391,9 +417,15 @@
             <!-- <iframe width="100%" height="100%" style="border: none; background-color: aqua;"></iframe> -->
             <div class="headers">
                 <h1>Annual Report</h1>
-                <div>
-                    <button title="Download as a PDF">Print</button>
-                    <button title="Download as a Excel" onclick="downloadExcel('annual')">Download</button>
+                <div class="download">
+                    <section>
+                        Download
+                    </section>
+                    <section>
+                        <button title="Download as a PDF">PDF</button>
+                        <button title="Download as a Excel" onclick="downloadExcel('daily')">Excel</button>
+                    </section>
+
                 </div>
                 
             </div>
@@ -441,9 +473,15 @@
             <!-- <iframe width="100%" height="100%" style="border: none; background-color: aqua;"></iframe> -->
             <div class="headers">
                 <h1>Custom Report</h1>
-                <div>
-                    <button title="Download as a PDF">Print</button>
-                    <button title="Download as a Excel" onclick="downloadExcel('custom')">Download</button>
+                <div class="download">
+                    <section>
+                        Download
+                    </section>
+                    <section>
+                        <button title="Download as a PDF">PDF</button>
+                        <button title="Download as a Excel" onclick="downloadExcel('daily')">Excel</button>
+                    </section>
+
                 </div>
                 
             </div>
@@ -487,9 +525,15 @@
             <!-- <iframe width="100%" height="100%" style="border: none; background-color: aqua;"></iframe> -->
             <div class="headers">
                 <h1>Inventory Report</h1>
-                <div>
-                    <button title="Download as a PDF">Print</button>
-                    <button title="Download as a Excel" onclick="downloadExcel('inventory')">Download</button>
+                <div class="download">
+                    <section>
+                        Download
+                    </section>
+                    <section>
+                        <button title="Download as a PDF">PDF</button>
+                        <button title="Download as a Excel" onclick="downloadExcel('daily')">Excel</button>
+                    </section>
+
                 </div>
                 
             </div>
