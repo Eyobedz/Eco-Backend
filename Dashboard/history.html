@@ -5,7 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://site-assets.fontawesome.com/releases/v6.7.2/css/all.css">
     <link rel="stylesheet" href="/Elements/toastNotification.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/themes/dark.css" 
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
     <script defer src="Elements/loading2.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     
     <title>History</title>
 
@@ -25,7 +30,9 @@
 
        .header{
             display: grid;
-            grid-template-columns: 110px 1fr 1fr 1fr 1.5fr;
+            grid-template-columns: 110px 1fr 1fr 1fr 1fr 50px ;
+            align-items: center;
+            justify-items:center;
             position: sticky;
             top: 0;
             background-color: rgb(0, 0, 0);
@@ -35,7 +42,59 @@
             padding: 5px;
             border-radius: 15px;
         }
-        
+
+        .header-btns{
+           background: none;
+            border: none;
+            cursor: pointer;
+            color: white; /* adjust to match your header */
+            margin-left: 10px;
+            transition: transform 0.2s ease;
+        }
+
+        #dateRangePicker{
+            width: 0px;
+            height: 0px;
+            padding: 0px;
+            margin: 0px;
+            border: none;
+        }
+     
+
+
+        #clear-btn{
+            height: 20px;
+
+        }
+
+        .filter-dropdown{
+            inset: unset;
+            top: anchor(bottom);
+            left: anchor(left);
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: rgb(21, 77, 117);
+            color: white;
+            padding: 10px;
+            width: 150px;
+            text-align: left;
+            transform: translate(10px, 20px);
+        }
+
+        .filter-dropdown li:hover{
+            background-color: #f0f0f0;
+            color: black;
+            cursor: pointer;
+        }
+
+        #user-filter li label {
+            display: flex;          /* or inline-block if you prefer */
+            align-items: center;
+            width: 100%;
+            cursor: pointer;
+            padding: 5px;
+        }
+                
         #mainContent{
             padding: 0;
             margin: 0;
@@ -46,9 +105,11 @@
 
         .product{
             display: grid;
-            grid-template-columns: 110px 1fr 1fr 1fr 1.5fr;
+            grid-template-columns: 110px 1fr 1fr 1fr 1.2fr;
             /* justify-content: space-between; */
             align-items: center;
+            justify-items:center;
+
             background-color: rgba(109, 223, 249, 0.468);
             font-size: large;
             margin: 10px;
@@ -63,34 +124,58 @@
             max-height: 80px;
         }
 
+        #noProductMsg{
+            
+            position: absolute;
+            z-index: -1;
+            text-align: center;
+            top: 50%;
+            width: 99%;
+            margin: 10px; 
+            font-size: 34px;
+        }
+
     </style>
 </head>
 <body>
     <h1 style="padding: 0; margin: 0;">History</h1>
-    <div class="title">
-        <p>Date</p>
-        <div>
-            <input type="date" id="date">
-            
-        </div>
-    </div>  
     <div class="header">
         <p>Image</p>
         <p>Name</p>
-        <p>Operation 
-            <i class="fa-solid fa-angle-down"></i>
-            <div class="filter-dropdown" id="operation-filter">
-                <div onclick="filterBy('operation','Added')">Added</div>
-                <div onclick="filterBy('operation','Updated')">Updated</div>
-                <div onclick="filterBy('operation','Deleted')">Deleted</div>
-                <div onclick="filterBy('operation','all')">Show All</div>
-              </div>
+        <p>Operation
+            <button class="header-btns" id="operation-filter-btn" popovertarget="operation-filter"><i class="fa-solid fa-angle-down" ></i></button>
         </p>
-        <p>User <i class="fa-solid fa-angle-down"></i></p>
-        <p>Time <i class="fa-solid fa-angle-down"></i></p>
+            <ul class="filter-dropdown" id="operation-filter" popover="auto" anchor="operation-filter-btn">
+                <li><label><input type="checkbox" onclick="filterAll()" value="Added">  Added</label></li>
+                <li><label><input type="checkbox" onclick="filterAll()" value="Updated">  Updated</label></li>
+                <li><label><input type="checkbox" onclick="filterAll()" value="Deleted">  Deleted</label></li>
+                <!-- <li><label><input type="checkbox" onclick="filterAll()" value="all">  Show All</label></li> -->
+            </ul>
+        
+        <p>User
+            <button class="header-btns" id="user-filter-btn" popovertarget="user-filter"><i class="fa-solid fa-angle-down" ></i></button>
+        </p>
+             <ul class="filter-dropdown" id="user-filter" popover="auto" anchor="user-filter-btn">
+                <!-- <li><input type="checkbox" onclick="filterBy()">Added</input></li>
+                <li><input type="checkbox" onclick="filterBy()">Updated</input></li>
+                <li><input type="checkbox" onclick="filterBy()">Deleted</input></li>
+                <li><input type="checkbox" onclick="filterBy()">Show All</input></li> -->
+             </ul>
+        
+        <p>Time
+            <!-- <button><i class="fa-solid fa-angle-down"></i></button> -->
+            
+            <button id="dateIcon" class="header-btns" onclick="fp.open()">
+                <i class="fa-solid fa-angle-down"></i>
+            </button>
+            <input type="text" id="dateRangePicker" placeholder="Select date range">
+            
+              
+        </p>
+        <button class="header-btns" id="clear-btn" onclick="clearFilter()">Clear</button>
         
     </div>
-    <p style="position: absolute; z-index: -1; text-align: center; top: 50%; width: 99%; margin: 10px; font-size: 34px;">
+    <p id="noProductMsg" style="position: absolute; z-index: -1; text-align: center; top: 50%; width: 99%; margin: 10px; font-size: 34px;">
         No Product Found!!!
    </p>
     <section id="mainContent"></section>
@@ -103,72 +188,25 @@
         });
         
         const notifier = new ToastNotification();
-        
+        const loadedData = [];
+        let filteredData = [];
         function fetchAndUpdateData() {
-            const container = document.getElementById('mainContent');
-            const fragment = document.createDocumentFragment();
             
-            waveloader.show();
+            const noProductMsg = document.getElementById('noProductMsg');
 
+            waveloader.show();
+            noProductMsg.style.display = 'none';
             fetch(`/api/get-history`, { method: 'GET', credentials: "include" })
                 .then(response => {
                     if (!response.ok) throw new Error('Network response was not ok');
                     return response.json();
                 })
                 .then(data => {
-                    container.innerHTML = '';
-                    console.log(data)
-        
-                    data.forEach(row => {
-                        const rowDiv = document.createElement('div');
-                        rowDiv.className = 'product';
-        
-                        // ✅ Properly normalize and format date
-                        let isoDate = "";
-                        let displayDate = "";
-        
-                        if (row.date) {
-                            const parsed = new Date(row.date);
-                            if (!isNaN(parsed)) {
-                                // This will be used for filtering
-                                isoDate = parsed.toISOString().split("T")[0]; // "YYYY-MM-DD"
-        
-                                // This will be shown to the user
-                                displayDate = parsed.toLocaleDateString("en-GB", {
-                                    weekday: "short",
-                                    day: "2-digit",
-                                    month: "short",
-                                    year: "numeric"
-                                });
-                            } else {
-                                // fallback if parsing fails
-                                isoDate = (row.date || '').split(' ')[0].split('T')[0];
-                                displayDate = isoDate;
-                            }
-                        }
-        
-                        const imgElement = row.image_path
-                            ? `<img src="${row.image_path}" alt="${row.product_name}" loading="lazy">`
-                            : `<img src="/uploads/SPARKE.gif" alt="${row.product_name}" loading="lazy">`;
-        
-                        const subTotal = row.quantity * row.price;
-        
-                        // Store ISO date for filtering
-                        rowDiv.setAttribute("data-date", isoDate);
-                        rowDiv.innerHTML = `
-                            ${imgElement}
-                            <h2 class="name">${row.product_name}</h2>
-                            <p>${row.operation}</p>
-                            <p>${row.user}</p>
-                            <p>${row.time}</p>
-                        `;
-        
-                        fragment.appendChild(rowDiv);
-                    });
-        
-                    container.appendChild(fragment);
-                    setupDateFilter();
-                    sortProductsByDateAndName();
+                    console.log(data);
+                    data.forEach(row => loadedData.push(row));
+
+                    populateData(data);
+                    populateFilter(data);
                 })
                 .catch(error => {
                     console.error('Error fetching data:', error);
@@ -176,51 +214,229 @@
                 })
                 .finally(() => waveloader.hide());
         }
-        
-        function setupDateFilter() {
-            const dateInput = document.getElementById("date");
-            const noProductMsg = document.querySelector('p[style*="No Product Found"]');
-        
-            dateInput.addEventListener("input", function () {
-                const selectedDate = this.value; // "YYYY-MM-DD"
-                const rows = document.querySelectorAll(".product");
-                let visibleCount = 0;
-        
-                rows.forEach(row => {
-                    const rowDate = row.getAttribute("data-date");
-                    if (!selectedDate || rowDate === selectedDate) {
-                        row.style.display = "grid";
-                        visibleCount++;
+
+        function populateFilter(data){
+            const userFilter = document.getElementById('user-filter');
+            userFilter.innerHTML = ``;
+            const uniqueUsers = [...new Set(data.map(row => row.user))];
+
+            uniqueUsers.forEach(user => {
+                const list = document.createElement('li');
+                list.innerHTML=`
+                    <label>
+                        <input type="checkbox" onclick="filterAll()" value='${user}'>
+                          ${user}
+                    </label>
+                `
+                userFilter.appendChild(list);
+            })
+            
+        }
+
+        function clearFilter() {
+            // 1️⃣ Uncheck all checked checkboxes inside filter menus
+            const filterMenu = document.querySelectorAll('.filter-dropdown input[type="checkbox"]:checked');
+            filterMenu.forEach(option => {
+                option.checked = false;
+            });
+
+            // 2️⃣ Reset date range picker (if using flatpickr)
+            const datePicker = document.querySelector("#dateRangePicker")._flatpickr;
+            if (datePicker) {
+                datePicker.clear(); // clears the UI
+            }
+
+            // 3️⃣ Reset global date range variable
+            selectedRange = null;
+
+            // 4️⃣ Re-display all data
+            populateData(loadedData);
+        }
+
+        function populateData(data) {
+            const container = document.getElementById('mainContent');
+            const fragment = document.createDocumentFragment();
+
+            container.innerHTML = '';
+
+            data.forEach(row => {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'product';
+
+                // ✅ Properly normalize and format date
+                let isoDate = "";
+                let displayDate = "";
+
+                if (row.date) {
+                    const parsed = new Date(row.date);
+                    if (!isNaN(parsed)) {
+                        // This will be used for filtering
+                        isoDate = parsed.toISOString().split("T")[0]; // "YYYY-MM-DD"
+
+                        // This will be shown to the user
+                        displayDate = parsed.toLocaleDateString("en-GB", {
+                            weekday: "short",
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric"
+                        });
                     } else {
-                        row.style.display = "none";
+                        // fallback if parsing fails
+                        isoDate = (row.date || '').split(' ')[0].split('T')[0];
+                        displayDate = isoDate;
                     }
-                });
-        
-                noProductMsg.style.display = visibleCount ? "none" : "block";
-            });
-        }
-        
-        function sortProductsByDateAndName() {
-            const container = document.getElementById("mainContent");
-            const rows = Array.from(container.querySelectorAll(".product"));
-        
-            rows.sort((a, b) => {
-                const dateA = new Date(a.getAttribute("data-date"));
-                const dateB = new Date(b.getAttribute("data-date"));
-        
-                if (dateA.getTime() !== dateB.getTime()) {
-                    return dateB - dateA; // newest first
                 }
-        
-                const nameA = a.querySelector("h2").textContent.trim().toLowerCase();
-                const nameB = b.querySelector("h2").textContent.trim().toLowerCase();
-        
-                return nameA.localeCompare(nameB);
+
+                const imgElement = row.image_path
+                    ? `<img src="${row.image_path}" alt="${row.product_name}" loading="lazy">`
+                    : `<img src="/uploads/SPARKE.gif" alt="${row.product_name}" loading="lazy">`;
+
+                const subTotal = row.quantity * row.price;
+
+                // Store ISO date for filtering
+                rowDiv.setAttribute("data-date", isoDate);
+                rowDiv.innerHTML = `
+                    ${imgElement}
+                    <h2 class="name">${row.product_name}</h2>
+                    <p>${row.operation}</p>
+                    <p>${row.user}</p>
+                    <p>${row.time}</p>
+                `;
+                fragment.appendChild(rowDiv);
             });
-        
-            rows.forEach(row => container.appendChild(row));
+
+            container.appendChild(fragment);
+            // setupDateFilter();
+            // sortProductsByDateAndName();
+            noProductMsg.style.display = data.length > 0 ? 'none' : 'block';
         }
-        </script>
+
+
+        
+
+        // function filterBy(type, value) {
+        //     const filteredData = loadedData.filter(row => row[type] === value);
+        //     const container = document.getElementById('mainContent');
+        //     container.innerHTML = '';
+        //     filteredData.forEach(row => {
+        //         const rowDiv = document.createElement('div');
+        //         rowDiv.className = 'product';
+                
+        //           rowDiv.innerHTML = `
+        //                     ${imgElement}
+        //                     <h2 class="name">${row.product_name}</h2>
+        //                     <p>${row.operation}</p>
+        //                     <p>${row.user}</p>
+        //                     <p>${row.time}</p>
+        //                 `;
+        //         container.appendChild(rowDiv);
+        //     });
+        //     noProductMsg.style.display = filteredData.length > 0 ? 'none' : 'block';
+        // }   
+        
+
+        
+        let selectedRange = null; // global variable to remember the last chosen range
+
+        function filterAll(rangeOverride = null) {
+            // use the new range if provided, otherwise the last selected one
+            if (rangeOverride) selectedRange = rangeOverride;
+
+            const selectedOperations = Array.from(document.querySelectorAll('#operation-filter input[type="checkbox"]:checked'))
+                .map(opt => opt.value);
+            const selectedUsers = Array.from(document.querySelectorAll('#user-filter input[type="checkbox"]:checked'))
+                .map(opt => opt.value);
+
+            const startDate = selectedRange?.[0];
+            const endDate = selectedRange?.[1];
+
+            const filteredData = loadedData.filter(row => {
+                const matchOperation = selectedOperations.length === 0 || selectedOperations.includes(row.operation);
+                const matchUser = selectedUsers.length === 0 || selectedUsers.includes(row.user);
+
+
+                
+                let matchDate = true;
+                if (startDate && endDate) {
+                    const rowTime = new Date(row.time);
+                    if (isNaN(rowTime)) return false;
+
+                    if (startDate.toDateString() === endDate.toDateString()) {
+                        matchDate = rowTime.toDateString() === startDate.toDateString();
+                    } else {
+                        matchDate = rowTime >= startDate && rowTime <= endDate;
+                    }
+                }
+
+                return matchOperation && matchUser && matchDate;
+            });
+
+            populateData(filteredData);
+        }
+
+
+
+
+        // function setupDateFilter() {
+        //     const dateInput = document.getElementById("date");
+        //     const noProductMsg = document.querySelector('p[style*="No Product Found"]');
+        
+        //     dateInput.addEventListener("input", function () {
+        //         const selectedDate = this.value; // "YYYY-MM-DD"
+        //         const rows = document.querySelectorAll(".product");
+        //         let visibleCount = 0;
+        
+        //         rows.forEach(row => {
+        //             const rowDate = row.getAttribute("data-date");
+        //             if (!selectedDate || rowDate === selectedDate) {
+        //                 row.style.display = "grid";
+        //                 visibleCount++;
+        //             } else {
+        //                 row.style.display = "none";
+        //             }
+        //         });
+        
+        //         noProductMsg.style.display = visibleCount ? "none" : "block";
+        //     });
+        // }
+        
+        // function sortProductsByDateAndName() {
+        //     const container = document.getElementById("mainContent");
+        //     const rows = Array.from(container.querySelectorAll(".product"));
+        
+        //     rows.sort((a, b) => {
+        //         const dateA = new Date(a.getAttribute("data-date"));
+        //         const dateB = new Date(b.getAttribute("data-date"));
+        
+        //         if (dateA.getTime() !== dateB.getTime()) {
+        //             return dateB - dateA; // newest first
+        //         }
+        
+        //         const nameA = a.querySelector("h2").textContent.trim().toLowerCase();
+        //         const nameB = b.querySelector("h2").textContent.trim().toLowerCase();
+        
+        //         return nameA.localeCompare(nameB);
+        //     });
+        
+        //     rows.forEach(row => container.appendChild(row));
+        // }
+
+        const fp = flatpickr("#dateRangePicker", {
+            mode: "range",
+            dateFormat: "d-m-Y",
+            onChange: function(selectedDates) {
+                if (selectedDates.length === 2) {
+                    const startDate = selectedDates[0];
+                    const endDate = selectedDates[1];
+                    selectedRange = [startDate, endDate];
+                    console.log("Selected range:", selectedRange);
+                    filterAll(selectedRange); // Pass range to update and store globally
+                }
+            }
+
+            
+        });
+    </script>
         
 </body>
 </html>

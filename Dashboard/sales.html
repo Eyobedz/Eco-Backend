@@ -82,7 +82,7 @@
         <p>Sub Total</p>
         <p>Date</p>
     </div>
-    <p style="position: absolute; z-index: -1; text-align: center; top: 50%; width: 99%; margin: 10px; font-size: 34px;">
+    <p id="noProductMsg" style="position: absolute; z-index: -1; text-align: center; top: 50%; width: 99%; margin: 10px; font-size: 34px; display: none;">
         No Product Found!!!
    </p>
     <section id="mainContent"></section>
@@ -99,7 +99,8 @@
         function fetchAndUpdateData() {
             const container = document.getElementById('mainContent');
             const fragment = document.createDocumentFragment();
-            
+            const noProductMsg = document.getElementById('noProductMsg');
+
             waveloader.show();
 
             fetch(`/api/get-sales`, { method: 'GET', credentials: "include" })
@@ -159,6 +160,8 @@
                     });
         
                     container.appendChild(fragment);
+                    noProductMsg.style.display = container.length > 0 ? 'none' : 'block';
+
                     setupDateFilter();
                     sortProductsByDateAndName();
                 })
