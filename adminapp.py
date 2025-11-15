@@ -172,7 +172,7 @@ def Home():
 @app.route('/Cart', methods=['GET'])
 @login_required
 def Cart():
-    return send_from_directory('Cart', 'index.html')
+    return send_from_directory('Cart', 'cart.html')
 
 @app.route('/Profile', methods=['GET'])
 @login_required
