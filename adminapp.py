@@ -1136,7 +1136,9 @@ def product_logger(pd_id, operation):
     #                         ORDER BY product_log.log_time DESC;
     #                         '''
 
-
+@app.route('/keepalive')
+def keepalive():
+    return "OK", 200
 
 if __name__ == '__main__':
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
