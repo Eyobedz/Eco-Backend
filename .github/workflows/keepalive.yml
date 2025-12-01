@@ -25,6 +25,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y mysql-client
           mysql -h ${{ secrets.DB_HOST }} \
+                -P ${{ secrets.DB_PORT }} \
                 -u ${{ secrets.DB_USER }} \
                 -p${{ secrets.DB_PASSWORD }} \
                 -e "SELECT 1;" ${{ secrets.DB_NAME }}
