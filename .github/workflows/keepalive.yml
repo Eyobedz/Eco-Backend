@@ -16,16 +16,3 @@ jobs:
       - name: Ping Render
         run: curl -s ${{ secrets.RENDER_URL }} > /dev/null
 
-  ping_aiven:
-    if: github.event.schedule == '0 */12 * * *'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Keep MySQL DB Awake
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y mysql-client
-          mysql -h ${{ secrets.DB_HOST }} \
-                -P ${{ secrets.DB_PORT }} \
-                -u ${{ secrets.DB_USER }} \
-                -p${{ secrets.DB_PASSWORD }} \
-                -e "SELECT 1;" ${{ secrets.DB_NAME }}
