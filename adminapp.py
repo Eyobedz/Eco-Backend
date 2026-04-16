@@ -1672,9 +1672,6 @@ def update_task_status(task_id):
 
 
 
-@app.route('/keepalive')
-def keepalive():
-    return "OK", 200
 
 
 if __name__ == '__main__':
