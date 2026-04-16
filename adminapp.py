@@ -1037,38 +1037,48 @@ def get_inventory():
 
 @app.route('/download-excel', methods=['POST'])
 def download_excel():
-    products = request.json.get('products')  # receive JSON array of objects
+    data = request.get_json()
+    if not data:
+        return "No data received", 400
 
-    # Load your Excel template
-    template_path = 'templates/template.xlsx'
+    products = data.get('products')
+    if not products or not isinstance(products, list):
+        return "No products in request", 400
+
+    # Load Excel template with merged header
+    template_path = 'Elements/template.xlsx'
     wb = load_workbook(template_path)
     ws = wb.active
 
-    # Define the column order you want in Excel
-    headers = ["Barcode", "Category", "Product Name", "Price", "Stock", "Unit", "Per", "Expiry Date"]
-    
-    # Optional: write headers if your template doesn't have them
+    # Write headers on row 3 ONLY (row 1 is merged, row 2 is spacing)
+    headers = ["Barcode", "Product Name", "Price", "Stock", "Unit", "Per", "Category", "Expiry Date"]
+    header_row = 3
+
     for col, header in enumerate(headers, 1):
-        ws.cell(row=1, column=col, value=header)
+        ws.cell(row=header_row, column=col, value=header)
 
-    # Start writing data from row 2
-    for row_num, product in enumerate(products, start=2):
-        ws.cell(row=row_num, column=1, value=product['barcode'])
-        ws.cell(row=row_num, column=2, value=product['catagory'])
-        ws.cell(row=row_num, column=3, value=product['product_name'])
-        ws.cell(row=row_num, column=4, value=float(product['price']))
-        ws.cell(row=row_num, column=5, value=product['stock'])
-        ws.cell(row=row_num, column=6, value=product['unit'])
-        ws.cell(row=row_num, column=7, value=product['per'])
-        
-        # Format expiry date
+    # Write data starting at row 4
+    data_row_start = 4
+
+    for i, product in enumerate(products):
+        row = data_row_start + i
+        ws.cell(row=row, column=1, value=product.get('barcode'))
+        ws.cell(row=row, column=2, value=product.get('product_name'))
+        ws.cell(row=row, column=3, value=float(product.get('price', 0)))
+        ws.cell(row=row, column=4, value=product.get('stock'))
+        ws.cell(row=row, column=5, value=product.get('unit'))
+        ws.cell(row=row, column=6, value=product.get('per'))
+        ws.cell(row=row, column=7, value=product.get('catagory'))
+
+        # Handle expiry date safely
+        exdate = product.get('exdate')
         try:
-            date_obj = datetime.strptime(product['exdate'], "%a, %d %b %Y %H:%M:%S %Z")
-            ws.cell(row=row_num, column=8, value=date_obj.strftime("%d %b %Y"))
+            date_obj = datetime.strptime(exdate, "%a, %d %b %Y %H:%M:%S %Z")
+            ws.cell(row=row, column=8, value=date_obj.strftime("%d %b %Y"))
         except:
-            ws.cell(row=row_num, column=8, value=product['exdate'])  # fallback
+            ws.cell(row=row, column=8, value=exdate)
 
-    # Send the workbook as a downloadable file
+    # Return file
     output = io.BytesIO()
     wb.save(output)
     output.seek(0)
@@ -1076,7 +1086,7 @@ def download_excel():
     return send_file(
         output,
         as_attachment=True,
-        download_name="product_inventory.xlsx",
+        download_name="Inventory_Report.xlsx",
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
@@ -1136,6 +1146,9 @@ def product_logger(pd_id, operation):
     #                         ORDER BY product_log.log_time DESC;
     #                         '''
 
+@app.route('/keepalive')
+def keepalive():
+    return "OK", 200
 
 
 if __name__ == '__main__':
