@@ -8,8 +8,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <link rel="stylesheet" href="https://site-assets.fontawesome.com/releases/v6.7.2/css/all.css">
     <link rel="stylesheet" href="/Elements/toastNotification.css">
+    <link rel="stylesheet" href="/Dashboard/report.css">
+    <link rel="stylesheet" href="/Elements/template.xlsx">
+
     
-    <script src="/Elements/table2excel.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/exceljs/dist/exceljs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script defer src="/Elements/loading2.js"></script>
@@ -33,7 +36,7 @@
             padding: 10px;
             margin-top: 0px;
             border: 1px solid black;
-            height: 85%;
+            height: 100%;
         }
 
         .headers{
@@ -245,6 +248,7 @@
     }
 
     </style>
+
 </head>
 <body>
     <div class="mainContent">
@@ -268,7 +272,7 @@
                     </section>
                     <section>
                         <button title="Download as a PDF">PDF</button>
-                        <button title="Download as a Excel" onclick="downloadExcel('daily')">Excel</button>
+                        <button title="Download as a Excel" onclick="downloadExcel('Daily')">Excel</button>
                     </section>
 
                 </div>
@@ -320,7 +324,7 @@
                     </section>
                     <section>
                         <button title="Download as a PDF">PDF</button>
-                        <button title="Download as a Excel" onclick="downloadExcel('daily')">Excel</button>
+                        <button title="Download as a Excel" onclick="downloadExcel('Weekly')">Excel</button>
                     </section>
 
                 </div>
@@ -373,7 +377,7 @@
                     </section>
                     <section>
                         <button title="Download as a PDF">PDF</button>
-                        <button title="Download as a Excel" onclick="downloadExcel('daily')">Excel</button>
+                        <button title="Download as a Excel" onclick="downloadExcel('Monthly')">Excel</button>
                     </section>
 
                 </div>
@@ -423,7 +427,7 @@
                     </section>
                     <section>
                         <button title="Download as a PDF">PDF</button>
-                        <button title="Download as a Excel" onclick="downloadExcel('daily')">Excel</button>
+                        <button title="Download as a Excel" onclick="downloadExcel('Annual')">Excel</button>
                     </section>
 
                 </div>
@@ -479,7 +483,7 @@
                     </section>
                     <section>
                         <button title="Download as a PDF">PDF</button>
-                        <button title="Download as a Excel" onclick="downloadExcel('daily')">Excel</button>
+                        <button title="Download as a Excel" onclick="downloadExcel('Custom')">Excel</button>
                     </section>
 
                 </div>
@@ -531,7 +535,7 @@
                     </section>
                     <section>
                         <button title="Download as a PDF">PDF</button>
-                        <button title="Download as a Excel" onclick="downloadExcel('daily')">Excel</button>
+                        <button title="Download as a Excel" onclick="downloadInventoryExcel()">Excel</button>
                     </section>
 
                 </div>
@@ -1184,14 +1188,198 @@
        
     // }
 
-    function downloadExcel(type){
-        fetch(`/download-excel`, {
-            method: 'POST',
-            credentials: "include",
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ products: fileData })
-        });
+
+
+async function downloadExcel(type) {
+
+    let products = fileData;
+    console.log(fileData)
+
+    if (!products || products.length === 0) {
+        alert("No data available to export.");
+        return;
     }
+
+    // Ensure file is an array of objects
+    if (typeof products === 'string') products = JSON.parse(products);
+
+    // 1. Load the styled Excel template
+    const response = await fetch("/Elements/report_template.xlsx");
+    const arrayBuffer = await response.arrayBuffer();
+
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(arrayBuffer);
+
+    // 2. Select the sheet
+    const ws = workbook.getWorksheet(1);
+
+    // 3. Write headers on row 3
+    const headers = [
+        "Barcode", "Product Name", "Quantity",
+        "Price", "Subtotal", "Date"
+    ];
+
+    headers.forEach((h, index) => {
+        ws.getCell(2, index + 1).value = h;
+    });
+
+    // 4. Write data starting row 4
+    let rowIndex = 3;
+
+    products.forEach(p => {
+        const row = ws.getRow(rowIndex);
+        let subTotal = p.quantity * p.price;
+
+        let Total =+ subTotal
+
+        row.getCell(1).value = p.barcode;
+        row.getCell(2).value = p.product_name;
+        row.getCell(3).value = Number(p.price);
+        row.getCell(4).value = p.quantity;
+        row.getCell(5).value = subTotal;
+
+        
+       
+        // Format date
+        const d = new Date(p.date);
+        if (!isNaN(d)) {
+            row.getCell(6).value = d;
+            row.getCell(6).numFmt = "dd mmm yyyy";  
+        } else {
+            row.getCell(6).value = p.date;
+        }
+
+        row.commit();
+        rowIndex++;
+    });
+
+    // 5. Save and trigger the download
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    });
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${type}_Report.xlsx`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+
+
+async function downloadInventoryExcel() {
+
+    let products = inventoryData;
+
+    if (!products || products.length === 0) {
+        alert("No data available to export.");
+        return;
+    }
+
+    // Ensure file is an array of objects
+    if (typeof products === 'string') products = JSON.parse(products);
+
+    // 1. Load the styled Excel template
+    const response = await fetch("/Elements/inventory_template.xlsx");
+    const arrayBuffer = await response.arrayBuffer();
+
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(arrayBuffer);
+
+    // 2. Select the sheet
+    const ws = workbook.getWorksheet(1);
+
+    // 3. Write headers on row 3
+    const headers = [
+        "Barcode", "Product Name",
+        "Price", "Stock", "Unit", "Per", "Category", "Expiry Date"
+    ];
+
+    headers.forEach((h, index) => {
+        ws.getCell(2, index + 1).value = h;
+    });
+
+    // 4. Write data starting row 4
+    let rowIndex = 3;
+
+    products.forEach(p => {
+        const row = ws.getRow(rowIndex);
+
+        row.getCell(1).value = p.barcode;
+        row.getCell(2).value = p.product_name;
+        row.getCell(3).value = Number(p.price);
+        row.getCell(4).value = p.stock;
+        row.getCell(5).value = p.unit;
+        row.getCell(6).value = p.per;
+        row.getCell(7).value = p.catagory;
+
+        // Format date
+        const d = new Date(p.exdate);
+        if (!isNaN(d)) {
+            row.getCell(8).value = d;
+            row.getCell(8).numFmt = "dd mmm yyyy";  
+        } else {
+            row.getCell(8).value = p.exdate;
+        }
+
+        row.commit();
+        rowIndex++;
+    });
+
+    // 5. Save and trigger the download
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    });
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "Inventory_Report.xlsx";
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+
+
+//     function downloadExcel(type) {
+//     let file = type === 'inventory' ? inventoryData : fileData;
+
+//     if (!file || file.length === 0) {
+//         alert("No data available to export.");
+//         return;
+//     }
+
+//     // Ensure file is an array of objects
+//     if (typeof file === 'string') file = JSON.parse(file);
+
+//     fetch(`/download-excel`, {
+//         method: 'POST',
+//         credentials: "include",
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify({ products: file })  // now this will be a proper array
+//     })
+//     .then(response => {
+//         if (!response.ok) throw new Error("Network response was not ok");
+//         return response.blob();
+//     })
+//     .then(blob => {
+//         const url = window.URL.createObjectURL(blob);
+//         const a = document.createElement('a');
+//         a.href = url;
+//         a.download = "product_inventory.xlsx";
+//         document.body.appendChild(a);
+//         a.click();
+//         a.remove();
+//         window.URL.revokeObjectURL(url);
+//     })
+//     .catch(err => console.error("Download error:", err));
+// }
+
+
+
 
 
 

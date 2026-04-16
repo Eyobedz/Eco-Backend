@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Settings</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+<link rel="icon" href="/Elements/meh.png" type="image/png">
+<link rel="stylesheet" href="Elements/toastNotification.css">
+
+<script src="Elements/toastNotification.js"></script>
+<script defer src="Elements/loading1.js"></script>
+<script defer src="Elements/loading2.js"></script>
+
+
+<!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script> -->
+
+
+<style>
+body {
+    font-family: Arial;
+    background: #f4f6f9;
+    padding: 30px;
+}
+
+.section {
+    background: white;
+    padding: 20px;
+    margin-bottom: 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+h3 {
+    margin  : 15px;
+}
+
+input, select {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 12px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+button {
+    padding: 8px 14px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.logout-btn {
+    background: #dc3545;
+}
+.profile-card {
+        background: #fff;
+        border-radius: 1rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        /* width: 380px; */
+        padding: 2rem;
+        margin-bottom: 25px;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content:space-between;
+    }
+
+    #info{
+      display: flex;
+      flex-direction: column;
+    }
+
+    #back-btn {
+        position: absolute;
+        top: -140px;
+        left: -130px;
+        cursor: pointer;
+    }
+
+    #back-btn i {
+        font-size: 20px;
+        color: #007bff;
+        scale: 1.15;
+    }
+        
+    .profile-card img {
+        width: 10rem;
+        height: 10rem;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-bottom: 1rem;
+        border: 3px solid #007bff;
+    }
+
+    .profile-card h2 {
+        margin: 0.5rem 0;
+        font-size: 1.5rem;
+    }
+
+    .profile-card p {
+        margin: 0.2rem 0 1rem 0;
+        color: #666;
+    }
+
+    
+    .actions {
+        margin-top: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 1.5rem;
+    }
+
+    .actions button {
+        padding: 0.7rem 1.2rem;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: bold;
+    }
+
+    .btn-edit {
+        background: #007bff;
+        color: white;
+    }
+
+    .btn-logout {
+        background: #dc3545;
+        color: white;
+    }
+
+    .btn-change {
+        background: #28a745;
+        color: white;
+    }
+
+    .btn-edit:hover { background: #0056b3; }
+    .btn-logout:hover { background: #a71d2a; }
+    .btn-change:hover { background: #1e7e34; }
+
+    /* Base popover styling */
+    [popover] {
+  display: none; /* default hidden */
+}
+
+[popover]:popover-open {
+  display: flex; /* only visible when opened */
+  padding: 20px;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.15);
+  width: 320px;
+  max-width: 90%;
+  font-family: Arial, sans-serif;
+  flex-direction: column;
+  gap: 12px;
+  animation: fadeIn 0.25s ease;
+}
+
+
+/* Headings inside popovers */
+[popover] h1 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #333;
+  text-align: center;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 8px;
+}
+
+/* Input styling */
+[popover] input {
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+[popover] input:focus {
+  border-color: #0077ff;
+  box-shadow: 0 0 0 2px rgba(0, 119, 255, 0.1);
+}
+
+/* Optional buttons for popover actions */
+.popover-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.popover-actions button {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.popover-actions .save {
+  background: #0077ff;
+  color: #fff;
+}
+
+.popover-actions .cancel {
+  background: #eee;
+  color: #333;
+}
+
+.popover-actions .save:hover {
+  background: #005fcc;
+}
+
+.popover-actions .cancel:hover {
+  background: #ddd;
+}
+
+.message {
+  display: none;
+  color: #dc3545;
+  font-size: 0.85rem;
+  margin-top: 8px;
+}
+
+
+.file-upload {
+    text-align: center;
+  }
+
+  input[type="file"] {
+    display: none;
+  }
+
+  .custom-btn {
+    display: inline-block;
+    padding: 12px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.2s ease;
+  }
+
+  .custom-btn:hover {
+    background-color: #0056b3;
+  }
+
+  .preview {
+    margin-top: 15px;
+  }
+
+  .preview img {
+    max-width: 250px;
+    max-height: 250px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    display: block;
+    margin: 10px auto;
+  }
+
+  .file-name {
+    font-size: 14px;
+    color: #333;
+  }
+
+
+  .file-upload {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .custom-btn {
+    background-color: #007bff;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-bottom: 10px;
+  }
+
+  #fileInput {
+    display: none;
+  }
+
+  .preview {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background-color: #eee;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .file-name {
+    font-size: 0.9em;
+    color: #555;
+    text-align: center;
+    word-break: break-all;
+    padding: 4px;
+  }
+
+  /* Modal */
+  .modal {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0,0,0,0.7);
+    z-index: 999;
+  }
+
+  .modal-content {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 90%;
+    max-height: 90%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  #cropImage {
+    max-width: 100%;
+    max-height: 70vh;
+  }
+
+  .buttons {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+  }
+
+  .buttons button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    background: #007bff;
+    color: white;
+    cursor: pointer;
+  }
+
+  .buttons button.cancel {
+    background: #6c757d;
+  }
+
+  label {
+    padding: 1rem;
+  }
+
+  .unit_input{
+    display: grid;
+    grid-template-columns: 5rem 1fr 1fr;
+    grid-template-rows: 1fr;
+    width: 15rem;
+    align-items: baseline;
+    padding-left: 2rem;
+  }
+
+  .unit_input input{
+    width: auto;
+    margin-right: 0.5rem;
+    
+  }
+
+  #exdate_input{
+    display: grid;
+    grid-template-columns: 1fr 5rem 1rem;
+    grid-template-rows: 1fr;
+    width: 20rem;
+    align-items: baseline;
+    padding-left: 2rem;
+  }
+
+  #exdate_input input{
+    width: auto;
+    margin-right: 0.5rem;
+  }
+
+  #tax_input{
+    display: grid;
+    grid-template-columns: 1fr 5rem 1rem;
+    grid-template-rows: 1fr;
+    width: 18rem;
+    align-items: baseline;
+    padding-left: 2rem;
+  }
+
+  #tax_input input{
+    width: auto;
+    margin-right: 0.5rem;
+  }
+
+  .title {
+    padding-top: 1.5rem;
+  }
+
+  .switch {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .switch input {
+    display: none;
+  }
+
+  .slider {
+    position: relative;
+    width: 50px;
+    height: 25px;
+    background-color: #bd3333;
+    border-radius: 25px;
+    transition: background-color 0.3s;
+  }
+
+  .slider::before {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 3px;
+    width: 21px;
+    height: 21px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.3s;
+  }
+  
+  input:checked + .slider {
+    background-color: #4caf50;
+  }
+
+  input:checked + .slider::before {
+    transform: translateX(25px);
+  }
+
+  .label-text { 
+    font-weight: 500;
+  }
+
+/* Smooth fade animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+
+    @media(max-width: 420px){
+        .profile-card { width: 95%; padding: 1.5rem; }
+        .stats { flex-direction: column; gap: 0.5rem; }
+    }
+
+
+  .overlay {
+    position: absolute;
+    width: 93.5%;
+    left: 38px;
+    z-index: 100;
+
+    /* top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: none; */
+  }
+
+  #profile-overlay {
+    background-color: rgba(255, 0, 0, 0.25);
+    top: 105px;
+    height: 250px;
+  }
+
+  #inventory-overlay {
+    background-color: rgba(0, 255, 0, 0.25);
+    top: 380px;
+    height: 470px;
+  }
+
+  #notification-overlay {
+    background-color: rgba(0, 0, 255, 0.25);
+    top: 875px;
+    height: 205px;
+  }
+
+  .blurred{
+    filter: blur(2px);
+    transition: filter 0.5s ease;
+  }
+
+</style>
+</head>
+
+<body>
+
+  <h2>Settings</h2>
+
+    <!-- Profile -->
+    <section class="profile-card blurred" id="profile-card">
+      <a href="/Home" id="back-btn"><i class="fas fa-arrow-left"></i></a>
+
+      <div class="profile-pic">
+        <img id="profile-pic" src="/uploads/SPARKE.gif" alt="Profile Picture">
+      </div>
+
+      <div id="info"> 
+        <h2 id="fullname">Loading...</h2>
+        <p id="username">Username: Loading...</p>
+        <p id="user_type">Role: Loading...</p>
+        <p id="user_email">Email: Loading...</p>
+      </div>
+    
+    
+      <div class="actions">
+        <button class="btn-edit" popovertarget="editprofile" popovertargetaction="toggle"><i class="fas fa-user-edit"></i> Edit Profile</button>
+        <button class="btn-change" popovertarget="changepassword" popovertargetaction="toggle"><i class="fas fa-key"></i> Change Password</button>
+        <!-- <button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button> -->
+      </div>
+
+      <!-- Edit Profile Popover -->
+      <form popover="manual" id="editprofile">
+        <h1>Edit Profile</h1>
+        <input type="hidden" id="userId" value="">
+
+        <div class="file-upload">
+          <div class="preview" id="preview">
+            <p class="file-name">No file selected</p>
+          </div>
+          <label for="fileInput" class="custom-btn">Choose File</label>
+          <input type="file" id="fileInput" accept="image/*,.pdf,.txt,.doc,.docx">
+        </div>
+
+        <input type="text" id="full_name" placeholder="Full Name">
+        <input type="text" id="userName" placeholder="Username">
+        <input type="email" id="userEmail" placeholder="Email">
+        <p class="message" id="Editmessage"></p>
+
+        <div class="popover-actions">
+          <button type="button" class="cancel" popovertarget="editprofile" popovertargetaction="hide">Cancel</button>
+          <button type="submit" class="save">Save</button>
+        </div>
+      </form>
+
+      <!-- Modal for cropping -->
+      <div class="modal" id="modal">
+        <div class="modal-content">
+          <img id="cropImage">
+          <div class="buttons">
+            <button id="cropBtn">Crop</button>
+            <button class="cancel" id="cancelBtn">Cancel</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Change Password Popover -->
+      <form popover="manual" id="changepassword">
+        <h1>Change Password</h1>
+        <input type="hidden" id="user_id" value="">
+        <input type="password" id="old_password" placeholder="Old Password">
+        <input type="password" id="new_password" placeholder="New Password">
+        <input type="password" id="confirm_password" placeholder="Confirm Password">
+        <span><input type="checkbox" id="showPassword" onchange="show_Password()"> Show Password </span>
+        <p class="message" id="message"></p>
+        <div class="popover-actions">
+          <button type="button" class="cancel" popovertarget="changepassword" popovertargetaction="hide">Cancel</button>
+          <button type="submit" class="save">Update</button>
+        </div>
+      </form>
+     
+
+    </section>
+
+    <!-- Theme -->
+    <!-- <div class="section">
+      <h3>Theme Settings</h3>
+      <select id="theme">
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+      </select>
+      <button onclick="saveTheme()">Save Theme</button>
+    </div> -->
+
+    <!-- Inventory Alerts -->
+    <section class="section blurred" id="inventory-card">
+      <h3><i class="fa-solid fa-gear"></i>  Inventory & Alerts</h3>
+      <section id="stock_threshold">
+        <label class="title">Low Stock Threshold</label>
+        <!-- <input type="number" id="low_stock_threshold"> -->
+      </section>
+
+      <section id="exdate_threshold">
+        <label class="title">Expiration Alert (Days Before)</label>
+          <section id="exdate_input">
+            <label>Expiration Alert Threshold </label>
+            <input type="number" id="expiration_alert_days">
+            <label>Days</label>
+          </section>
+      </section> 
+      <!-- <label>
+      <input type="checkbox" id="allow_negative_stock">
+      Allow Negative Stock
+      </label>
+
+      <label>Currency</label>
+      <select id="currency">
+      <option value="ETB">ETB</option>
+      <option value="USD">USD</option>
+      <option value="EUR">EUR</option>
+      </select> -->
+      <label class="title">Tax Rate</label>
+      <section id="tax_input">
+        <label>Tax Rate (%)</label>
+        <input type="number" id="tax_rate" step="0.01">
+        <label>%</label>
+      </section>
+
+     
+
+      <button onclick="saveInventorySettings()">Save Inventory Settings</button>
+
+    </section>
+
+    <!-- Notification Section -->
+    <section class="section blurred" id="notification-card">
+     
+        <h3><i class="fa-solid fa-bell"></i> Notification Settings</h3>
+        <section class="notification_settings">
+          <label>In App Notification</label>
+          <label id="switch" class="switch">
+            <span class="label-text">Disable</span>
+            <input type="checkbox" id="inAppToggle">
+            <span class="slider"></span>
+            <span class="label-text">Enable</span>
+        </label>
+        </section>
+
+        <section class="notification_settings">
+          <label>Email Notification</label>
+          <label id="switch" class="switch">
+            <span class="label-text">Disable</span>
+            <input type="checkbox" id="emailToggle">
+            <span class="slider"></span>
+            <span class="label-text">Enable</span>
+        </label>
+        </section>
+        <button onclick="saveNotificationSettings()">Save Notification Settings</button>
+    </section>
+
+    <!-- Logout -->
+    <div class="section">
+      <h3>Account</h3>
+      <a href="/logout">
+      <button class="logout-btn">Logout</button>
+      </a>
+    </div>
+
+<script>
+
+
+const notifier = new ToastNotification();
+document.addEventListener("DOMContentLoaded", () => {
+    fetchProfileData();
+    loadsettings();
+    changePassword();
+    fileUpload();
+    editProfile();
+    crop();
+});
+
+
+
+function fetchProfileData() {
+  const profileCard = document.getElementById('profile-card');
+  // profileCard.classList.add('blurred');
+  fetch("/api/get-profile", { credentials: "include" })
+    .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch profile");
+        return res.json();
+    })
+    .then(data => {
+        const pp = data.pp_url !== 'none' ? data.pp_url : '/uploads/SPARKE.gif';
+        document.getElementById("profile-pic").src = pp;
+        document.getElementById("fullname").textContent = data.full_name;
+        document.getElementById("username").textContent = `Username: ${data.username}`;
+        document.getElementById("user_type").textContent = `Role: ${data.user_type}`;
+        document.getElementById("user_email").textContent = `Email: ${data.user_email}`;
+        document.getElementById("user_id").value = data.user_id;
+
+        document.getElementById("full_name").value = data.full_name;
+        document.getElementById("userName").value = data.username;
+        document.getElementById("userEmail").value = data.user_email;
+        document.getElementById("userId").value = data.user_id;
+        profileCard.classList.remove('blurred');
+
+    })
+    .catch(error => {
+            console.error('Error fetching data:', error.message || error);
+            // alert('Failed to load data. Please try again later.');
+            notifier.error('Failed to load profile data. Please try again later.');
+
+        })
+};
+
+function show_Password() {
+  const passwordFields = document.querySelectorAll("#old_password, #new_password, #confirm_password");
+    let show = passwordFields[0].type === "password"; // check first field
+
+    passwordFields.forEach(input => {
+        input.type = show ? "text" : "password";
+    });
+}
+
+function fileUpload(){
+  document.getElementById('editprofile').hidePopover()
+
+  const fileInput = document.getElementById('fileInput');
+  const preview = document.getElementById('preview');
+
+  fileInput.addEventListener('change', () => {
+    preview.innerHTML = ''; // clear old preview
+
+    const file = fileInput.files[0];
+    if (!file) {
+      preview.innerHTML = '<p class="file-name">No file selected</p>';
+      return;
+    }
+
+    if (file.type.startsWith('image/')) {
+      const img = document.createElement('img');
+      img.src = URL.createObjectURL(file);
+      preview.appendChild(img);
+    } else {
+      const p = document.createElement('p');
+      p.className = 'file-name';
+      p.textContent = `📄 ${file.name}`;
+      preview.appendChild(p);
+    }
+  });
+}
+
+function editProfile() {
+    document.getElementById("editprofile").addEventListener("submit", function(e) {
+        e.preventDefault();
+
+        waveloader.show();
+
+        const formData = new FormData();
+        const fileData = new FormData();
+        formData.append('id', document.getElementById('user_id').value);
+        formData.append('full_name', document.getElementById('full_name').value);
+        formData.append('username', document.getElementById('userName').value);
+
+        const imageFile = document.getElementById('fileInput').files[0];
+        if (imageFile){
+          formData.append('fileInput', imageFile);
+        }
+        fetch('/api/update-profile', {
+            method: 'POST',
+            body: formData,
+            credentials: "include"
+        })
+        .then(async res => {
+            const data = await res.json();
+
+            if (!res.ok) {
+                // backend sends "error" and "message"
+                notifier.error(data.message || data.error || "Failed to Edit Profile");
+
+                document.getElementById("Editmessage").textContent = data.message || data.error;
+                document.getElementById("Editmessage").style.display = "block";
+                throw new Error(data.message || data.error);
+            }else{
+                notifier.success(data.message || 'Profile Updated Successfully');
+                fetchProfileData();
+                document.getElementById('editprofile').hidePopover();
+            }
+
+            return data;
+        })
+        .catch(err => {
+            console.error(err);
+            // already shown notifier.error above
+        })
+
+        .finally(() => {
+            waveloader.hide();
+        });
+    });
+
+}
+
+function changePassword() {
+    document.getElementById("changepassword").addEventListener("submit", function(e) {
+        e.preventDefault();
+
+        waveloader.show();
+
+        const formData = new FormData();
+        formData.append('user_id', document.getElementById('user_id').value);
+        formData.append('old_password', document.getElementById('old_password').value);
+        formData.append('new_password', document.getElementById('new_password').value);
+        formData.append('confirm_password', document.getElementById('confirm_password').value);
+
+        fetch('/api/change-password', {
+            method: 'POST',
+            body: formData,
+            credentials: "include"
+        })
+        .then(async res => {
+            const data = await res.json();  // ✅ always parse response JSON
+
+            if (!res.ok) {
+                // backend sends "error" and "message"
+                notifier.error(data.message || data.error || "Failed to change password");
+
+                document.getElementById("message").textContent = data.message || data.error;
+                document.getElementById("message").style.display = "block";
+                throw new Error(data.message || data.error);
+            }
+
+            return data;
+        })
+        .then(data => {
+            // ✅ backend only returns "message"
+            document.getElementById('old_password').value = '';
+            document.getElementById('new_password').value = '';
+            document.getElementById('confirm_password').value = '';
+            document.getElementById("changepassword").hidePopover();
+            notifier.success(data.message || 'Password Changed Successfully');
+        })
+        .catch(err => {
+            console.error(err);
+            // already shown notifier.error above
+        })
+        .finally(() => {
+            waveloader.hide();
+        });
+    });
+}
+
+function crop() {
+  const fileInput = document.getElementById('fileInput');
+  const preview = document.getElementById('preview');
+  const modal = document.getElementById('modal');
+  const cropImage = document.getElementById('cropImage');
+  const cropBtn = document.getElementById('cropBtn');
+  const cancelBtn = document.getElementById('cancelBtn');
+  const editProfilePopover = document.getElementById('editprofile');
+  let cropper;
+
+  // ✅ Remove any previous listeners before re-adding
+  fileInput.onchange = null;
+  cropBtn.onclick = null;
+  cancelBtn.onclick = null;
+
+  fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      preview.innerHTML = `<p class="file-name">${file.name}</p>`;
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      cropImage.src = reader.result;
+
+      // ✅ Hide the popover immediately
+      if (editProfilePopover.hidePopover) {
+        editProfilePopover.hidePopover();
+      }
+
+      modal.style.display = 'flex';
+
+      if (cropper) cropper.destroy();
+
+      cropper = new Cropper(cropImage, {
+        aspectRatio: 1,
+        viewMode: 1,
+        autoCropArea: 0.9,
+        responsive: true,
+        background: false,
+        movable: true,
+        zoomable: true,
+        scalable: true,
+      });
+    };
+    reader.readAsDataURL(file);
+  });
+
+  cropBtn.addEventListener('click', () => {
+    if (!cropper) return;
+
+    const canvas = cropper.getCroppedCanvas({
+      width: 400,
+      height: 400,
+    });
+
+    const croppedImage = document.createElement('img');
+    croppedImage.src = canvas.toDataURL('image/png');
+    croppedImage.alt = 'Profile Picture';
+    preview.innerHTML = '';
+    preview.appendChild(croppedImage);
+
+    modal.style.display = 'none';
+    cropper.destroy();
+    cropper = null;
+
+    // ✅ Delay showing popover slightly (ensure modal is gone)
+    setTimeout(() => {
+      if (editProfilePopover.showPopover) {
+        editProfilePopover.showPopover();
+      }
+    }, 150);
+  });
+
+  cancelBtn.addEventListener('click', () => {
+    modal.style.display = 'none';
+    if (cropper) {
+      cropper.destroy();
+      cropper = null;
+    }
+
+    // ✅ Also delay popover restore for smoother transition
+    setTimeout(() => {
+      if (editProfilePopover.showPopover) {
+        editProfilePopover.showPopover();
+      }
+    }, 150);
+  });
+}
+
+
+
+function loadsettings(){
+  const stock_threshold_section = document.getElementById('stock_threshold');
+  const exdate_threshold_section = document.getElementById('exdate_threshold');
+  const inventoryCard = document.getElementById('inventory-card');
+
+  fetch(`/api/get-settings`, { method: 'GET', credentials: "include" })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok ' + response.statusText);
+            }
+            return response.json();
+        })
+        .then(data => {
+            const result = data[0];
+            const exdate = data[1];
+            const system_settings = data[5];
+            // console.log(system_settings);
+
+            exdate_threshold_section.querySelector('input').placeholder = exdate
+
+            
+            stock_threshold_section.innerHTML=`<label class="title">Low Stock Threshold</label>`
+            result.forEach(row =>{
+              const input = document.createElement('section')
+              input.className = 'unit_input'
+              input.innerHTML = `
+              <label>${row.name}:</label>
+              <input type='number' class='low_stock' id='${row.name}' unitId='${row.unit_id}' placeholder= "${row.stock_threshold}">  
+              <label>${row.symbol}</label>
+              `
+              stock_threshold_section.appendChild(input)
+            })
+            inventoryCard.classList.remove('blurred');
+            console.log(data[3]);
+            loadnotificationSetting(data[3])
+            const tax_rate = system_settings[0]['TAX'];
+            console.log(tax_rate);
+            tax_input.querySelector('input').placeholder = tax_rate;
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error.message || error);
+            // alert('Failed to load data. Please try again later.');
+            notifier.error('Failed to load settings data. Please try again later.');
+
+        })
+}
+
+
+
+function loadnotificationSetting(notification_option){
+  const notificationCard = document.getElementById('notification-card');
+  const inAppToggle = document.getElementById('inAppToggle');
+  const emailToggle = document.getElementById('emailToggle');
+  if(notification_option === 'InApp'){
+    inAppToggle.checked = true;
+  }else if(notification_option === 'Email'){
+    emailToggle.checked = true;
+  }else if(notification_option === 'Both'){
+    emailToggle.checked = true;
+    inAppToggle.checked = true;
+  }
+  notificationCard.classList.remove('blurred');
+}
+
+function saveInventorySettings(){
+ 
+  const inventory_settings = document.getElementById('inventory-card');
+  const formData = new FormData();
+  const low_stock_threshold = document.querySelectorAll('.low_stock');
+  
+  low_stock_threshold.forEach(item => {
+    const unitId = item.getAttribute('unitId')
+    if(item.value !== ''){
+      formData.append(unitId, item.value)
+    }
+  });
+const exp = document.getElementById('expiration_alert_days').value
+const tax = document.getElementById('tax_rate').value
+
+if (exp !== '') {
+  formData.append('expiration_alert_days', exp);
+}
+
+if (tax !== '') {
+  formData.append('tax_rate', tax);
+}
+
+  console.log(formData)
+  if(!formData.entries().next().value){
+    console.log('No value entered')
+    notifier.error('No Value Entered. Enter a vlaue and try again.')
+    return;
+  }
+
+  fetch(`/api/save-inventory-settings`, {
+      method: 'POST',
+      credentials: "include",
+      body: formData })
+          .then(response => {
+              if (!response.ok) {
+                  throw new Error('Network response was not ok ' + response.statusText);
+              }
+              return response.json();
+          })
+          .then(data => {
+              console.log(data);
+              notifier.success('Inventory settings saved successfully');
+              loadsettings();
+
+          })
+          .catch(err => {
+              console.error(err);
+              notifier.error(error.message || 'Failed to save inventory settings. Please try again later.');
+          })
+          .finally(() => {
+              waveloader.hide();
+          });
+}
+
+function saveNotificationSettings(){
+  const inApp = document.getElementById('inAppToggle').checked;
+  const email = document.getElementById('emailToggle').checked;
+  const formData = new FormData()
+  if (inApp && email){
+    formData.append('notification', 'Both')
+
+  }else if(inApp){
+    formData.append('notification', 'InApp')
+  }else if(email){
+    formData.append('notification', 'Email')
+  }else{
+    formData.append('notification', 'None')
+  };
+
+  // const notification_option = document.getElementById('inAppToggle').checked ? 'InApp' : document.getElementById('emailToggle').checked ? 'Email' : 'Both';
+  fetch(`/api/save-notification-settings`, { 
+      method: 'POST', 
+      credentials: "include",
+      body:formData })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok ' + response.statusText);
+            }
+            return response.json();
+        })
+        .then(data => {
+            // console.log(data);
+            notifier.success(data.message)
+        })
+        .catch(err => {
+            console.error(err);
+            notifier.error('Failed to save inventory settings. Please try again later.')
+        })
+        .finally(() => {
+            waveloader.hide();
+        });
+}
+
+
+
+// async function loadProfile() {
+//     const res = await fetch('/api/profile');
+//     const data = await res.json();
+
+//     document.getElementById('username').value = data.username;
+//     document.getElementById('email').value = data.email;
+//     document.getElementById('theme').value = data.theme;
+// }
+
+// async function saveProfile() {
+//     await fetch('/api/profile', {
+//         method: 'POST',
+//         headers: {'Content-Type': 'application/json'},
+//         body: JSON.stringify({
+//             username: username.value,
+//             email: email.value
+//         })
+//     });
+// }
+
+// async function saveTheme() {
+//     await fetch('/api/theme', {
+//         method: 'POST',
+//         headers: {'Content-Type': 'application/json'},
+//         body: JSON.stringify({
+//             theme: theme.value
+//         })
+//     });
+// }
+
+// async function loadInventorySettings() {
+//     const res = await fetch('/api/inventory-settings');
+//     const data = await res.json();
+
+//     low_stock_threshold.value = data.low_stock_threshold;
+//     expiration_alert_days.value = data.expiration_alert_days;
+//     allow_negative_stock.checked = data.allow_negative_stock;
+//     currency.value = data.currency;
+//     tax_rate.value = data.tax_rate;
+// }
+
+// async function saveInventorySettings() {
+//     await fetch('/api/inventory-settings', {
+//         method: 'POST',
+//         headers: {'Content-Type': 'application/json'},
+//         body: JSON.stringify({
+//             low_stock_threshold: parseInt(low_stock_threshold.value),
+//             expiration_alert_days: parseInt(expiration_alert_days.value),
+//             allow_negative_stock: allow_negative_stock.checked,
+//             currency: currency.value,
+//             tax_rate: parseFloat(tax_rate.value)
+//         })
+//     });
+// }
+
+// loadProfile();
+// loadInventorySettings();
+</script>
+
+</body>
+</html>

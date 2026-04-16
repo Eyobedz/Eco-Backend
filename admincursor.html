@@ -11,6 +11,7 @@
     <link rel="icon" href="/Elements/meh.png" type="image/png">
 
     <link rel="stylesheet" href="Elements/toastNotification.css">
+    <script src="Elements/toastNotification.js"></script>
     <script defer src="Elements/loading1.js"></script>
     <script defer src="Elements/loading2.js"></script>
 
@@ -955,7 +956,7 @@ footer {
         <a href="/Cart" class="nav-item"><i class="fas fa-cart-shopping" id="icon"></i>Cart</a>
         <a href="/Dashboard" class="nav-item"><i class="fas fa-solid fa-border-all icon" id="icon"></i>Dashboard</a>
         <a href="coming.html" class="nav-item"><i class="fas fa-list-check" id="icon"></i>Order List</a>
-        <a href="coming.html" class="nav-item"><i class="fas fa-gear" id="icon"></i>Setting</a>
+        <a href="/settings" class="nav-item"><i class="fas fa-gear" id="icon"></i>Setting</a>
         <a href="/logout" class="nav-item" style="color: red; font-weight: bold;"><i id="icon"></i>Log out</a>
         
     </nav>
@@ -1072,7 +1073,7 @@ footer {
             <div popover id="dropdownMenu" anchor="accBtn" class="dropdown">
                 <a href="/Profile">Profile</a>
                 <a href="/Dashboard">Dashboard</a>
-                <a href="#">Settings</a>
+                <a href="/Settings">Settings</a>
                 <a href="/logout">Log out</a>
                 
             </div>
@@ -1136,10 +1137,7 @@ footer {
                     <tr><td><Label for="Unit">Measuring Unit</Label><td>
                         <input name="unit list" list="unitList" id="Unit" placeholder="Unit" >
                             <datalist id="unitList">
-                                <option>Pis</option>
-                                <option>Kg</option>
-                                <option>Liter</option>
-                                <option>100g</option>
+                               
                             </datalist>
                     </td></tr>
         
@@ -1149,10 +1147,7 @@ footer {
                         <Label for="priceper">/</Label>
                             <select id="priceper" placeholder="Price per" >
                                     <option value="" disable selected hidden>Per Unit</option>
-                                    <option value="Pis">Pis</option>
-                                    <option value="Kg">Kg</option>
-                                    <option value="Liter">Liter</option>
-                                    <option value="100g">100g</option>
+                                    
                             </select>
                     </td></tr>   
                         
@@ -1263,13 +1258,13 @@ footer {
                         <input type="number" name='stock' id="edit-quantity-input" placeholder="Quantity" ></td></tr>
         
                     <tr><td><Label for="edit-Unit">Measuring Unit</Label><td>
-                        <input name="unit" name='unit' list="unitList" id="edit-Unit" placeholder="Unit" >
-                            <datalist id="unitList">
-                                <option value="" disable selected hidden>Per Unit</option>
+                        <input name="unit" name='unit' list="edit-unitList" id="edit-Unit" placeholder="Unit" >
+                            <datalist id="edit-unitList">
+                                <!-- <option value="" disable selected hidden>Per Unit</option>
                                 <option value="Pis">Pis</option>
                                 <option value="Kg">Kg</option>
                                 <option value="Liter">Liter</option>
-                                <option value="100g">100g</option>
+                                <option value="100g">100g</option> -->
                             </datalist>
                     </td></tr>
                     
@@ -1277,11 +1272,11 @@ footer {
                         <input type="number" name="price" id="edit-price-input" placeholder="Price">
                         <Label for="edit-priceper">/</Label>
                             <select name="per" id="edit-priceper" placeholder="Price per" >
-                                    <option id="edit-per" value="" disable selected hidden>Per Unit</option>
+                                    <!-- <option id="edit-per" value="" disable selected hidden>Per Unit</option>
                                     <option value="Pis">Pis</option>
                                     <option value="Kg">Kg</option>
                                     <option value="Liter">Liter</option>
-                                    <option value="100g">100g</option>
+                                    <option value="100g">100g</option> -->
                             </select>
                     </td></tr>   
                         
@@ -1324,7 +1319,6 @@ footer {
     <!-- <div class="overlay" id="confirmoverlay"></div> -->
     <div class="overlay" id="sideoverlay"></div>
 
-    <script src="Elements/toastNotification.js"></script>
 
     <script>
 
@@ -1332,6 +1326,7 @@ footer {
 
 
 document.addEventListener("DOMContentLoaded", () => {
+    load_settings();
     fetchProfileData();
     AddProduct();
     sidebar();
@@ -1341,6 +1336,22 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 const notifier = new ToastNotification();
+let exdate_limit = '';
+let theme = '';
+function load_settings(){
+// add theme loading here
+    fetch("/api/load-settings", { credentials: "include" })
+        .then(res => {
+            if (!res.ok) throw new Error("Failed to fetch settings");
+            return res.json();
+        })
+        .then(data => {
+           exdate_limit = data.exdate_alert;
+           theme = data.theme;
+        //    console.log(exdate_limit, theme, 'here are the settings')
+        })
+        .catch(err => console.error(err));
+}
 
 function fetchProfileData() {
     fetch("/api/get-profile", { credentials: "include" })
@@ -1447,6 +1458,7 @@ function fetchAndUpdateData() {
                 rowDiv.setAttribute('data-barcode', row.barcode);
                 rowDiv.setAttribute('data-price', row.price);
                 rowDiv.setAttribute('data-priceper', row.per);
+                rowDiv.setAttribute('data-stock-limit', row.stock_threshold);
                 rowDiv.setAttribute('data-image', row.image_path || '');
                 rowDiv.setAttribute('onclick', 'viewDetails(this)');
 
@@ -1456,7 +1468,7 @@ function fetchAndUpdateData() {
                     : '';
 
                 // Pre-calculate stock and expiration information
-                const stockInfoContent = getStockAndExpirationInfo(row.stock, row.unit, formattedDate);
+                const stockInfoContent = getStockAndExpirationInfo(row.stock, row.unit, formattedDate, row.stock_threshold);
 
                 rowDiv.innerHTML = `
                     ${imgElement}
@@ -1479,13 +1491,14 @@ function fetchAndUpdateData() {
             console.error('Error fetching data:', error.message || error);
             // alert('Failed to load data. Please try again later.');
             notifier.error('Failed to load data. Please try again later.');
+            noResult.style.display = 'block';
 
         })
 
         .finally(() => {
             // Hide loader after fetching data (success or error)
             GearboxLoader.hide();
-            noResult.style.display = 'block';
+            
 
            
         });
@@ -1682,7 +1695,7 @@ function sort (){
 }
 
 
-function getStockAndExpirationInfo(stock, unit, expirationDateStr) {
+function getStockAndExpirationInfo(stock, unit, expirationDateStr, low_stock_threshold) {
     const today = new Date();
 
     if (!expirationDateStr) return { text: '', color: '' }; // Skip if no expiration date is provided
@@ -1695,7 +1708,7 @@ function getStockAndExpirationInfo(stock, unit, expirationDateStr) {
     let color = '';
 
     // Check stock level
-    if (stock > 0 && stock < 10) {
+    if (stock > 0 && stock <= low_stock_threshold) {
         text = `Low stock: Only ${stock} ${unit} left`;
         color = 'orange';
     } else if (stock === 0) {
@@ -1707,7 +1720,7 @@ function getStockAndExpirationInfo(stock, unit, expirationDateStr) {
     }
 
     // Check expiration date
-    if (daysToExpire <= 7 && daysToExpire > 0) {
+    if (daysToExpire <= exdate_limit && daysToExpire > 0) {
         text += ` | Expiring in ${daysToExpire} days!`;
         color = 'orange'; // Override color if expiring soon
     } else if (daysToExpire <= 0) {
@@ -1719,42 +1732,42 @@ function getStockAndExpirationInfo(stock, unit, expirationDateStr) {
     return { text, color };
 }
 
-function checkStockAndExpiraion() {
-    const products = document.querySelectorAll('.product');
-    const today = new Date();
+// function checkStockAndExpiraion() {
+//     const products = document.querySelectorAll('.product');
+//     const today = new Date();
 
-    products.forEach(product => {
-        const stock = Number(product.getAttribute('data-stock'));
-        const unit = product.getAttribute('data-unit');
-        const expirationDate = new Date(product.getAttribute('data-expiration'));
-        const stockInfo = product.querySelector('.stock-info');
+//     products.forEach(product => {
+//         const stock = Number(product.getAttribute('data-stock'));
+//         const unit = product.getAttribute('data-unit');
+//         const expirationDate = new Date(product.getAttribute('data-expiration'));
+//         const stockInfo = product.querySelector('.stock-info');
 
-        if ( stock > 0 && stock< 10 ) {
-            stockInfo.textContent = `Low stock: Only ${stock} left`;
-            stockInfo.style.color = 'red';
-        } 
+//         if ( stock > 0 && stock< 10 ) {
+//             stockInfo.textContent = `Low stock: Only ${stock} left`;
+//             stockInfo.style.color = 'red';
+//         } 
 
-        if(stock == 0) {
-            stockInfo.textContent = `Out of stock`;
-            stockInfo.style.color = 'red';
-        }
-        else {
-           stockInfo.textContent = `In stock: ${stock} ${unit}`;
-        }
+//         if(stock == 0) {
+//             stockInfo.textContent = `Out of stock`;
+//             stockInfo.style.color = 'red';
+//         }
+//         else {
+//            stockInfo.textContent = `In stock: ${stock} ${unit}`;
+//         }
 
-        const timeDiff = expirationDate - today;
-        const daysToExpire = Math.ceil(timeDiff / (1000 * 3600 * 24));
+//         const timeDiff = expirationDate - today;
+//         const daysToExpire = Math.ceil(timeDiff / (1000 * 3600 * 24));
 
-        if (daysToExpire <= 7 && daysToExpire > 0) {
-            //alert(`Product "${product.querySelector('h2').textContent}" is expiring in ${daysToExpire} days.`);
-        }
+//         if (daysToExpire <= 7 && daysToExpire > 0) {
+//             //alert(`Product "${product.querySelector('h2').textContent}" is expiring in ${daysToExpire} days.`);
+//         }
 
-        else if (daysToExpire <= 0) {
-        //    alert(`Product "${product.querySelector('h2').textContent}" has expired.`);
-        //    product.style.display = 'none';
-        }
-    });
-}
+//         else if (daysToExpire <= 0) {
+//         //    alert(`Product "${product.querySelector('h2').textContent}" has expired.`);
+//         //    product.style.display = 'none';
+//         }
+//     });
+// }
 
 function viewDetails(button) {
     var product = button.closest('.product');
@@ -1817,6 +1830,10 @@ function AddProduct(){
     const mainContent = document.getElementById('main-content');
     const addBtn = document.getElementById('addBtn');
     const closBtn = document.getElementById('closBtn');
+    const unit_list = document.getElementById('unitList');
+    const perunit_list = document.getElementById('priceper');
+
+
     
     document.getElementById('product-form').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -1876,6 +1893,36 @@ function AddProduct(){
         pdform.style.display = 'block' ;
         overlay.style.display = 'block';
         mainContent.classList.add('blurred');
+
+        fetch(`/api/get-units`,{
+        method: 'GET',
+        credentials:"include"
+    })
+    .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok ' + response.statusText);
+            }
+            return response.json();
+        })
+    .then(data => {
+        unit_list.innerHTML = '';
+        perunit_list.innerHTML = ' <option value="" disable selected hidden>Per Unit</option>';
+        console.log(data)
+        data.forEach(row => {
+            const option_unit = document.createElement('option');
+            const option_per = document.createElement('option');
+
+            option_unit.textContent = row.symbol;
+            option_unit.value = row.symbol;
+            unit_list.appendChild(option_unit);
+
+            option_per.textContent = row.symbol;
+            option_per.value = row.symbol;
+            perunit_list.appendChild(option_per);
+
+        });
+    });
+        
     }
    // 
    overlay.addEventListener('click',closBtn.onclick = function (){
@@ -1896,6 +1943,8 @@ function editProduct(data){
     const editconfirmNo = document.getElementById('editconfirmNo');
     const detoverlay = document.getElementById('detoverlay');
     const editFormElement = document.getElementById('edit-form');
+    const edit_unit_list = document.getElementById('edit-unitList');
+    const edit_perunit_list = document.getElementById('edit-priceper');
 
     detail.style.display = 'none';
     detoverlay.style.display = 'none';
@@ -1903,13 +1952,44 @@ function editProduct(data){
     overlay.style.display = 'block';
     mainContent.classList.add('blurred');
 
+    fetch(`/api/get-units`,{
+        method: 'GET',
+        credentials:"include"
+    })
+    .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok ' + response.statusText);
+            }
+            return response.json();
+        })
+    .then(data => {
+        edit_unit_list.innerHTML = '';
+        edit_perunit_list.innerHTML = ' <option value="" disable selected hidden>Per Unit</option>';
+        console.log(data)
+        data.forEach(row => {
+            const option_unit = document.createElement('option');
+            const option_per = document.createElement('option');
+
+            option_unit.textContent = row.symbol;
+            option_unit.value = row.symbol;
+            edit_unit_list.appendChild(option_unit);
+
+            option_per.textContent = row.symbol;
+            option_per.value = row.symbol;
+            edit_perunit_list.appendChild(option_per);
+
+        });
+    });
+
+
+
     document.getElementById('productID').value = data['productid'];
     document.getElementById('edit-product-name-input').placeholder = data.productName;
     document.getElementById('edit-catagory').placeholder = data.catagory;
     document.getElementById('edit-quantity-input').placeholder = data.quantity;
     document.getElementById('edit-Unit').placeholder = data.unit;
     document.getElementById('edit-price-input').placeholder = data.price;
-    document.getElementById('edit-per').textContent = data.priceper;
+    document.getElementById('edit-priceper').textContent = data.priceper;
     document.getElementById('edit-expirationDate-input').placeholder = data.expirationDate;
     document.getElementById('edit-barcode').placeholder = data.barcode;
 

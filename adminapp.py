@@ -3,6 +3,7 @@ from flask import Flask, jsonify, request, send_from_directory, send_file, sessi
 import pymysql
 from flask_cors import CORS
 import os
+import json
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 import hashlib
@@ -114,6 +115,10 @@ def login():
         user_type = user[4]
         url = user[5]
         status = user[6]
+        user_email = user[7]
+        ex_alert = user[8]
+        theme = user[9]
+        alert_type = user[10]
 
         if status =='Disabled':
             return jsonify({"success": False, "message": "Your account has been Disabled. Please Contact the admin."})
@@ -125,8 +130,12 @@ def login():
             session['full_name'] = full_name
             session['user_type'] = user_type
             session['pp_url'] = url
+            session['exdate_limit'] = ex_alert
+            session['email'] = user_email
+            session['theme'] = theme
+            session['alert_type'] = alert_type
 
-            if user_type == "admin":
+            if user_type == "Admin":
                 redirect_url = url_for('Home')
             else:
                 redirect_url = url_for('Home')
@@ -179,6 +188,11 @@ def Cart():
 def Profile():
     return send_from_directory('.', 'profile.html')
 
+@app.route('/Settings', methods=['GET'])
+@login_required
+def settings():
+    return send_from_directory('.', 'settings.html')
+
 @app.route('/Dashboard', methods=['GET'])
 @login_required
 def Dashboard():
@@ -221,6 +235,17 @@ def help():
     return send_from_directory('Dashboard', 'help.html')
 
 
+@app.route('/task', methods=['GET'])
+def task():
+    if session['user_type'] == 'Admin':
+        return send_from_directory('.', 'taskA.html')
+
+    else:
+        return send_from_directory('.', 'taskU.html')
+
+
+
+######################## Profile ######################################
 
 @app.route('/api/get-profile', methods=['GET'])
 @login_required
@@ -229,8 +254,9 @@ def get_profile():
         'user_id': session['id'],
         'username':session['username'],
         'full_name' : session['full_name'],
-         'user_type' :  session['user_type'],
-         'pp_url': session['pp_url']
+        'user_type' : session['user_type'],
+        'pp_url': session['pp_url'],
+        'user_email': session['email'],
     })
 
 @app.route('/api/change-password', methods=['POST'])
@@ -403,7 +429,26 @@ def get_data():
         #time.sleep(10)
         # with pymysql.connect(**DB_CONFIG) as connection:
         with connection.cursor() as cursor:
-            cursor.execute("SELECT * FROM product_list")
+            cursor.execute("""
+                            SELECT 
+                                p.product_id,
+                                p.product_name,
+                                p.stock,
+                                u.symbol,
+                                p.price,
+                                p.per,
+                                p.exdate,
+                                p.barcode,
+                                p.image_path,
+                                p.catagory,
+                                t.low_stock_threshold
+                            FROM product_list p
+                            JOIN units u ON p.unit_id = u.id
+                            LEFT JOIN user_unit_thresholds t
+                            ON t.unit_id = p.unit_id
+                            AND t.user_id = %s
+                        """, (session['id']))
+
             rows = cursor.fetchall()
             #print(rows)
         result = [{
@@ -416,7 +461,8 @@ def get_data():
             'exdate': row[6],
             'barcode': row[7],
             'image_path': row[8],
-            'catagory': row[9]} for row in rows]
+            'catagory': row[9],
+            'stock_threshold': row[10]} for row in rows]
         #print(result)
         return jsonify(result)
 
@@ -430,6 +476,8 @@ def get_data():
 @app.route('/api/add-product', methods=['POST'])
 @login_required
 def add_product():
+    import traceback
+
     try:
         # Check if image file was uploaded
         if 'image-input' not in request.files:
@@ -469,20 +517,45 @@ def add_product():
         if not all([product_name, stock, unit, price, per, exdate]):
             return jsonify({"error": "Missing required fields"}), 400
         connection = pymysql.connect(**DB_CONFIG)
-        try:    
+        try:
+            with connection.cursor() as cursor:
+                sql1 = "SELECT id FROM units WHERE symbol = %s"
+                cursor.execute(sql1, (unit))
+                unit_row = cursor.fetchone()
+
+                if not unit_row:
+                    return jsonify({"error": "Invalid unit"}), 400
+
+                unit_id = unit_row[0]
+        # finally:
+            # connection.close()
+ 
+          
             # Database insertion
             # with pymysql.connect(**DB_CONFIG) as connection:
                 with connection.cursor() as cursor:
-                    sql = """INSERT INTO product_list 
-                            (product_name, stock, unit, price, per, exdate, barcode, image_path, catagory) 
+                    sql = """INSERT INTO product_list
+                            (product_name, stock, unit_id, price, per, exdate, barcode, image_path, catagory)
                             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"""
-                    cursor.execute(sql, (product_name, stock, unit, price, per, exdate, barcode, image_path, catagory))
+                    cursor.execute(sql, (product_name, stock, unit_id, price, per, exdate, barcode, image_path, catagory))
                     product_id = cursor.lastrowid
+                    
+                    product_data = {
+                                    "product_id": product_id,
+                                    "product_name": product_name,
+                                    "catagory": catagory,
+                                    "stock": stock,
+                                    "unit_id": unit_id,
+                                    "price": price,
+                                    "per": per,
+                                    "exdate": exdate,
+                                    "barcode": barcode,
+                                    "image_path": image_path}
                 connection.commit()
         finally:
             connection.close()
 
-        product_logger(product_id, 'Added')
+        product_logger(product_data, 'Added')
             
         return jsonify({
             "message": "Product added successfully",
@@ -499,15 +572,14 @@ def add_product():
             }
         }), 201
         
-    except Exception as e:
-        print(f"Error: {e}")
-        return jsonify({"error": str(e)}), 500
+    except Exception:
+        traceback.print_exc()
+
+        # return jsonify({"error": str(e)}), 500
 
 # @app.route('/uploads/<filename>')
 # def uploaded_file(filename):
 #     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
-
-
 
 
 @app.route('/api/update-product', methods=['POST'])
@@ -547,6 +619,7 @@ def update_product():
             # print(image_path)
             fields.update({"image_path": image_path})
     
+        connection = pymysql.connect(**DB_CONFIG)
         
         
         # Validate required fields
@@ -556,6 +629,18 @@ def update_product():
             for key, value in data.items():
                 if value == "" or key == "id":
                     continue
+
+                if key == "Unit" and value != "":
+                    with connection.cursor() as cursor:
+                        cursor.execute("SELECT id FROM units WHERE symbol = %s", (value,))
+                        unit_row = cursor.fetchone()
+                        connection.close()
+
+
+                    if not unit_row:
+                        return jsonify({"error": "Invalid unit selected"}), 400
+
+                    fields["unit_id"] = unit_row[0]
                 else:
                     fields.update({key: value})
                
@@ -573,15 +658,46 @@ def update_product():
         # print(values) 
         connection = pymysql.connect(**DB_CONFIG)
         try:
+
+            with connection.cursor() as cursor:
+
+             # 1️⃣ Get current product state
+                cursor.execute("""
+                    SELECT product_id, product_name, image_path,
+                        stock, unit_id, price, per,
+                        exdate, barcode, catagory
+                    FROM product_list
+                    WHERE product_id = %s
+                """, (product_id,))
+
+                current_product = cursor.fetchone()
+
+                if not current_product:
+                    return jsonify({"error": "Product not found"}), 404
+
+                product_data = {
+                    "product_id": current_product[0],
+                    "product_name": current_product[1],
+                    "image_path": current_product[2],
+                    "stock": current_product[3],
+                    "unit_id": current_product[4],
+                    "price": current_product[5],
+                    "per": current_product[6],
+                    "exdate": current_product[7],
+                    "barcode": current_product[8],
+                    "catagory": current_product[9],
+                }
+
             # Database update logic
             # with pymysql.connect(**DB_CONFIG) as connection:
+            connection = pymysql.connect(**DB_CONFIG)
             with connection.cursor() as cursor:
                 cursor.execute(query, values)
-            connection.commit()
+                connection.commit()
         finally:
             connection.close()
         
-        product_logger(product_id, 'Updated')
+        product_logger(product_data, 'Updated')
 
         return jsonify({"success": True, "message": "Product updated successfully"}), 200
 
@@ -596,10 +712,37 @@ def delete_product():
     data = request.json
     connection = pymysql.connect(**DB_CONFIG)
     try:
-        product_logger(data['id'], 'Deleted')
         # with pymysql.connect(**DB_CONFIG) as connection:
         with connection.cursor() as cursor:
-            cursor.execute("DELETE FROM product_list WHERE product_id = %s", (data['id'],))
+                         # 1️⃣ Get current product state
+                cursor.execute("""
+                    SELECT product_id, product_name, image_path,
+                        stock, unit_id, price, per,
+                        exdate, barcode, catagory
+                    FROM product_list
+                    WHERE product_id = %s
+                """, (data['id'],))
+
+                current_product = cursor.fetchone()
+
+                if not current_product:
+                    return jsonify({"error": "Product not found"}), 404
+
+                product_data = {
+                    "product_id": current_product[0],
+                    "product_name": current_product[1],
+                    "image_path": current_product[2],
+                    "stock": current_product[3],
+                    "unit_id": current_product[4],
+                    "price": current_product[5],
+                    "per": current_product[6],
+                    "exdate": current_product[7],
+                    "barcode": current_product[8],
+                    "catagory": current_product[9],
+                }
+                product_logger(product_data, 'Deleted')
+
+                cursor.execute("DELETE FROM product_list WHERE product_id = %s", (data['id'],))
         connection.commit()
 
 
@@ -610,6 +753,196 @@ def delete_product():
     finally:
         connection.close()
 
+
+
+@app.route('/api/load-settings', methods=['GET'])
+@login_required
+def load_settings():
+    user_id = session['id']
+    connection = pymysql.connect(**DB_CONFIG)
+    try:
+        # with pymysql.connect(**DB_CONFIG) as connection:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT expiration_alert, theme FROM users WHERE id = %s", user_id)
+            row = cursor.fetchone()
+             
+
+        result = {'exdate_alert': row[0],
+                    'theme': row[1]}
+       
+        return jsonify(result)
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"error": "An error occurred while fetching data"}), 500
+
+    finally:
+        connection.close()
+
+@app.route('/api/get-settings', methods=['GET'])
+@login_required
+def get_settings():
+    user_id = session['id']
+
+    connection = pymysql.connect(**DB_CONFIG)
+    try:
+        # with pymysql.connect(**DB_CONFIG) as connection:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT expiration_alert FROM users WHERE id = %s", user_id)
+            row = cursor.fetchone()
+            
+            exdate_alert = row[0]
+
+            # cursor.execute("SELECT key FROM settings WHERE value = %s", 'tax_rate')
+            # tax_rate = cursor.fetchone
+
+            cursor.execute(""" SELECT 
+                                    u.symbol, 
+                                    u.name, 
+                                    t.low_stock_threshold,
+                                    u.id
+                                FROM units u  
+                                JOIN user_unit_thresholds t 
+                                ON t.unit_id = u.id AND t.user_id = %s;""", (user_id))
+
+            rows = cursor.fetchall()
+            
+
+        # result = {'exdate_alert': exdate_alert}
+        result = [{
+            'symbol': row[0],
+            'name': row[1],
+            'stock_threshold': row[2],
+            'unit_id': row[3]} for row in rows]
+
+
+        if session['user_type'] == 'Admin':
+             with connection.cursor() as cursor:
+                cursor.execute("""SELECT * FROM settings""")
+                settings = cursor.fetchall()
+
+                Settings_result = [{
+                    row[0]: row[1]} for row in settings]
+                return jsonify(result, exdate_alert, session['user_type'], session['alert_type'],session['theme'], Settings_result)
+                
+        else:
+            return jsonify(result, exdate_alert, session['user_type'], session['alert_type'],session['theme'])
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"error": "An error occurred while fetching data"}), 500
+
+    finally:
+        connection.close()
+
+
+# @app.route('/api/get-notification-settings', methods=['GET'])
+# @login_required
+# def get_notification_settings():
+#     notification_settings = session['alert_type']
+#     try:
+#         return jsonify({"notification_settings": notification_settings})
+#     except Exception as e:
+#         print(f"Error: {e}")
+#         return jsonify({"error": "An error occurred while fetching data"}), 500
+ 
+
+@app.route('/api/save-inventory-settings', methods=['POST'])
+@login_required
+def save_inventory_settings():
+    userId = session['id']
+    data = request.form.to_dict()
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+
+    placeholders = []
+    values = []
+
+    connection = pymysql.connect(**DB_CONFIG)
+    cursor = connection.cursor()
+
+    for key, value in data.items():
+        # skip non-unit fields
+        if not key.isdigit():
+            continue
+      
+
+        unit_id = int(key)
+        threshold = float(value)
+
+        placeholders.append("(%s, %s, %s)")
+        values.extend([userId, unit_id, threshold])
+
+    # only run query if there are thresholds
+    if values:
+        query_inventory = f"""
+            INSERT INTO user_unit_thresholds (user_id, unit_id, low_stock_threshold)
+            VALUES {', '.join(placeholders)}
+            ON DUPLICATE KEY UPDATE low_stock_threshold = VALUES(low_stock_threshold)
+        """
+        cursor.execute(query_inventory, values)
+
+    
+
+
+    if 'expiration_alert_days' in data:
+        cursor.execute("""
+            UPDATE users
+            SET expiration_alert = %s WHERE id = %s
+        """, (data['expiration_alert_days'], userId))
+
+    # tax rate
+    if 'tax_rate' in data:
+        cursor.execute("""
+        UPDATE settings
+        SET Setting_value =%s WHERE setting_key =%s
+        """, (data['tax_rate'], 'TAX'))
+
+    
+    connection.commit()
+    cursor.close()
+    connection.close()
+        
+    return jsonify({"success": True, "message": "Inventory Saved Successfully"}), 200
+
+
+@app.route('/api/save-notification-settings', methods=['POST'])
+@login_required
+def save_notification_settings():
+    userId = session['id']
+    data = request.form.to_dict()
+    value = data.get('notification')
+
+    if value not in ['InApp', 'Email', 'Both', 'None']:
+        return jsonify({"error": "Invalid notification value"}), 400
+
+    q = """
+        UPDATE users
+        SET notification =%s WHERE id =%s
+     """
+    connection = pymysql.connect(**DB_CONFIG)
+
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(q, (value, userId))
+        connection.commit()
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"error": "An error occurred while saving notification settings"}), 500
+
+    finally:
+        connection.close()
+    
+    return jsonify({"success": True, "message": "Notification Settings Saved Successfully"}), 200
+
+
+
+
+
+
+######################## Cart ######################################
+
 @app.route('/api/add-to-cart', methods=['POST'])
 @login_required
 def add_to_cart():
@@ -618,18 +951,22 @@ def add_to_cart():
        
         for product in request.json:
             product_id = product['id']
+            product_name = product['name']
+            product_image = product['image']
             quantity = product['quantity']
             price = product['price']
             date = product['date']
         
-            print(product_id, quantity, price, date)
+            print(product_id, quantity, price, date, product_name, product_image)
+
+
 
             # with pymysql.connect(**DB_CONFIG) as connection:
             with connection.cursor() as cursor:
                 sql = """INSERT INTO carts 
-                        (product_id, quantity, price, date) 
-                        VALUES (%s, %s, %s, %s)"""
-                cursor.execute(sql, (product_id, quantity, price, date))
+                        (product_id, quantity, price, date, product_name, image_url) 
+                        VALUES (%s, %s, %s, %s, %s, %s)"""
+                cursor.execute(sql, (product_id, quantity, price, date, product_name, product_image))
             connection.commit()
 
             # with pymysql.connect(**DB_CONFIG) as connection:
@@ -658,6 +995,8 @@ def add_to_cart():
             "message": "Product added successfully",
             "product": {
                 "product_id": product_id,
+                "product_name": product_name,
+                "product_image": product_image,
                 "quantity": quantity,
                 "price": price,
                 "date": date,
@@ -672,6 +1011,28 @@ def add_to_cart():
     finally:
         connection.close()
 
+
+@app.route('/api/get-units', methods=['GET'])
+def get_units():
+    connection = pymysql.connect(**DB_CONFIG)
+    try:
+        # with pymysql.connect(**DB_CONFIG) as connection:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT symbol FROM units")
+            rows = cursor.fetchall()
+      
+        print(rows)
+
+        result = [{'symbol': row[0],} for row in rows]
+        print(result) 
+        return jsonify(result)
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"error": "An error occurred while fetching data"}), 500
+
+    finally:
+        connection.close()
 
 @app.route('/api/get-history', methods=['GET'])
 @login_required
@@ -720,14 +1081,14 @@ def get_sales():
         # with pymysql.connect(**DB_CONFIG) as connection:
         with connection.cursor() as cursor:
             cursor.execute('''SELECT 
-                                carts.id AS cart_id, 
-                                product_list.product_name AS product_name, 
-                                product_list.image_path, 
-                                carts.quantity, 
-                                carts.price, 
-                                carts.date
+                                id AS cart_id, 
+                                product_name AS product_name, 
+                                image_url, 
+                                quantity, 
+                                price, 
+                                date
                             FROM carts
-                            JOIN product_list ON carts.product_id = product_list.product_id;
+                            
                             ''')
             rows = cursor.fetchall()
             #print(rows)
@@ -1052,13 +1413,13 @@ def download_excel():
 
     # Write headers on row 3 ONLY (row 1 is merged, row 2 is spacing)
     headers = ["Barcode", "Product Name", "Price", "Stock", "Unit", "Per", "Category", "Expiry Date"]
-    header_row = 3
+    header_row = 2
 
     for col, header in enumerate(headers, 1):
         ws.cell(row=header_row, column=col, value=header)
 
     # Write data starting at row 4
-    data_row_start = 4
+    data_row_start = header_row + 1
 
     for i, product in enumerate(products):
         row = data_row_start + i
@@ -1091,39 +1452,41 @@ def download_excel():
     )
 
 
-def product_logger(pd_id, operation):
+def product_logger(product_data, operation):
     user = session['username']
     time = datetime.now()
-    print(f'{pd_id} was {operation} at {time} by {user}')
-
+    # print(f'{pd_id} was {operation} at {time} by {user}')
+    print(product_data)
     connection = pymysql.connect(**DB_CONFIG)
     try:
         with connection.cursor() as cursor:
             # 🧩 If it's a delete operation, fetch product details before deletion
             
-            cursor.execute(
-                "SELECT product_name, image_path FROM product_list WHERE product_id = %s", 
-                (pd_id,)
-            )
-            product = cursor.fetchone()
-
-            # Only if product exists (should, before deletion)
-            if product:
-                product_name = product[0]   # if cursor not using DictCursor
-                image_path = product[1]
-            else:
-                product_name = None
-                image_path = None
-
-            # Insert into log including name and image
-            sql = """INSERT INTO product_log
-                        (operation, log_time, user, product_Id, product_name, image_path)
-                        VALUES (%s, %s, %s, %s, %s, %s)"""
-            cursor.execute(sql, (operation, time, user, pd_id, product_name, image_path))
-        
+                       cursor.execute("""
+                INSERT INTO product_log
+                (operation, log_time, user, product_id, product_name, image_path,
+                 stock, unit_id, price, per, exdate, barcode, catagory)
+                VALUES (%s, %s, %s, %s, %s,
+                        %s, %s, %s, %s, %s, %s, %s, %s)
+                """, (
+                    operation,
+                    time,
+                    user,
+                    product_data['product_id'],
+                    product_data['product_name'],
+                    product_data['image_path'],
+                    product_data['stock'],
+                    product_data['unit_id'],
+                    product_data['price'],
+                    product_data['per'],
+                    product_data['exdate'],
+                    product_data['barcode'],
+                    product_data['catagory']
+                ))
+            
+        connection.commit()
             
 
-            connection.commit()
 
     except Exception as e:
         print(f"Error: {e}")
@@ -1145,6 +1508,167 @@ def product_logger(pd_id, operation):
     #                             ON product_log.product_Id = product_list.product_id
     #                         ORDER BY product_log.log_time DESC;
     #                         '''
+
+
+
+# ============================
+# TASK MANAGEMENT SYSTEM
+# ============================
+
+def record_task_history(task_id, user_id, action):
+    con = pymysql.connect(**DB_CONFIG)
+    cur = con.cursor()
+    cur.execute("""
+        INSERT INTO task_history (task_id, user_id, action)
+        VALUES (%s, %s, %s)
+    """, (task_id, user_id, action))
+    con.commit()
+    con.close()
+
+
+@app.route("/api/tasks", methods=["GET"])
+@login_required
+def list_tasks():
+    status = request.args.get("status")
+    priority = request.args.get("priority")
+    search = request.args.get("search")
+
+    query = "SELECT * FROM tasks WHERE 1=1"
+    params = []
+
+    if status:
+        query += " AND status=%s"
+        params.append(status)
+
+    if priority:
+        query += " AND priority=%s"
+        params.append(priority)
+
+    if search:
+        query += " AND (title LIKE %s OR description LIKE %s)"
+        params.extend([f"%{search}%", f"%{search}%"])
+
+    con = pymysql.connect(**DB_CONFIG)
+    cur = con.cursor(pymysql.cursors.DictCursor)
+    cur.execute(query, params)
+    tasks = cur.fetchall()
+    con.close()
+ 
+    # decode JSON tags
+    for t in tasks:
+        try:
+            t["tags"] = json.loads(t["tags"]) if t["tags"] else []
+        except:
+            t["tags"] = []
+
+    return jsonify(tasks)
+
+
+@app.route("/api/tasks/create", methods=["POST"])
+@login_required
+def create_task():
+    data = request.json
+    user_id = session["id"]
+
+    tags = data.get("tags", "")
+    if isinstance(tags, str):
+        tags = json.dumps([t.strip() for t in tags.split(",") if t.strip()])
+
+    con = pymysql.connect(**DB_CONFIG)
+    cur = con.cursor()
+
+    cur.execute("""
+        INSERT INTO tasks 
+        (title, description, assigned_to, category, priority, due_date, tags)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
+    """, (
+        data.get("title"),
+        data.get("description"),
+        data.get("assigned_to"),
+        data.get("category"),
+        data.get("priority"),
+        data.get("due_date"),
+        tags
+    ))
+
+    task_id = cur.lastrowid
+    con.commit()
+    con.close()
+
+    record_task_history(task_id, user_id, "Task Created")
+
+    return jsonify({"status": "created", "id": task_id})
+
+
+@app.route("/api/tasks/<int:task_id>", methods=["GET"])
+@login_required
+def get_task(task_id):
+    con = pymysql.connect(**DB_CONFIG)
+    cur = con.cursor(pymysql.cursors.DictCursor)
+
+    cur.execute("SELECT * FROM tasks WHERE id=%s", (task_id,))
+    task = cur.fetchone()
+
+    if not task:
+        return jsonify({"error": "Task not found"}), 404
+
+    try:
+        task["tags"] = json.loads(task["tags"]) if task["tags"] else []
+    except:
+        task["tags"] = []
+
+    cur.execute("SELECT * FROM task_comments WHERE task_id=%s ORDER BY id DESC", (task_id,))
+    task["comments"] = cur.fetchall()
+
+    cur.execute("SELECT * FROM task_history WHERE task_id=%s ORDER BY id DESC", (task_id,))
+    task["history"] = cur.fetchall()
+
+    con.close()
+    return jsonify(task)
+
+
+@app.route("/api/tasks/<int:task_id>/comment", methods=["POST"])
+@login_required
+def add_task_comment(task_id):
+    data = request.json
+    user_id = session["id"]
+
+    con = pymysql.connect(**DB_CONFIG)
+    cur = con.cursor()
+
+    cur.execute("""
+        INSERT INTO task_comments (task_id, user_id, comment)
+        VALUES (%s, %s, %s)
+    """, (task_id, user_id, data["comment"]))
+
+    con.commit()
+    con.close()
+
+    record_task_history(task_id, user_id, "Added Comment")
+
+    return jsonify({"status": "comment_added"})
+
+
+@app.route("/api/tasks/<int:task_id>/status", methods=["POST"])
+@login_required
+def update_task_status(task_id):
+    data = request.json
+    user_id = session["id"]
+
+    con = pymysql.connect(**DB_CONFIG)
+    cur = con.cursor()
+
+    cur.execute("UPDATE tasks SET status=%s WHERE id=%s", (data["status"], task_id))
+    con.commit()
+    con.close()
+
+    record_task_history(task_id, user_id, f"Status changed to {data['status']}")
+
+    return jsonify({"status": "updated"})
+
+
+
+
 
 @app.route('/keepalive')
 def keepalive():

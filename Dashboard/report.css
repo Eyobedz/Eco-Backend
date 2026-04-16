@@ -1,0 +1,111 @@
+:root {
+    --active-color: #ECF3FF; /* cleaner light blue */
+    --table-header: #1A73E8; /* professional blue */
+    --table-header-text: #ffffff;
+    --border-color: #BFC8D8; /* soft gray */
+    --text-dark: #222;
+    --text-light: #555;
+    --filter-border: #1A73E8;
+    --filter-accent: #1A73E8;
+}
+
+/* BODY */
+body {
+    display: flex;
+    width: 99%;
+    background-color: #F7F9FC; /* soft neutral background */
+}
+
+/* MAIN REPORT CONTAINERS */
+.report-container {
+    display: none;
+    background-color: var(--active-color);
+    padding: 10px;
+    margin-top: 0px;
+    border: 1px solid var(--border-color);
+    height: 85%;
+}
+
+/* HEADERS */
+.headers h1, h1, h3, h5, h4 {
+    color: var(--text-dark);
+}
+
+/* ACTIVE BUTTON TAB */
+.active {
+    background-color: var(--active-color);
+    color: #000;
+    border-radius: 5px 5px 0 0;
+    border: 1px solid var(--border-color);
+    border-bottom: 6px solid var(--active-color);
+    scale: 1.13;
+}
+
+/* TABLES */
+table, th, td {
+    border: 1px solid var(--border-color);
+}
+
+thead {
+    background-color: var(--table-header) !important;
+    color: var(--table-header-text) !important;
+}
+
+/* Remove the bright aqua from tables */
+table {
+    background-color: #FFFFFF !important;
+}
+
+/* Alternate rows */
+tbody tr:nth-child(even) {
+    background-color: #F1F5FF; 
+}
+
+tbody tr:hover {
+    background-color: #E4ECFF;
+}
+
+/* TOTALS */
+.totals a h4 {
+    color: #1A73E8;
+}
+
+/* FILTER BUTTON */
+.filter-btn,
+.filter-btn i {
+    color: #5A667A;
+}
+
+/* FILTER MENU */
+.filterMenu {
+    border: 1px solid var(--filter-border);
+}
+
+/* FILTER HEADINGS */
+.filter-options p {
+    border-bottom: 0.5px dashed var(--filter-border);
+    color: var(--filter-border);
+}
+
+/* CHECKBOX ACCENT COLORS */
+.filter-checkbox,
+.stock-options input,
+.unit-options input,
+.per-options input,
+.category-options input,
+.expire-options input {
+    accent-color: var(--filter-accent);
+}
+
+/* FILTER FOOTER BUTTONS */
+.btn {
+    color: #1A73E8;
+}
+
+.clear-btn:hover {
+    color: #D93025; /* soft red */
+}
+
+.apply-btn:hover {
+    color: #188038; /* gentle green */
+}

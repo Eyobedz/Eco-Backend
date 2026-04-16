@@ -130,9 +130,10 @@ function fetchAndUpdateData() {
                 rowDiv.innerHTML = `
                     ${imgElement}
                     <h2 style="color: blue">${row.product_name}</h2>
-                    <p style="color: lime">ETB ${row.price} ${row.per}</p>
+                    <p>${row.stock} ${row.unit}</p>
+                    <p style="color: lime">ETB ${row.price} / ${row.per}</p>
                     <div class="cart-info">
-                        <input id='quanin' type="number" placeholder='Quantity'  min="1" max="${row.stock}" style="width: 50px; margin-right: 10px;">
+                        <input id='quanin' type="number" placeholder='Quantity'  min="1" max="${row.stock}" style="margin-right: 10px;">
                         <button class="add-to-cart" onclick="addToCart(this)">Add to Cart</button>
                     </div>
                 `;
@@ -147,13 +148,13 @@ function fetchAndUpdateData() {
             console.error('Error fetching data:', error.message || error);
             // alert('Failed to load data. Please try again later.');
             notifier.error('Failed to load data. Please try again later.', 3000);
+            noResult.style.display = 'block';
 
         })
 
         .finally(() => {
             // Hide loader after fetching data (success or error)
             GearboxLoader.hide();
-            noResult.style.display = 'block';
 
            
         });
@@ -370,6 +371,7 @@ function addToCart(button) {
     const product = button.closest('.product');
     const productId = product.getAttribute('data-id');
     const productName = product.getAttribute('data-name');
+    const productimage = product.getAttribute('data-image')
     const productPrice = parseFloat(product.getAttribute('data-price'));
     const productUnit = product.getAttribute('data-priceper'); // e.g., '100g' or 'kg'
     let quan = Math.abs(parseFloat(product.querySelector('input').value)) || 0; // Ensure valid quantity
@@ -407,11 +409,13 @@ function addToCart(button) {
             date: document.getElementById('cart-date').value,
             id: productId,
             name: productName,
+            image: productimage,
             price: productPricePerGram,
             unit: productUnit,
             quantity: quan,
             subtotal: subtotal
         });
+        product.querySelector('input').value = '';
     }
 
     
@@ -454,11 +458,12 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
 async function checkout () {
-    
     try {
         const formData = cart.map(product => {
             return {
                 id: product.id,
+                name: product.name,
+                image: product.image,
                 quantity: product.quantity,
                 price: product.price,
                 date: product.date
@@ -519,6 +524,7 @@ function clearCheckedItems() {
     const checkboxes = document.querySelectorAll('.cart-checkbox:checked');
     const clearButton = document.getElementById('clear-btn');
     const checkAll = document.getElementById('selectAllCheckbox');
+    const input = document.querySelectorAll('#quanin')
     let total = document.getElementById('total');
     
 
@@ -542,6 +548,10 @@ function clearCheckedItems() {
    
         row.remove();
        
+    });
+
+    input.forEach(input => {
+        input.value = '';
     });
 
     console.table(cart);
