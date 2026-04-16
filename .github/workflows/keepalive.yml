@@ -1,0 +1,18 @@
+name: Keep Services Awake
+
+on:
+  schedule:
+    # Two schedules in one workflow
+    - cron: "*/10 * * * *"   # every 10 minutes → Render
+    - cron: "0 */12 * * *"   # every 12 hours → Aiven
+  workflow_dispatch:           # manual trigger
+
+jobs:
+
+  ping_render:
+    if: github.event.schedule == '*/10 * * * *'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Render
+        run: curl -s ${{ secrets.RENDER_URL }} > /dev/null
+

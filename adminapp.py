@@ -1509,7 +1509,9 @@ def product_logger(product_data, operation):
     #                         ORDER BY product_log.log_time DESC;
     #                         '''
 
-
+@app.route('/keepalive')
+def keepalive():
+    return "OK", 200
 
 # ============================
 # TASK MANAGEMENT SYSTEM
