@@ -8,12 +8,14 @@
     <link rel="stylesheet" href="https://site-assets.fontawesome.com/releases/v6.7.2/css/all.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
-    <link rel="icon" href="/Elements/meh.png" type="image/png">
+    <link rel="icon" href="/Elements/Logo.png" type="image/png">
 
     <link rel="stylesheet" href="Elements/toastNotification.css">
     <script src="Elements/toastNotification.js"></script>
     <script defer src="Elements/loading1.js"></script>
     <script defer src="Elements/loading2.js"></script>
+    <!-- Barcode Scanner Library -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
 
    <style>
         /* home page */
@@ -297,6 +299,7 @@ nav a {
 }
 
 #accBtn {
+    anchor-name: --account-anchor;
     border-radius: 50%;
     /* height: auto;
     width: 20px;  */
@@ -320,8 +323,8 @@ nav a {
 
 .dropdown {
     inset: unset;
-    top: anchor(bottom);
-    right: anchor(center);
+    top: anchor(--account-anchor bottom);
+    right: anchor(--account-anchor right);
     border: 1px solid #ddd;
     border-radius: 5px;
     background: rgb(21, 77, 117);
@@ -610,6 +613,70 @@ footer {
     z-index: 200;
 }
 
+/* #reader {
+    width: 300px;
+    display: none;
+    border: 3px solid #ccc;
+    border-radius: 10px;
+    margin-top: 10px;
+    transition: 0.2s;
+} */
+
+/* Scan success effect */
+.scan-success {
+    border: 3px solid #00c853 !important;
+    box-shadow: 0 0 15px #00c853;
+}
+
+/* Optional button styling */
+#scanBtn {
+    margin-left: 10px;
+    cursor: pointer;
+}
+
+/* Scanner Modal */
+.scanner-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 999999;
+    background: rgba(0,0,0,0.7);
+    justify-content: center;
+    align-items: center;
+
+    padding: 15px;
+}
+
+.scanner-content {
+    width: 100%;
+    max-width: 420px;
+    background: white;
+    border-radius: 16px;
+    padding: 15px;
+    box-sizing: border-box;
+    animation: scannerPop 0.2s ease;
+}
+
+.scanner-close {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    cursor: pointer;
+}
+
+#reader {
+    width: 300px;
+    margin-top: 10px;
+    border-radius: 10px;
+    border: 3px solid #ccc;
+}
+
+/* success flash */
+.scan-success {
+    border: 3px solid #00c853 !important;
+    box-shadow: 0 0 15px #00c853;
+}
+
 #submitBtn {
     margin-top: 10px;
     padding: 5px;
@@ -727,11 +794,16 @@ footer {
     }
 
     #detail {
+        max-width: 500px;
         scale: 78%;
         top: 50%;
         left: 50%;
         transform: translate(-65%, -50%);
         padding: 5px;
+    }
+
+    #detimg{
+        max-width: 250px;
     }
 
     #closeBtn {
@@ -889,7 +961,7 @@ footer {
 
     /* Main content area */
     #main-content {
-        padding: 20px;
+        padding: 10px;
     }
 
     /* Make sure the specific text is on top of the sidebar */
@@ -943,7 +1015,7 @@ footer {
 
     <nav id="sidebar" class="nav-menu">
         <div id="logo" class="logo">
-            <img src="Elements/meh.png" alt="logo">
+            <img src="Elements/Logo.png" alt="logo">
             <p> Organic Invenntory Managment</p>
         </div>
         <div class="nav-header">
@@ -969,7 +1041,7 @@ footer {
         <header>
             <button class="fas fa-bars" id="hamburger-menu"></button>
             <div id="logo" class="logo">
-                <img src="Elements/meh.png" alt="logo">
+                <img src="Elements/Logo.png" alt="logo">
             <p> Organic Invenntory</p>
             </div>
 
@@ -1108,7 +1180,7 @@ footer {
         </section>
         
 
-        <!--add product popup form-->
+<!--############################ add product popup form ###############################-->
         <div id="addProduct">
             <button id="addBtn" title="Add new product">+</button>
         </div>
@@ -1155,25 +1227,77 @@ footer {
                     
                     <tr><td><Label for="expirationDate-input">Expiration date</Label><td>
                         <input type="date" id="expirationDate-input" placeholder="Expiration Date" ></td></tr>
-                    <tr><td><Label for="barcode">Barcode</Label><td>
-                        <input type="number" id="barcode" placeholder="Barcode"></td></tr>
-                    <tr><td><Label for="image-input">Image</Label><td>
-                        <input type="file" id="image-input" accept="image/*"></td></tr>
-                    <tr><td>
-                        <td><button type="submit" id="submitBtn">Add Product</button></td></tr>
-                
-                </table>
-            </form>
-       
+                    
+                       <!-- Barcode + Scan -->
+            <tr><td><label>Barcode</label></td>
+                <td>
+                    <input type="text" id="barcode" placeholder="Scan or type">
+                    <button type="button" id="scanBtn" onclick="startScanner()">Scan</button>
+                </td>
+            </tr>
+
+            <!-- ========================= -->
+            <!-- SCANNER MODAL -->
+            <!-- ========================= -->
+
+            <div id="scannerModal" class="scanner-modal">
+
+                <div class="scanner-content">
+
+                    <!-- Header -->
+                    <div class="scanner-header">
+                        <h3>Scan Barcode</h3>
+
+                        <button type="button" id="closeScanner" class="scanner-close">
+                            ✖
+                        </button>
+                    </div>
+
+                    <!-- Camera Controls -->
+                    <div class="scanner-controls">
+
+                        <!-- Camera Picker -->
+                        <select id="cameraSelect"></select>
+
+                        <!-- Torch Button -->
+                        <button type="button" id="torchBtn">
+                            🔦 Torch
+                        </button>
+
+                    </div>
+
+                    <!-- Scanner -->
+                    <div id="reader"></div>
+
+                    <!-- Status -->
+                    <div id="scannerStatus"></div>
+
+                </div>
+            </div>
+            
+
+
+            <tr><td><Label for="image-input">Image</Label><td>
+                <input type="file" id="image-input" accept="image/*"></td></tr>
+            <tr><td>
+                <td><button type="submit" id="submitBtn">Add Product</button></td></tr>
         
-            <div id="message"></div>
+        </table>
+    </form>
+
+
+
+            <!-- Beep Sound -->
+            <audio id="beep-sound" preload="auto">
+                <source src="Elements/beep.mp3" type="audio/ogg">
+            </audio>
         </div>
 
     </main>
 
 
 
-        <!-- view deatail button popup -->
+<!--############################ view deatail button popup ############################ -->
         <div id="detail" style="display: none;">
             <div >
                 <button id="closeBtn" title="close">X</button>
@@ -1234,7 +1358,7 @@ footer {
         </div>
             
         
-        <!--Edit Details-->
+<!--############################ Edit Details ###########################-->
   
         <div id="editform" style="display: none;">
             <div><button id="editcloseBtn">X</button></div>
@@ -1283,7 +1407,7 @@ footer {
                     <tr><td><Label for="edit-expirationDate-input">Expiration date</Label><td>
                         <input type="date" name="exdate" id="edit-expirationDate-input" placeholder="Expiration Date" ></td></tr>
                     <tr><td><Label for="edit-barcode">Barcode</Label><td>
-                        <input type="number" name="barcode" id="edit-barcode" placeholder="Barcode"></td></tr>
+                        <input type="text" name="barcode" id="edit-barcode" placeholder="Barcode"></td></tr>
                     <tr><td><Label for="edit-image-input">Image</Label><td>
                         <input type="file" name="image" id="edit-image-input" accept="image/*"></td></tr>
                 </table>
@@ -2238,6 +2362,418 @@ searchInput.addEventListener("keypress", function(event) {
 //     // Start observing the product container
 //     observer.observe(productContainer, config);
 // }
+
+
+
+let scanner = null;
+
+let lastScannedCode = null;
+let lastScanTime = 0;
+
+let currentCameraId = null;
+
+let torchEnabled = false;
+
+const modal = document.getElementById("scannerModal");
+
+const reader = document.getElementById("reader");
+
+const cameraSelect = document.getElementById("cameraSelect");
+
+const torchBtn = document.getElementById("torchBtn");
+
+const statusText = document.getElementById("scannerStatus");
+
+/* ========================= */
+/* OPEN SCANNER */
+/* ========================= */
+
+async function startScanner() {
+
+    modal.style.display = "flex";
+
+    statusText.innerText = "Loading camera...";
+
+    try {
+
+        // cleanup old scanner
+        if (scanner) {
+            await stopScanner();
+        }
+
+        scanner = new Html5Qrcode("reader");
+
+        const devices = await Html5Qrcode.getCameras();
+
+        if (!devices || devices.length === 0) {
+
+            statusText.innerText = "No cameras found";
+            return;
+        }
+
+        /* ========================= */
+        /* CAMERA DROPDOWN */
+        /* ========================= */
+
+        cameraSelect.innerHTML = "";
+
+        devices.forEach(device => {
+
+            const option = document.createElement("option");
+
+            option.value = device.id;
+
+            option.text =
+                device.label || `Camera ${cameraSelect.length + 1}`;
+
+            cameraSelect.appendChild(option);
+        });
+
+        /* ========================= */
+        /* AUTO SELECT BEST CAMERA */
+        /* ========================= */
+
+        const preferredCamera = devices.find(d => {
+
+            const label = d.label.toLowerCase();
+
+            return (
+                (label.includes("back") ||
+                 label.includes("rear")) &&
+
+                !label.includes("ultra") &&
+                !label.includes("wide") &&
+                !label.includes("macro") &&
+                !label.includes("tele")
+            );
+        });
+
+        currentCameraId =
+            preferredCamera?.id || devices[0].id;
+
+        cameraSelect.value = currentCameraId;
+
+        await beginScanning(currentCameraId);
+
+    } catch (err) {
+
+        console.error(err);
+
+        statusText.innerText = "Failed to start camera";
+    }
+}
+
+/* ========================= */
+/* START CAMERA */
+/* ========================= */
+
+async function beginScanning(cameraId) {
+
+    currentCameraId = cameraId;
+
+    statusText.innerText = "Scanning...";
+
+    await scanner.start(
+
+        { deviceId: { exact: cameraId } },
+
+        {
+            fps: 10,
+
+            qrbox: {
+                width: 250,
+                height: 250
+            }
+        },
+
+        onScanSuccess,
+
+        () => {}
+    );
+}
+
+/* ========================= */
+/* SCAN SUCCESS */
+/* ========================= */
+
+function onScanSuccess(decodedText) {
+
+    const now = Date.now();
+
+    // duplicate prevention
+    if (
+        decodedText === lastScannedCode &&
+        now - lastScanTime < 2000
+    ) {
+        return;
+    }
+
+    lastScannedCode = decodedText;
+    lastScanTime = now;
+
+    // fill barcode
+    document.getElementById("barcode").value =
+        decodedText;
+
+    // beep
+    const beep = document.getElementById("beep-sound");
+
+    beep.currentTime = 0;
+
+    beep.play().catch(() => {});
+
+    // flash
+    reader.classList.add("scan-success");
+
+    setTimeout(() => {
+        reader.classList.remove("scan-success");
+    }, 300);
+
+    // close
+    stopScanner();
+}
+
+/* ========================= */
+/* STOP */
+/* ========================= */
+
+async function stopScanner() {
+
+    try {
+
+        if (scanner) {
+
+            await scanner.stop();
+
+            await scanner.clear();
+
+            scanner = null;
+        }
+
+    } catch (err) {
+
+        console.warn(err);
+
+        scanner = null;
+    }
+
+    modal.style.display = "none";
+
+    reader.innerHTML = "";
+
+    statusText.innerText = "";
+}
+
+/* ========================= */
+/* CAMERA SWITCH */
+/* ========================= */
+
+cameraSelect.addEventListener("change", async () => {
+
+    if (!scanner) return;
+
+    try {
+
+        await scanner.stop();
+
+        await scanner.clear();
+
+        scanner = new Html5Qrcode("reader");
+
+        await beginScanning(cameraSelect.value);
+
+    } catch (err) {
+
+        console.error(err);
+    }
+});
+
+/* ========================= */
+/* TORCH */
+/* ========================= */
+
+torchBtn.addEventListener("click", async () => {
+
+    try {
+
+        const track =
+            scanner.getRunningTrackSettings();
+
+        const capabilities =
+            scanner.getRunningTrackCapabilities();
+
+        if (!capabilities.torch) {
+
+            alert("Torch not supported");
+
+            return;
+        }
+
+        torchEnabled = !torchEnabled;
+
+        await scanner.applyVideoConstraints({
+            advanced: [{ torch: torchEnabled }]
+        });
+
+        torchBtn.innerText =
+            torchEnabled ? "🔦 Torch ON" : "🔦 Torch";
+
+    } catch (err) {
+
+        console.error(err);
+    }
+});
+
+/* ========================= */
+/* CLOSE EVENTS */
+/* ========================= */
+
+document
+.getElementById("closeScanner")
+.addEventListener("click", stopScanner);
+
+window.addEventListener("click", (e) => {
+
+    if (e.target === modal) {
+
+        stopScanner();
+    }
+});
+
+document.addEventListener("keydown", (e) => {
+
+    if (e.key === "Escape") {
+
+        stopScanner();
+    }
+});
+
+
+
+
+// let scanner = null;
+// let lastScannedCode = null;
+// let lastScanTime = 0;
+
+// const modal = document.getElementById("scannerModal");
+// const reader = document.getElementById("reader");
+
+// // Open scanner
+// async function startScanner() {
+//     modal.style.display = "flex";
+
+//     // prevent double init
+//     if (scanner) {
+//         await stopScanner();
+//     }
+
+//     scanner = new Html5Qrcode("reader");
+
+//     try {
+//         const devices = await Html5Qrcode.getCameras();
+
+//         if (!devices || devices.length === 0) {
+//             alert("No camera found");
+//             stopScanner();
+//             return;
+//         }
+
+//         // Try to pick best BACK camera (avoids ultra-wide on most phones)
+//      // Better camera selection
+// const backCamera =
+//     // Prefer main rear camera
+//     devices.find(d => {
+//         const label = d.label.toLowerCase();
+
+//         return (
+//             (label.includes("back") || label.includes("rear")) &&
+//             !label.includes("ultra") &&
+//             !label.includes("wide") &&
+//             !label.includes("macro") &&
+//             !label.includes("tele")
+//         );
+//     })
+
+//     // fallback to any rear camera
+//     || devices.find(d =>
+//         d.label.toLowerCase().includes("back") ||
+//         d.label.toLowerCase().includes("rear")
+//     )
+
+//     // final fallback
+//     || devices[0];
+
+//         await scanner.start(
+//             { deviceId: { exact: backCamera.id } },   // 👈 IMPORTANT FIX
+//             {
+//                 fps: 10,
+//                 qrbox: 250
+//             },
+
+//             (decodedText) => {
+//                 const now = Date.now();
+
+//                 if (
+//                     decodedText === lastScannedCode &&
+//                     (now - lastScanTime < 2000)
+//                 ) {
+//                     return;
+//                 }
+
+//                 lastScannedCode = decodedText;
+//                 lastScanTime = now;
+
+//                 document.getElementById("barcode").value = decodedText;
+
+//                 const beep = document.getElementById("beep-sound");
+//                 beep.currentTime = 0;
+//                 beep.play().catch(() => {});
+
+//                 reader.classList.add("scan-success");
+//                 setTimeout(() => reader.classList.remove("scan-success"), 300);
+
+//                 stopScanner();
+//             },
+
+//             () => {}
+//         );
+
+//     } catch (err) {
+//         console.error(err);
+//         alert("Camera failed. Try HTTPS or different browser.");
+//         stopScanner();
+//     }
+// }
+
+// // Stop + cleanup (fixed async safety)
+// async function stopScanner() {
+//     try {
+//         if (scanner) {
+//             await scanner.stop();
+//             await scanner.clear();
+//             scanner = null;
+//         }
+//     } catch (e) {
+//         console.warn("Scanner stop error:", e);
+//         scanner = null;
+//     }
+
+//     modal.style.display = "none";
+// }
+
+// // Close button
+// document.getElementById("closeScanner").addEventListener("click", stopScanner);
+
+// // Click outside
+// window.addEventListener("click", (e) => {
+//     if (e.target === modal) stopScanner();
+// });
+
+// // ESC key
+// document.addEventListener("keydown", (e) => {
+//     if (e.key === "Escape") stopScanner();
+// });
+
 
 function formatDate(dateString) {
     // Current implementation doesn't handle invalid dates

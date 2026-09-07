@@ -14,6 +14,10 @@ import cloudinary
 import cloudinary.uploader
 import cloudinary.api
 from cloudinary.exceptions import NotFound
+from googleapiclient.discovery import build
+from google.oauth2.credentials import Credentials
+from email.mime.text import MIMEText
+import base64
 
 
 from openpyxl import load_workbook
@@ -52,6 +56,29 @@ cloudinary.config(
     api_secret = os.getenv("CL_API_SECRET"), # Click 'View API Keys' above to copy your API secret
     secure=True
 )
+
+#Email Configuration
+SCOPES = ['https://www.googleapis.com/auth/gmail.send']
+
+def get_gmail_service():
+    token_json = json.loads(os.getenv("GMAIL_TOKEN_JSON"))
+    creds = Credentials.from_authorized_user_info(token_json, SCOPES)
+    return build('gmail', 'v1', credentials=creds)
+
+def send_gmail(recipient, subject, message_text):
+    service = get_gmail_service()
+
+    message = MIMEText(message_text)
+    message['to'] = recipient
+    message['subject'] = subject
+
+    raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
+
+    service.users().messages().send(
+        userId="me",
+        body={"raw": raw}
+    ).execute()
+
 
 # DB_CONFIG = {
 #     "host": "localhost",
@@ -161,6 +188,55 @@ def logout():
 # @login_required
 def serve_file(path):
     return send_from_directory('.', path)
+
+
+#Email Setup
+@app.route("/send-email", methods=['POST'])
+@login_required
+def send_email():
+    username = session.get('username', 'Unknown User')
+    subject = request.form.get('subject')
+    message_text = request.form.get('message')
+
+    if not subject or not message_text:
+        return jsonify({"error": "Missing fields"}), 400
+
+    if len(subject) > 200 or len(message_text) > 2000:
+        return jsonify({"error": "Message too long"}), 400
+
+    try:
+        send_gmail(
+            recipient=os.getenv("ADMIN_EMAIL"),
+            subject=f'{subject} from {username}',
+            message_text=message_text
+        )
+        return jsonify({"success": True})
+
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc())
+        return jsonify({"error": "Failed to send email"}), 500
+
+# @app.route("/send-email", methods=['POST'])
+# @login_required
+# def send_email():
+#     # recipient = request.form.get('email')
+#     username = session['username']
+#     subject = request.form.get('subject')
+#     message_text = request.form.get('message')
+
+#     try:
+#         send_gmail(
+#             recipient="eyobedzenebe97@gmail.com",
+#             # recipient="eyobsmax@gmail.com",
+#             # recipient="etlprofession@gmail.com",
+
+#             subject=f'{subject} from {username}',
+#             message_text=message_text
+#         )
+#         return "Email sent!"
+#     except Exception as e:
+#         return f"ERROR: {e}"
 
 # @app.route('/<path:path>')
 # # @login_required
@@ -1677,3 +1753,4 @@ def update_task_status(task_id):
 if __name__ == '__main__':
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
     app.run(debug=True)
+    # app.run(host="0.0.0.0", port=5000, ssl_context="adhoc")

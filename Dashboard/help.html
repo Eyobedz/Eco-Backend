@@ -4,11 +4,74 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Help</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="stylesheet" href="/Elements/toastNotification.css">
+
+
+    <script src="/Elements/toastNotification.js"></script>
+    <!-- <script defer src="Elements/loading1.js"></script>
+    <script defer src="Elements/loading2.js"></script> -->
 </head>
 <body>
     <h1>Help</h1>
-    <p>This is the help page where you can get help with the app.</p>
-    <p>Use the sidebar to navigate to other sections of the dashboard.</p>
-    <!-- <iframe src="https://scribehow.com/embed/Add_a_New_Product_to_Organic_Pro__n3JDkM38TbKyxP36ROyWAw?as=scrollable" width="100%" height="800" allow="fullscreen" style="border: 0; min-height: 640px"></iframe> -->
+    <p>Contact the Admin for any help or support.</p>
+
+    <form id="help-form" method="post">
+        <input type="text" name="subject" placeholder="Subject" required minlength="3">
+        <textarea name="message" placeholder="Message" required minlength="10"></textarea>
+        <button type="submit">Send</button>
+    </form>
+
+    <p id="status"></p>
+
+<script>
+    const notifier = new ToastNotification();
+    document.getElementById('help-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const form = e.target;
+        const status = document.getElementById('status');
+        const button = form.querySelector('button');
+
+        const formData = new FormData(form);
+
+        status.textContent = "Sending...";
+        button.disabled = true;
+
+        try {
+            const response = await fetch('/send-email', {
+                method: 'POST',
+                body: formData
+            });
+
+            // Handle non-JSON responses safely
+            let result;
+            try {
+                result = await response.json();
+            } catch {
+                throw new Error("Invalid server response");
+            }
+
+            if (response.ok) {
+                // status.textContent = "Message sent successfully!";
+                form.reset();
+                notifier.success("Message sent successfully!");
+            } else {
+                status.textContent = result.error || "Failed to send message.";
+                notifier.error(result.error || "Failed to send message.");
+
+            }
+
+        } catch (err) {
+            status.textContent = "Network or server error. Try again.";
+            notifier.error("Network or server error. Try again.");
+        } finally {
+            status.textContent = "";
+            button.disabled = false;
+        }
+    });
+</script>
+
 </body>
 </html>
