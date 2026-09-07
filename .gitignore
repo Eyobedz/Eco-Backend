@@ -10,3 +10,7 @@ emailtest2.py
 Test
 Email
 TO-DO.txt
+tokenOLD.json
+credentialsOLD.json
+token*.json
+credentials*.json
