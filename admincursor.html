@@ -2364,39 +2364,34 @@ searchInput.addEventListener("keypress", function(event) {
 // }
 
 
-
 let scanner = null;
-
 let lastScannedCode = null;
 let lastScanTime = 0;
-
 let currentCameraId = null;
-
 let torchEnabled = false;
 
+// Saved camera preference
+const SAVED_CAMERA_KEY = "barcodeScannerDefaultCamera";
+
 const modal = document.getElementById("scannerModal");
-
 const reader = document.getElementById("reader");
-
 const cameraSelect = document.getElementById("cameraSelect");
-
 const torchBtn = document.getElementById("torchBtn");
-
 const statusText = document.getElementById("scannerStatus");
 
-/* ========================= */
-/* OPEN SCANNER */
-/* ========================= */
+
+/* =========================
+   OPEN SCANNER
+========================= */
 
 async function startScanner() {
 
     modal.style.display = "flex";
-
     statusText.innerText = "Loading camera...";
 
     try {
 
-        // cleanup old scanner
+        // Cleanup old scanner
         if (scanner) {
             await stopScanner();
         }
@@ -2411,61 +2406,128 @@ async function startScanner() {
             return;
         }
 
-        /* ========================= */
-        /* CAMERA DROPDOWN */
-        /* ========================= */
+
+        /* =========================
+           CAMERA DROPDOWN
+        ========================= */
 
         cameraSelect.innerHTML = "";
 
-        devices.forEach(device => {
+        devices.forEach((device, index) => {
 
             const option = document.createElement("option");
 
             option.value = device.id;
 
             option.text =
-                device.label || `Camera ${cameraSelect.length + 1}`;
+                device.label ||
+                `Camera ${index + 1}`;
 
             cameraSelect.appendChild(option);
+
         });
 
-        /* ========================= */
-        /* AUTO SELECT BEST CAMERA */
-        /* ========================= */
 
-        const preferredCamera = devices.find(d => {
+        /* =========================
+           LOAD SAVED CAMERA
+        ========================= */
 
-            const label = d.label.toLowerCase();
+        const savedCameraId =
+            localStorage.getItem(SAVED_CAMERA_KEY);
 
-            return (
-                (label.includes("back") ||
-                 label.includes("rear")) &&
-
-                !label.includes("ultra") &&
-                !label.includes("wide") &&
-                !label.includes("macro") &&
-                !label.includes("tele")
+        const savedCameraExists =
+            devices.some(
+                device => device.id === savedCameraId
             );
-        });
 
-        currentCameraId =
-            preferredCamera?.id || devices[0].id;
 
+        /* =========================
+           SELECT CAMERA
+        ========================= */
+
+        if (savedCameraExists) {
+
+            // Use the camera selected previously
+            currentCameraId = savedCameraId;
+
+        } else {
+
+            /*
+             * No saved camera, or saved camera
+             * is no longer available.
+             *
+             * Try to find a normal rear camera.
+             * Avoid ultra-wide, macro and telephoto.
+             */
+
+            const preferredCamera = devices.find(device => {
+
+                const label =
+                    device.label.toLowerCase();
+
+                return (
+
+                    (
+                        label.includes("back") ||
+                        label.includes("rear")
+                    )
+
+                    &&
+
+                    !label.includes("ultra")
+                    &&
+                    !label.includes("wide")
+                    &&
+                    !label.includes("macro")
+                    &&
+                    !label.includes("tele")
+                );
+
+            });
+
+
+            // Use preferred camera or first available camera
+            currentCameraId =
+                preferredCamera?.id ||
+                devices[0].id;
+
+
+            // Save the automatically selected camera
+            localStorage.setItem(
+                SAVED_CAMERA_KEY,
+                currentCameraId
+            );
+
+        }
+
+
+        // Update dropdown
         cameraSelect.value = currentCameraId;
 
+
+        // Reset torch
+        torchEnabled = false;
+        torchBtn.innerText = "🔦 Torch";
+
+
+        // Start scanning
         await beginScanning(currentCameraId);
 
     } catch (err) {
 
-        console.error(err);
+        console.error("Scanner start error:", err);
 
-        statusText.innerText = "Failed to start camera";
+        statusText.innerText =
+            "Failed to start camera";
+
     }
+
 }
 
-/* ========================= */
-/* START CAMERA */
-/* ========================= */
+
+/* =========================
+   START CAMERA
+========================= */
 
 async function beginScanning(cameraId) {
 
@@ -2475,10 +2537,14 @@ async function beginScanning(cameraId) {
 
     await scanner.start(
 
-        { deviceId: { exact: cameraId } },
+        {
+            deviceId: {
+                exact: cameraId
+            }
+        },
 
         {
-            fps: 10,
+            fps: 30,
 
             qrbox: {
                 width: 250,
@@ -2489,53 +2555,97 @@ async function beginScanning(cameraId) {
         onScanSuccess,
 
         () => {}
+
     );
+
 }
 
-/* ========================= */
-/* SCAN SUCCESS */
-/* ========================= */
+
+/* =========================
+   SCAN SUCCESS
+========================= */
 
 function onScanSuccess(decodedText) {
 
     const now = Date.now();
 
-    // duplicate prevention
+
+    /* =========================
+       DUPLICATE PREVENTION
+    ========================= */
+
     if (
+
         decodedText === lastScannedCode &&
+
         now - lastScanTime < 2000
+
     ) {
+
         return;
+
     }
+
 
     lastScannedCode = decodedText;
     lastScanTime = now;
 
-    // fill barcode
-    document.getElementById("barcode").value =
-        decodedText;
 
-    // beep
-    const beep = document.getElementById("beep-sound");
+    /* =========================
+       FILL BARCODE
+    ========================= */
 
-    beep.currentTime = 0;
+    const barcodeInput =
+        document.getElementById("barcode");
 
-    beep.play().catch(() => {});
+    if (barcodeInput) {
 
-    // flash
+        barcodeInput.value = decodedText;
+
+    }
+
+
+    /* =========================
+       BEEP
+    ========================= */
+
+    const beep =
+        document.getElementById("beep-sound");
+
+    if (beep) {
+
+        beep.currentTime = 0;
+
+        beep.play().catch(() => {});
+
+    }
+
+
+    /* =========================
+       GREEN FLASH
+    ========================= */
+
     reader.classList.add("scan-success");
 
     setTimeout(() => {
+
         reader.classList.remove("scan-success");
+
     }, 300);
 
-    // close
+
+    /* =========================
+       CLOSE SCANNER
+    ========================= */
+
     stopScanner();
+
 }
 
-/* ========================= */
-/* STOP */
-/* ========================= */
+
+/* =========================
+   STOP SCANNER
+========================= */
 
 async function stopScanner() {
 
@@ -2548,105 +2658,241 @@ async function stopScanner() {
             await scanner.clear();
 
             scanner = null;
+
         }
 
     } catch (err) {
 
-        console.warn(err);
+        console.warn(
+            "Scanner stop error:",
+            err
+        );
 
         scanner = null;
+
     }
 
+
+    // Reset torch
+    torchEnabled = false;
+
+    if (torchBtn) {
+
+        torchBtn.innerText = "🔦 Torch";
+
+    }
+
+
+    // Close modal
     modal.style.display = "none";
 
+
+    // Clear camera display
     reader.innerHTML = "";
 
+
+    // Clear status
     statusText.innerText = "";
+
 }
 
-/* ========================= */
-/* CAMERA SWITCH */
-/* ========================= */
 
-cameraSelect.addEventListener("change", async () => {
+/* =========================
+   CAMERA SWITCH
+========================= */
 
-    if (!scanner) return;
+cameraSelect.addEventListener(
+    "change",
+    async () => {
 
-    try {
+        const selectedCameraId =
+            cameraSelect.value;
 
-        await scanner.stop();
 
-        await scanner.clear();
+        /*
+         * SAVE CAMERA SELECTION
+         *
+         * This is what makes the selected
+         * camera the default next time.
+         */
 
-        scanner = new Html5Qrcode("reader");
+        localStorage.setItem(
+            SAVED_CAMERA_KEY,
+            selectedCameraId
+        );
 
-        await beginScanning(cameraSelect.value);
 
-    } catch (err) {
+        currentCameraId =
+            selectedCameraId;
 
-        console.error(err);
-    }
-});
 
-/* ========================= */
-/* TORCH */
-/* ========================= */
+        // Reset torch
+        torchEnabled = false;
 
-torchBtn.addEventListener("click", async () => {
+        torchBtn.innerText =
+            "🔦 Torch";
 
-    try {
 
-        const track =
-            scanner.getRunningTrackSettings();
-
-        const capabilities =
-            scanner.getRunningTrackCapabilities();
-
-        if (!capabilities.torch) {
-
-            alert("Torch not supported");
-
+        if (!scanner) {
             return;
         }
 
-        torchEnabled = !torchEnabled;
 
-        await scanner.applyVideoConstraints({
-            advanced: [{ torch: torchEnabled }]
-        });
+        try {
 
-        torchBtn.innerText =
-            torchEnabled ? "🔦 Torch ON" : "🔦 Torch";
+            statusText.innerText =
+                "Switching camera...";
 
-    } catch (err) {
 
-        console.error(err);
+            // Stop current camera
+            await scanner.stop();
+
+            await scanner.clear();
+
+
+            // Create new scanner
+            scanner =
+                new Html5Qrcode("reader");
+
+
+            // Start selected camera
+            await beginScanning(
+                selectedCameraId
+            );
+
+
+        } catch (err) {
+
+            console.error(
+                "Camera switch failed:",
+                err
+            );
+
+            statusText.innerText =
+                "Failed to switch camera";
+
+        }
+
     }
-});
+);
 
-/* ========================= */
-/* CLOSE EVENTS */
-/* ========================= */
+
+/* =========================
+   TORCH
+========================= */
+
+torchBtn.addEventListener(
+    "click",
+    async () => {
+
+        try {
+
+            if (!scanner) {
+                return;
+            }
+
+
+            const capabilities =
+                scanner.getRunningTrackCapabilities();
+
+
+            if (!capabilities.torch) {
+
+                alert(
+                    "Torch is not supported by this camera."
+                );
+
+                return;
+
+            }
+
+
+            torchEnabled =
+                !torchEnabled;
+
+
+            await scanner.applyVideoConstraints({
+
+                advanced: [
+                    {
+                        torch: torchEnabled
+                    }
+                ]
+
+            });
+
+
+            torchBtn.innerText =
+                torchEnabled
+                    ? "🔦 Torch ON"
+                    : "🔦 Torch";
+
+
+        } catch (err) {
+
+            console.error(
+                "Torch error:",
+                err
+            );
+
+        }
+
+    }
+);
+
+
+/* =========================
+   CLOSE BUTTON
+========================= */
 
 document
-.getElementById("closeScanner")
-.addEventListener("click", stopScanner);
+    .getElementById("closeScanner")
+    .addEventListener(
+        "click",
+        (event) => {
 
-window.addEventListener("click", (e) => {
+            event.preventDefault();
 
-    if (e.target === modal) {
+            stopScanner();
 
-        stopScanner();
+        }
+    );
+
+
+/* =========================
+   CLICK OUTSIDE MODAL
+========================= */
+
+window.addEventListener(
+    "click",
+    (event) => {
+
+        if (event.target === modal) {
+
+            stopScanner();
+
+        }
+
     }
-});
+);
 
-document.addEventListener("keydown", (e) => {
 
-    if (e.key === "Escape") {
+/* =========================
+   ESC KEY
+========================= */
 
-        stopScanner();
+document.addEventListener(
+    "keydown",
+    (event) => {
+
+        if (event.key === "Escape") {
+
+            stopScanner();
+
+        }
+
     }
-});
+);
 
 
 
